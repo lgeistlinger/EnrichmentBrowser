@@ -1,0 +1,268 @@
+# GGEA, 16 June 2014
+
+###
+#
+# GGEA - main function
+#
+# @param:   
+#   eset        ... ExpressionSet R object
+#   gs      ... Gene sets
+#   grn     ... Gene regulatory network
+#               (3 cols: Regulator, Target, Effect)
+#   alpha       ... Significance level. Defaults to 0.05.
+#   beta        ... Significant log2 fold change level. Defaults to 1 (two-fold). 
+#   perm        ... Number of sample permutations. Defaults to 1000.
+#
+# @returns: the GGEA enrichment table
+#
+###         
+ggea <- function(eset, gs, grn, 
+    alpha=0.05, beta=1, perm=1000, gs.edges=c("&", "|"))
+{
+    # restrict to relevant genes 
+    # in the intersection of eset, gs, and grn
+    gs.genes <- unique(unlist(gs))
+    grn.genes <- unique(c(grn[,1], grn[,2]))
+    eset.genes <- featureNames(eset)
+    rel.genes <- intersect(intersect(gs.genes, grn.genes), eset.genes)
+    eset <- eset[rel.genes,]
+
+    # map gs & grn to indices implied by fDat
+    # due to performance issues, transforms character2integer
+    # map gene.id -> index, e.g. "b0031" -> 10
+    fDat <- as.matrix(fData(eset)[, c(FC.COL, ADJP.COL)])
+    fMap <- seq_len(nrow(fDat))
+    names(fMap) <- rownames(fDat) 
+        
+    # transform gene sets & regulatory network
+    grn <- transform.grn(grn, fMap)
+    gs <- transform.gs(gs, fMap)
+    gs.grns <- sapply(gs, function(s) query.grn(s, grn, gs.edges)) 
+    
+    # observed scores.tbl
+    nr.rels <- sapply(gs.grns, length)
+
+    # compute consistency scores for gene sets  
+    grn.cons <- score.grn(fDat, grn, alpha, beta) 
+    gs.cons <- sapply(gs.grns, function(gg) sum(grn.cons[gg]))
+    res.tbl <- cbind(nr.rels, gs.cons)
+    colnames(res.tbl) <- c("NR.RELS", "RAW.SCORE")
+    ind <- (res.tbl[,"NR.RELS"] >= GS.MIN.SIZE) 
+        #& (res.tbl[,"NR.RELS"] <= GS.MAX.SIZE)
+    res.tbl <- res.tbl[ind,]
+    res.tbl <- cbind(res.tbl, res.tbl[,"RAW.SCORE"] / res.tbl[,"NR.RELS"])
+    colnames(res.tbl)[ncol(res.tbl)] <- "NORM.SCORE" 
+
+    # random permutation
+    gs.grns <- gs.grns[ind]
+    if(perm > 0)
+        ps <- perm.pval(eset, grn, gs.grns, 
+            obs.scores=res.tbl[,"RAW.SCORE"], perm, alpha, beta)
+    else ps <- approx.pval(res.tbl, stat="normal")
+    res.tbl <- cbind(res.tbl, ps)
+    colnames(res.tbl)[ncol(res.tbl)] <- "P.VALUE" 
+    res.tbl <- res.tbl[order(ps),]
+    return(res.tbl)
+}
+
+score.grn <- function(fDat, grn, alpha, beta)
+{
+    de <- comp.de(fDat, alpha=alpha, beta=beta)
+    de.grn <- cbind(de[grn[,1]], de[grn[,2]], grn[,3])
+
+    # compute consistency scores for grn
+    cons.grn <- apply(de.grn, 1, is.consistent)
+    return(cons.grn)
+}
+
+##
+# TRANSFORM & MAP
+# 
+# map GRN and GS IDs to index of respective IDs in ESET
+##
+
+read.grn <- function(grn.file)
+{
+    grn <- scan(grn.file, what="character", quiet=TRUE)
+    grn <- matrix(grn, nrow=length(grn)/3, ncol=3, byrow=TRUE)
+    return(unique(grn))
+}
+
+# map gene ids in grn to integer indices of fData
+# and make reg. type binary, i.e. ("+","-") -> (1,-1)
+transform.grn <- function(grn, fMap)
+{
+    # map regulators
+    tfs <- fMap[grn[,1]]
+    not.na.tfs <- !is.na(tfs)
+    
+    # map affected
+    tgs <- fMap[grn[,2]]
+    not.na.tgs <- !is.na(tgs)
+    not.na <- not.na.tfs & not.na.tgs
+    
+    # transform reg. type
+    types <- ifelse(grn[,3]=="+", 1, -1)
+    
+    grn.mapped <- cbind(tfs, tgs, types)
+    grn.mapped <- unique(grn.mapped[not.na,])
+    
+    grn.mapped <- grn.mapped[do.call(order, as.data.frame(grn.mapped)),]
+    
+    return(grn.mapped)
+}
+
+# map gene ids in gsets  to integer indices of fData
+transform.gs <- function(gs, fMap)
+{
+    gs.mapped <- sapply(gs, function(s){
+                set <- fMap[s]
+                set <- set[!is.na(set)]
+                names(set) <- NULL  
+                return(sort(unique(set)))
+            })
+    return(gs.mapped)
+}
+
+query.grn <- function(gs, grn, gs.edges=c("&", "|"), index=TRUE)
+{
+    gs.edges <- gs.edges[1]
+    ind <- which(do.call(gs.edges, list(grn[,1] %in% gs, grn[,2] %in% gs)))
+    if(index) return(ind)
+    else return(grn[ind, , drop=FALSE])
+}
+
+
+##
+# DIFFERENTIAL EXPRESSION
+#
+# determine genewise diff. exp. by fuzzy fc and p
+##
+
+# fuzzification of a fc|p table to de values
+# returns a three column table holding measures for 
+# reduced, neutral & enhanced (in this order) diff. exp.
+# for each fold change & p-value pair
+comp.de <- function(fDat, alpha, beta, use.fc=TRUE)
+{
+    fcs <- fDat[,1]
+    ps <- -log(fDat[,2], base=10)
+    
+    # fuzzy pvalue
+    neg.log.alpha <- -log(alpha, base=10)
+    inv.neg.log.alpha <- 1 / neg.log.alpha
+    de <- sapply(ps, function(p) 
+        ifelse(p > neg.log.alpha, 1, p * inv.neg.log.alpha))
+    
+    if(use.fc)
+    {
+        # fuzzy fc
+        abs.fcs <- abs(fcs)
+        mapped.fcs <- sapply(abs.fcs, function(fc) ifelse(fc > beta, 1, fc))
+        de <- (mapped.fcs + de) / 2
+    }
+        
+    de <- sign(fcs) * de
+    return(de)
+}
+
+
+##
+# CONSISTENCY
+#
+# compute edge consistencies and sum up for GGEA score
+##
+
+# determine consistency of a gene regulatory relation
+# de(regulator)_de(target)_regulationType
+is.consistent <- function(grn.rel)
+{
+    act.cons <- mean(abs(grn.rel[1:2]))
+    if(sum(sign(grn.rel[1:2])) == 0) act.cons <- -act.cons
+    
+    return( ifelse(grn.rel[3] == 1, act.cons, -act.cons) ) 
+}
+
+
+##
+# 4 SIGNIFICANCE
+#
+# use sample permutations to determine statistical significance of GGEA score
+##
+
+# permutation of samples, de recomputation in each permutation 
+perm.pval <- function(eset, grn, gs.grns, obs.scores, perm, alpha, beta)
+{
+    message(paste(perm, "permutations to do ..."))  
+    
+    # init
+    grp <- eset[[GRP.COL]]
+    nr.samples <- length(grp)
+    count.larger <- vector("integer", length(obs.scores))
+    
+    # permute as often as reps are given
+    rep.grid <- seq_len(perm)
+    for(i in rep.grid)
+    {
+        if(i %% 100 == 0) message(paste(i,"permutations done ..."))
+        # sample & permute
+        grp.perm <- grp[sample(nr.samples)]
+        eset[[GRP.COL]] <- grp.perm
+        
+        # recompute de measures fc and p
+        fc.tt <- get.fold.change.and.t.test(
+                x=eset, group=GRP.COL, members=GRPS)
+        fDat <- cbind(fc.tt@fc, p.adjust(fc.tt@tt, method=ADJ.METH))
+        
+        # recompute ggea scores
+        grn.cons <- score.grn(fDat, grn, alpha, beta)
+        perm.scores <- sapply(gs.grns, function(gg) sum(grn.cons[gg]))
+        count.larger <- count.larger + (perm.scores > obs.scores)
+    }
+    
+    p <- count.larger / perm
+    return(p)
+}
+
+
+# permutation of de
+perm.pval2 <- function(fDat, grn, gs.grns, obs.scores, perm, alpha, beta)
+{
+    message(paste(perm, "permutations to do ..."))  
+    # init
+    count.larger <- vector("integer", length(obs.scores))
+    
+    # permute as often as reps are given
+    rep.grid <- seq_len(perm)
+    for(i in rep.grid)
+    {
+        if(i %% 100 == 0) message(paste(i,"permutations done ..."))
+        # sample & permute
+        fperm <- sample(nrow(fDat))
+        fDat <- fDat[fperm,]        
+
+        # recompute ggea scores
+        grn.cons <- score.grn(fDat, grn, alpha, beta)
+        perm.scores <- sapply(gs.grns, function(gg) sum(grn.cons[gg]))
+        count.larger <- count.larger + (perm.scores > obs.scores)
+    }
+    
+    p <- count.larger / perm
+    return(p)
+}
+
+# approximation
+approx.pval <- function(res.tbl, stat=c("normal", "beta"), shape1=0, shape2=0.25)
+{
+    stat <- stat[1]
+    ps <- apply(res.tbl, 1, 
+        function(x)
+        {
+            nr.rels <- as.integer(x["NR.RELS"])
+            mu <- nr.rels * shape1
+            sd <- sqrt(nr.rels * shape2^2)
+            p <- 1 - pnorm(x["RAW.SCORE"], mean=mu, sd=sd)
+        })
+    return(ps)
+}
+

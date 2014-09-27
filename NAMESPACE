@@ -1,0 +1,38 @@
+import("Biobase")
+import("graph")
+import("KEGGgraph")
+
+importFrom("MASS", truehist)
+importFrom("RColorBrewer", brewer.pal)
+importFrom("stringr", str_trim)
+importFrom("neaGUI", nea)
+importFrom("SPIA", spia)
+importFrom("safe", safe)
+importFrom("genefilter", rowttests)
+importFrom("simpleaffy", get.fold.change.and.t.test)
+importFrom("qvalue", qvalue)
+importFrom("Rgraphviz", layoutGraph, renderGraph, edgeData)
+importFrom("KEGGREST", keggLink, keggList, keggGet)
+
+export( 
+    read.eset, 
+    de.ana,
+    pdistr,
+    volcano,
+    exprs.heatmap,
+    probe.2.gene.eset, 
+    get.kegg.genesets,
+    parse.genesets.from.GMT,
+    sbea.methods,
+    sbea, 
+    gs.ranking,
+    download.pathways.of.organism, 
+    compile.grn.from.kegg,
+    nbea.methods,
+    nbea,
+    ggea.graph,
+    ggea.graph.legend,
+    ea.browse,
+    comb.ea.results,
+    ebrowser
+)

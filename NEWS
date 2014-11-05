@@ -1,6 +1,12 @@
-CHANGES IN VERSION 0.99.8
---------------------------
+2014-11-04
+EnrichmentBrowser 1.1.1: 
+    - de.ana: now based on limma functionality 
+    - ggea.graph: extended control of layout
+    - ggea: 
+        * permutation p-value now based on fast edge resampling
+        * p-value approximation now based on gaussian mixture
+        * extended control for edge selection (consistency threshold, edge type, ...)
+    
 
-NEW FEATURES
-
-    o  Initial release of 'EnrichmentBrowser' package
+2014-10-14
+EnrichmentBrowser 1.0.0: Initial release of the 'EnrichmentBrowser' package

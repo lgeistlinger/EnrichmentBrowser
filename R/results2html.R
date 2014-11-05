@@ -136,10 +136,15 @@ view.set <- function(s, eset, gs, out.dir, alpha)
 view.graph <- function(s, eset, gs, grn, alpha, out.dir)
 {
     set.name <- ifelse(nchar(s) > 8, substring(s,1,8), s)
+    is.kegg <- length(grep("^[a-z]{3}[0-9]{5}", set.name))
+    if(!is.kegg) set.name <- gsub("[\\W_]", "", set.name, perl=TRUE)
+    org <- ifelse(is.kegg, substring(set.name, 1, 3), NA)
+
     genes <- gs[[s]]
     sgrn <- query.grn(genes, grn, index=FALSE)
     if(nrow(sgrn) > 0) 
-        sggea.graph <- construct.ggea.graph(grn=sgrn, eset=eset, alpha=alpha)
+        sggea.graph <- construct.ggea.graph(
+            grn=sgrn, eset=eset, alpha=alpha, org=org)
     else sggea.graph <- NULL
 
     ##

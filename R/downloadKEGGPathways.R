@@ -13,7 +13,7 @@
 # USING KEGGREST
 #
 
-download.pathways.of.organism <- function(org, out.dir=NULL, zip=FALSE)
+download.kegg.pathways <- function(org, out.dir=NULL, zip=FALSE)
 {
     pwys <- keggList("pathway", org)
     message("download:")

@@ -60,15 +60,12 @@ comb.ea.results <- function(    res.list,
     rankm <- matrix(0, nrow=nr.gs, ncol=nr.res)
     pvalm <- matrix(0.0, nrow=nr.gs, ncol=nr.res)
 
-    gs.grid <- seq_len(nr.gs)
-    names(gs.grid) <- gs
-
     for(i in seq_len(nr.res))
     {
         res.tbl <- res.list[[i]]$res.tbl
         # compute average ranks
-        ranking <- res.tbl[,"GENE.SET"]
-        rankm[,i] <- gs.grid[ranking] 
+        ranking <- sapply(gs, function(s) which(res.tbl[,"GENE.SET"] == s))
+        rankm[,i] <- ranking 
 
         # compute merged pvals
         pvalm[,i] <- as.numeric(res.tbl[rankm[,i], "P.VALUE"])
@@ -87,7 +84,7 @@ comb.ea.results <- function(    res.list,
 
     # order and format res.tblults
     res.tbl <- res.tbl[order(merged.ps),]
-    res.tbl[,seq_len(nr.res+1)] <- round(res.tbl[,seq_len(nr.res+1)])
+    res.tbl[,seq_len(nr.res+1)] <- floor(res.tbl[,seq_len(nr.res+1)])
     res.tbl[,(nr.res+2):ncol(res.tbl)] <- 
         signif(res.tbl[,(nr.res+2):ncol(res.tbl)], digits=3)
     res.tbl <- cbind(rownames(res.tbl), res.tbl)
@@ -97,7 +94,7 @@ comb.ea.results <- function(    res.list,
     res <- res.list[[1]]
     res$res.tbl <- res.tbl
     res$method <- "comb"
-    res$nr.sigs <- NROW.TOP.TABLE
+    res$nr.sigs <- min(nr.gs, NROW.TOP.TABLE)
 
     # write an output table if desired
     if(!is.null(out.file)) 

@@ -7,10 +7,12 @@
 #
 ############################################################
 
-ggea.graph <- function(gs, grn, eset, alpha=0.05, beta=1, max.edges=50)
+ggea.graph <- function(gs, grn, eset, org=NA,
+    alpha=0.05, beta=1, max.edges=50, cons.thresh=0.7)
 {
     sgrn <- query.grn(gs, grn, index=FALSE)
-    g <- construct.ggea.graph(sgrn, eset, alpha, beta, max.edges)
+    g <- construct.ggea.graph(grn=sgrn, eset=eset, org=org,
+        alpha=alpha, beta=beta, max.edges=max.edges, cons.thresh=cons.thresh)
     plot.ggea.graph(g)
 }
 
@@ -48,7 +50,8 @@ plot.ggea.graph <- function(graph, show.scores=FALSE, title="GGEA Graph")
 ##
 ## function construct and renders a graph of a gene regulatory network
 ##
-construct.ggea.graph <- function(grn, eset, alpha=0.05, beta=1, max.edges=50)
+construct.ggea.graph <- function(grn, eset, org=NA,
+    alpha=0.05, beta=1, max.edges=50, cons.thresh=0.7)
 {
     # consistency
     nodes <- intersect(featureNames(eset), grn[,1:2]) 
@@ -64,29 +67,32 @@ construct.ggea.graph <- function(grn, eset, alpha=0.05, beta=1, max.edges=50)
     grn.de <- cbind(de[grn[,1]], de[grn[,2]], grn[,3])
     edge.cons <- apply(grn.de, MARGIN=1, FUN=is.consistent)
     
+    ord <- order(abs(edge.cons), decreasing=TRUE)
+    edge.cons <- edge.cons[ord]
+    grn <- grn[ord,]
+
     # restrict to c most consistent and i inconsistent edges,
-    # s.t. i + c = nr.edges
+    # s.t. i + c = nr.edges	
     if(nrow(grn) > max.edges)
     {
-        ord <- order(abs(edge.cons), decreasing=TRUE)
-        edge.cons <- edge.cons[ord]
-        grn <- grn[ord,]
-
         edge.cons <- head(edge.cons, max.edges)
         grn <- head(grn, max.edges)
-
-        # reset to restricted representation
-        ind <- unique(as.vector(grn[,1:2]))
-        node.grid <- node.grid[ind]
-        nodes <- names(node.grid)
-        nr.nodes <- length(nodes)
-        fDat <- fDat[nodes,]
-
-        grn[,1] <- sapply(grn[,1], function(x) which(node.grid == x))
-        grn[,2] <- sapply(grn[,2], function(x) which(node.grid == x)) 
-        node.grid <- seq_len(nr.nodes)
-        names(node.grid) <- nodes
     }
+
+    # reset to restricted representation
+    ind <- unique(as.vector(grn[,1:2]))
+    node.grid <- node.grid[ind]
+    nodes <- names(node.grid)
+    nr.nodes <- length(nodes)
+    fDat <- fDat[nodes,]
+
+    grn[,1] <- sapply(grn[,1], function(x) which(node.grid == x))
+    grn[,2] <- sapply(grn[,2], function(x) which(node.grid == x)) 
+    ord <- do.call(order, as.data.frame(grn))
+    grn <- grn[ord,]
+    edge.cons <- edge.cons[ord]
+    node.grid <- seq_len(nr.nodes)
+    names(node.grid) <- nodes
     
     # init graph: nodes and edge list
     edgeL <- lapply(node.grid, 
@@ -100,7 +106,8 @@ construct.ggea.graph <- function(grn, eset, alpha=0.05, beta=1, max.edges=50)
     nColor <- apply(fDat, 1, determine.node.color)
     nLwd <- rep(NODE.LWD, nr.nodes)
     names(nLwd) <- nodes
-    nLabel <- nodes
+    if(is.na(org)) nLabel <- nodes
+    else nLabel <- get.kegg.display.name(nodes, org=org)
     names(nLabel) <- nodes
 
     nodeRenderInfo(gr) <- list(label=nLabel, col=nColor, lwd=nLwd)
@@ -118,7 +125,8 @@ construct.ggea.graph <- function(grn, eset, alpha=0.05, beta=1, max.edges=50)
     names(eLabel) <- edges
     eArrowhead <- ifelse(grn[,3] == 1, "normal", "tee")
     names(eArrowhead) <- edges
-    eLwd <- sapply(edge.cons, determine.edge.lwd)
+    eLwd <- sapply(edge.cons, function(e) 
+        determine.edge.lwd(e, cons.thresh=cons.thresh))
     names(eLwd) <- edges
 
     edgeRenderInfo(gr) <-
@@ -127,13 +135,21 @@ construct.ggea.graph <- function(grn, eset, alpha=0.05, beta=1, max.edges=50)
     return(gr)
 }
 
+get.kegg.display.name <- function(gene.id, org)
+{
+    entry <- keggList(paste(org, gene.id, sep=":"))
+    dnames <- sapply(entry, function(e) unlist(strsplit(e, "[,;] "))[1])
+    return(dnames)
+}
+
 ##
 ## determine.edge.lwd
 ##
 ## function returns line width depending on edge consistency
 ##
-determine.edge.lwd <- function(edge.cons) 
-    ifelse(abs(edge.cons) > 0.7, 1 + (abs(edge.cons) - 0.7) * 10, 1)
+determine.edge.lwd <- function(edge.cons, cons.thresh=0.7) 
+    ifelse(abs(edge.cons) > cons.thresh, 
+        1 + (abs(edge.cons) - cons.thresh) * 10, 1)
 
 ##
 ## determine.edge.color

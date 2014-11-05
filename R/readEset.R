@@ -1,37 +1,48 @@
-# TODO: Add comment
+# 
 # 
 # Author: ludwig geistlinger
 # Date: May 27th, 2010
 #
 # reads in data from plain text files and stores it in an expression
 # set and performs simultaneously a de primary analysis
+#
+# UPDATE: Oct 21th, 2014
+#
+# de analysis is now based on limma rather than simpleaffy
+# supported data types now include RNA-seq
+#
 ###############################################################################
 
 read.eset <- function(
     exprs.file, 
     pdat.file, 
     fdat.file, 
-    value.type=c("log2count", "log2ratio"),
-    out.file=NULL, 
+    de=TRUE,
     heatm.file=NULL, 
     distr.file=NULL, 
     volc.file=NULL)
 {
-    value.type <- value.type[1]
-    if(!(value.type %in% c("log2count", "log2ratio")))
-        stop("\'value.type\' must be either \'log2count\' or \'log2ratio\'")
-
     # read features
-    fDat <- scan(fdat.file, what="character", quiet=TRUE)
-    nr.features <- length(fDat) / 2
-    fDat <- matrix(fDat, nrow=nr.features, ncol=2, byrow=TRUE)
+    anno <- ifelse(file.exists(fdat.file), NA, fdat.file)
+    if(is.na(anno))
+    {
+        ncol.fdat <- length(scan(fdat.file, what="character", nlines=1, quiet=TRUE))
+        fDat <- scan(fdat.file, what="character", quiet=TRUE)
+        nr.features <- length(fDat) / ncol.fdat
+        fDat <- matrix(fDat, nrow=nr.features, ncol=ncol.fdat, byrow=TRUE)
+    }
+    else 
+    {
+        fDat <- anno.p2g(fdat.file)
+        ncol.fdat <- ncol(fDat)
+        nr.features <- nrow(fDat)
+    }
 
     # read samples
+    ncol.pdat <- length(scan(pdat.file, what="character", nlines=1, quiet=TRUE))
     pDat <- scan(pdat.file, what="character", quiet=TRUE)
-    nr.samples <- length(pDat) / 2
-    pDat <- matrix(pDat, nrow=nr.samples, ncol=2, byrow=TRUE)
-    pDat[,2] <- gsub("/", "-", pDat[,2]) 
-
+    nr.samples <- length(pDat) / ncol.pdat
+    pDat <- matrix(pDat, nrow=nr.samples, ncol=ncol.pdat, byrow=TRUE)
     
     # read expression values
     expr <- matrix(scan(exprs.file, quiet=TRUE), 
@@ -39,7 +50,7 @@ read.eset <- function(
     rownames(expr) <- fDat[,1]
     colnames(expr) <- pDat[,1]
 
-    # exclude NAs
+    # replace NAs by mean expression values
     na.indr <- which(apply(expr, 1, function(x) any(is.na(x))))
     for(i in seq_along(na.indr))
     {
@@ -51,57 +62,55 @@ read.eset <- function(
     
     # create the eset
     eset <- new("ExpressionSet", exprs=expr)
-    pData(eset)[, SMPL.COL] <- pDat[,1]
-
-    # is phenotype binary
-    pData(eset)[, GRP.COL] <- pDat[,2]
-
-    fData(eset)[, PRB.COL] <- fDat[,1]
-    fData(eset)[, GN.COL] <- fDat[,2]
-
-    eset <- de.ana(eset, value.type=value.type)
-
-    # output the eset
-    if(!is.null(out.file)) save(eset, file=out.file)
+    if(!is.na(anno)) annotation(eset) <- anno
+    for(i in seq_len(ncol.pdat)) pData(eset)[, i] <- pDat[,i]
+    for(i in seq_len(ncol.fdat)) fData(eset)[, i] <- fDat[,i]
     
-    # plot de
+    colnames(pData(eset))[1:2] <- c(SMPL.COL, GRP.COL)
+    if(ncol.pdat > 2) colnames(pData(eset))[3] <- BLK.COL
+
+    colnames(fData(eset))[1:2] <- c(PRB.COL, GN.COL)
+    
     # (a) heatmap
     if(!is.null(heatm.file)) exprs.heatmap(eset, heatm.file)
+   
+    if(de)
+    { 
+        eset <- de.ana(eset)
+        # (b) pval distribution
+        if(!is.null(distr.file)) pdistr(eset, distr.file)   
     
-    # (b) pval distribution
-    if(!is.null(distr.file)) pdistr(eset, distr.file)   
-    
-    # (c) volcano plot
-    if(!is.null(volc.file)) volcano(eset, volc.file)
+        # (c) volcano plot
+        if(!is.null(volc.file)) volcano(eset, volc.file)
+    }
     
     return(eset)
 }
 
 # perform de analysis
-de.ana <- function(eset, value.type=c("log2count", "log2ratio"))
+de.ana <- function(eset)
 {
-    value.type <- value.type[1]
-    groups <- sort(unique(pData(eset)[,GRP.COL]))
+    groups <- sort(unique(pData(eset)[,GRP.COL]), decreasing=TRUE)
     if(!all(groups == GRPS)) 
-        stop(paste("Group classification in pData is not binary:\n",
-            "Expected (0, 1) but found (", 
-                paste(groups, collapse=", "), ")", sep=""))
-
-    if(value.type == "log2count")
-    {
-        fc.tt <- get.fold.change.and.t.test(eset, GRP.COL, groups)
-        fData(eset)[, FC.COL] <- fc.tt@fc
-        fData(eset)[, RAWP.COL] <- fc.tt@tt
-    }
-    # log2ratio
-    else{
-        group <- pData(eset)[, GRP.COL] == "1"
-        fData(eset)[, FC.COL] <- apply(exprs(eset), 1, 
-            function(x) mean(x[group]) - mean(x[!group]))
-        fData(eset)[, RAWP.COL] <- rowttests(
-            exprs(eset), factor(pData(eset)[, GRP.COL]))$p.value
-    }
-
+        stop(paste0("Group classification in pData is not binary:\n",
+            "Expected (0, 1) but found (", paste(groups, collapse=", "), ")"))
+    
+    block <- 0
+    paired <- BLK.COL %in% colnames(pData(eset))
+    if(paired) block <- factor(pData(eset)[,BLK.COL])
+    
+    g <- factor(ifelse(pData(eset)[,GRP.COL] == "1", "d", "c"))
+    if(paired) design <- model.matrix(~0 + g + block)
+    else design <- model.matrix(~0 + g)
+    colnames(design)[1:2] <- levels(g)
+    fit <- lmFit(exprs(eset), design)
+    cont.matrix <- makeContrasts(contrasts="d-c", levels=design)
+    fit2 <- contrasts.fit(fit, cont.matrix)
+    fit2 <- eBayes(fit2)
+    aT1 <- topTable(fit2, coef=1, 
+        number=nrow(eset), sort.by="none", adjust.method="none")
+    fData(eset)[, FC.COL] <- aT1[, "logFC"]
+    fData(eset)[, RAWP.COL] <- aT1[, "P.Value"]
     fData(eset)[, ADJP.COL] <- p.adjust(
         fData(eset)[, RAWP.COL], method=ADJ.METH)
     return(eset)
@@ -149,5 +158,6 @@ exprs.heatmap <- function(eset, out.file=NULL)
 }
 
 onecor <- function(x) as.dist(1-cor(t(x)))
+
 
 

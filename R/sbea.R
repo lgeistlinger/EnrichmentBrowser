@@ -113,11 +113,12 @@ gmt.2.cmat <- function(gs, features, min.size=0, max.size=Inf)
 
     # restrict to gene sets with valid size
     gs.sizes <- colSums(cmat)
-    valid.size <- (gs.sizes >= min.size) & (gs.sizes <= max.size)
+    valid.size <- which((gs.sizes >= min.size) & (gs.sizes <= max.size))
+    if(length(valid.size) == 0) stop("No gene set with valid size!")
     cmat <- cmat[, valid.size]
     
     # restrict to genes which are in sets with valid size
-    has.set <- rowSums(cmat) > 0
+    has.set <- which(rowSums(cmat) > 0)
     cmat <- cmat[has.set,]
 
     return(cmat)

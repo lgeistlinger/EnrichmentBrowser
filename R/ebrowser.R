@@ -16,10 +16,11 @@ ADJP.COL <- "ADJ.PVAL"
 FC.COL <- "FC"
 GN.COL <- "GENE"
 GRP.COL <- "GROUP"
-GRPS <- c("0", "1")
+GRPS <- c("1", "0")
 PRB.COL <- "PROBE"
 RAWP.COL <- "RAW.PVAL"
 SMPL.COL <- "SAMPLE"
+BLK.COL <- "BLOCK"
 TABLE.OF.RESULTS <- "Table of Results"
 
 CSS <- "eBro.css"
@@ -60,9 +61,8 @@ set.out.dir <- function(out.dir)
 ##
 # eBrowser functionality
 ##
-ebrowser <- function(meth, exprs, pdat, fdat, value.type="log2count",
-                        gs, grn=NULL, perm=1000, alpha=0.05, beta=1, 
-                        comb=FALSE, browse=TRUE, nr.show=-1, out.dir=NULL)
+ebrowser <- function(meth, exprs, pdat, fdat, gs, grn=NULL, perm=1000, 
+    alpha=0.05, beta=1, comb=FALSE, browse=TRUE, nr.show=-1, out.dir=NULL)
 {
     sapply(meth, function(m)
         if(!(m %in% METHODS))
@@ -81,11 +81,10 @@ ebrowser <- function(meth, exprs, pdat, fdat, value.type="log2count",
     
     # execution
     message("Read expression data ...")
-    eset <- read.eset( exprs.file=exprs, 
-        pdat.file=pdat, fdat.file=fdat, value.type=value.type )
+    eset <- read.eset( exprs.file=exprs, pdat.file=pdat, fdat.file=fdat )
     
     message("Transform probe expression to gene expression ...")    
-    gene.eset <- probe.2.gene.eset( probe.eset=eset, value.type=value.type,
+    gene.eset <- probe.2.gene.eset( probe.eset=eset, 
                     heatm.file=file.path(out.dir,"heatmap.png"),
                     distr.file=file.path(out.dir,"pdistr.png"),
                     volc.file=file.path(out.dir, "volcano.png"))

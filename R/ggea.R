@@ -10,14 +10,14 @@
 #   grn     ... Gene regulatory network
 #               (3 cols: Regulator, Target, Effect)
 #   alpha       ... Significance level. Defaults to 0.05.
-#   beta        ... Significant log2 fold change level. Defaults to 1 (two-fold). 
+#   beta        ... Significant log2 fold change level. Defaults to 1 (two-fold).
 #   perm        ... Number of sample permutations. Defaults to 1000.
 #
 # @returns: the GGEA enrichment table
 #
 ###         
 ggea <- function(eset, gs, grn, 
-    alpha=0.05, beta=1, perm=1000, gs.edges=c("&", "|"))
+    alpha=0.05, beta=1, perm=1000, gs.edges=c("&", "|"), cons.thresh=-1)
 {
     # restrict to relevant genes 
     # in the intersection of eset, gs, and grn
@@ -37,42 +37,60 @@ ggea <- function(eset, gs, grn,
     # transform gene sets & regulatory network
     grn <- transform.grn(grn, fMap)
     gs <- transform.gs(gs, fMap)
-    gs.grns <- sapply(gs, function(s) query.grn(s, grn, gs.edges)) 
-    
-    # observed scores.tbl
+
+    # restrict to gene sets with a minimal number of edges
+    gs.grns <- sapply(gs, function(s) query.grn(s, grn, gs.edges))
     nr.rels <- sapply(gs.grns, length)
+    ind <- which(nr.rels >= GS.MIN.SIZE) 
+        #& (res.tbl[,"NR.RELS"] <= GS.MAX.SIZE)
+    if(length(ind) == 0) stop("No gene set with minimal number of interactions")
+    gs <- gs[ind]
+    gs.grns <- gs.grns[ind]
+    nr.rels <- nr.rels[ind]
+
+    # score
+    # compute consistency for all edges of the grn
+    grn.cons <- score.grn(fDat, grn, alpha, beta, cons.thresh) 
 
     # compute consistency scores for gene sets  
-    grn.cons <- score.grn(fDat, grn, alpha, beta) 
-    gs.cons <- sapply(gs.grns, function(gg) sum(grn.cons[gg]))
+    gs.rels.cons <- sapply(gs.grns, function(gg) grn.cons[gg])
+    thresh.rels <- sapply(gs.rels.cons, 
+        function(gsc) which(gsc >= cons.thresh))   
+    nr.thresh.rels <- sapply(thresh.rels, length)
+    
+    # restrict to gene sets with relations above consistency threshold
+    ind <- which(nr.thresh.rels > 0)
+    gs.cons <- sapply(ind, function(i) sum(gs.rels.cons[[i]][thresh.rels[[i]]]))
+    nr.rels <- nr.thresh.rels[ind]
+
+    # result table
     res.tbl <- cbind(nr.rels, gs.cons)
     colnames(res.tbl) <- c("NR.RELS", "RAW.SCORE")
-    ind <- (res.tbl[,"NR.RELS"] >= GS.MIN.SIZE) 
-        #& (res.tbl[,"NR.RELS"] <= GS.MAX.SIZE)
-    res.tbl <- res.tbl[ind,]
+    rownames(res.tbl) <- names(gs)[ind]
     res.tbl <- cbind(res.tbl, res.tbl[,"RAW.SCORE"] / res.tbl[,"NR.RELS"])
     colnames(res.tbl)[ncol(res.tbl)] <- "NORM.SCORE" 
 
     # random permutation
-    gs.grns <- gs.grns[ind]
-    if(perm > 0)
-        ps <- perm.pval(eset, grn, gs.grns, 
-            obs.scores=res.tbl[,"RAW.SCORE"], perm, alpha, beta)
-    else ps <- approx.pval(res.tbl, stat="normal")
+    grn.cons <- grn.cons[grn.cons >= cons.thresh]
+    if(perm > 0) 
+        ps <- perm.edges.pval(res.tbl, grn.cons, perm)
+    else ps <- approx.pval(res.tbl, grn.cons)
     res.tbl <- cbind(res.tbl, ps)
     colnames(res.tbl)[ncol(res.tbl)] <- "P.VALUE" 
-    res.tbl <- res.tbl[order(ps),]
     return(res.tbl)
 }
 
-score.grn <- function(fDat, grn, alpha, beta)
+score.grn <- function(fDat, grn, alpha, beta, cons.thresh)
 {
     de <- comp.de(fDat, alpha=alpha, beta=beta)
     de.grn <- cbind(de[grn[,1]], de[grn[,2]], grn[,3])
 
     # compute consistency scores for grn
-    cons.grn <- apply(de.grn, 1, is.consistent)
-    return(cons.grn)
+    grn.cons <- apply(de.grn, 1, is.consistent)
+    ind <- sum(grn.cons >= cons.thresh)
+    if(length(ind) == 0) 
+        stop("No edge of the GRN passes the consistency threshold")
+    return(grn.cons)
 }
 
 ##
@@ -191,7 +209,8 @@ is.consistent <- function(grn.rel)
 ##
 
 # permutation of samples, de recomputation in each permutation 
-perm.pval <- function(eset, grn, gs.grns, obs.scores, perm, alpha, beta)
+perm.samples.pval <- function(eset, gs.grns, grn, 
+    obs.scores, perm, alpha, beta, cons.thresh)
 {
     message(paste(perm, "permutations to do ..."))  
     
@@ -210,23 +229,32 @@ perm.pval <- function(eset, grn, gs.grns, obs.scores, perm, alpha, beta)
         eset[[GRP.COL]] <- grp.perm
         
         # recompute de measures fc and p
-        fc.tt <- get.fold.change.and.t.test(
-                x=eset, group=GRP.COL, members=GRPS)
-        fDat <- cbind(fc.tt@fc, p.adjust(fc.tt@tt, method=ADJ.METH))
+        eset <- de.ana(eset)
+        fDat <- as.matrix(fData(eset)[, c(FC.COL, ADJP.COL)])
         
         # recompute ggea scores
-        grn.cons <- score.grn(fDat, grn, alpha, beta)
-        perm.scores <- sapply(gs.grns, function(gg) sum(grn.cons[gg]))
+        grn.cons <- score.grn(fDat, grn, alpha, beta, cons.thresh) 
+        gs.rels.cons <- sapply(gs.grns, function(gg) grn.cons[gg])
+        thresh.rels <- sapply(gs.rels.cons, 
+                function(gsc) which(gsc >= cons.thresh))   
+        nr.thresh.rels <- sapply(thresh.rels, length)
+            
+        # restrict to gene sets with relations above consistency threshold
+        ind <- which(nr.thresh.rels > 0)
+        perm.scores <- sapply(seq_along(gs.grns), function(i) 
+            ifelse(i %in% ind, 
+                sum(gs.rels.cons[[i]][thresh.rels[[i]]]), cons.thresh)) 
+        
+        #perm.scores <- tryCatch(recomp(), error = function(e){})
+        #if(!is.null(perm.scores)) 
         count.larger <- count.larger + (perm.scores > obs.scores)
     }
-    
     p <- count.larger / perm
     return(p)
 }
 
-
 # permutation of de
-perm.pval2 <- function(fDat, grn, gs.grns, obs.scores, perm, alpha, beta)
+perm.genes.pval <- function(fDat, grn, gs.grns, obs.scores, perm, alpha, beta)
 {
     message(paste(perm, "permutations to do ..."))  
     # init
@@ -246,23 +274,43 @@ perm.pval2 <- function(fDat, grn, gs.grns, obs.scores, perm, alpha, beta)
         perm.scores <- sapply(gs.grns, function(gg) sum(grn.cons[gg]))
         count.larger <- count.larger + (perm.scores > obs.scores)
     }
-    
     p <- count.larger / perm
     return(p)
 }
 
-# approximation
-approx.pval <- function(res.tbl, stat=c("normal", "beta"), shape1=0, shape2=0.25)
+# sampling from background edge consistency distribution
+perm.edges.pval <- function(res.tbl, grn.cons, perm)
 {
-    stat <- stat[1]
-    ps <- apply(res.tbl, 1, 
+        ps <- apply(res.tbl, 1, 
         function(x)
         {
             nr.rels <- as.integer(x["NR.RELS"])
-            mu <- nr.rels * shape1
-            sd <- sqrt(nr.rels * shape2^2)
-            p <- 1 - pnorm(x["RAW.SCORE"], mean=mu, sd=sd)
+            random.scores <- replicate(perm, sum(sample(grn.cons, nr.rels)))
+            p <- sum(random.scores > x["RAW.SCORE"]) / perm
+            return(p)
         })
     return(ps)
 }
+
+# approx by analytical edge consistency distribution (mixture of 2 gaussians)
+approx.pval <- function(res.tbl, grn.cons)
+{
+    mixmdl <- normalmixEM(grn.cons)
+    l <- mixmdl$lambda
+    m <- mixmdl$mu
+    s <- mixmdl$sigma
+
+    ps <- apply(res.tbl, 1,
+        function(x)
+        {
+            nr.rels <- as.integer(x["NR.RELS"])
+            d <- sapply(1:2, function(i) 
+                l[i] * pnorm(x["RAW.SCORE"], mean=0, sd=nr.rels * s[i]))
+            p <- 1 - sum(d)
+            return(p)
+        })
+    return(ps)
+}
+
+
 

@@ -18,10 +18,9 @@ nbea <- function(
     gs, 
     grn,
     alpha=0.05, 
-    beta=1,
     perm=1000, 
     out.file=NULL,
-    browse=FALSE)
+    browse=FALSE, ...)
 {
     if(class(eset) == "character") eset <- get(load(eset))
     if(class(gs) == "character") gs <- parse.genesets.from.GMT(gs)
@@ -31,23 +30,27 @@ nbea <- function(
     {
         method <- method[1]
         if(length(find(method))) res.tbl <- do.call(method, 
-                list(eset=eset, gs=gs, grn=grn, alpha=alpha, perm=perm))
+                list(eset=eset, gs=gs, grn=grn, alpha=alpha, perm=perm, ...))
         else if(!(method %in% nbea.methods())) 
             stop(paste("\'method\' must be one out of {", 
                 paste(nbea.methods(), collapse=", "), "}"))
         else if(method == "nea") 
             res.tbl <- nea.wrapper(eset=eset, 
-                gs=gs, grn=grn, alpha=alpha, perm=perm)
+                gs=gs, grn=grn, alpha=alpha, perm=perm, ...)
         else if(method == "spia") 
-            res.tbl <- spia.wrapper(eset=eset, gs=gs, alpha=alpha, perm=perm) 
+            res.tbl <- spia.wrapper(eset=eset, 
+                gs=gs, alpha=alpha, perm=perm, ...) 
         else res.tbl <- ggea(eset=eset, gs=gs, 
-                grn=grn, alpha=alpha, beta=beta, perm=perm)      
+                grn=grn, alpha=alpha, perm=perm, ...)      
     }
     else if(class(method) == "function") 
-        res.tbl <- method(eset=eset, gs=gs, grn=grn, alpha=alpha, perm=perm)
+        res.tbl <- method(eset=eset, gs=gs, grn=grn, alpha=alpha, perm=perm, ...)
     else stop(paste(method, "is not a valid method for nbea"))
 
     res.tbl <- signif(res.tbl, digits=3)
+    sorting.df <- cbind(res.tbl[,ncol(res.tbl)], -res.tbl[,(ncol(res.tbl)-1):1])
+    res.tbl <- res.tbl[do.call(order, as.data.frame(sorting.df)),]
+
     res.tbl <- cbind(rownames(res.tbl), res.tbl)
     colnames(res.tbl)[1] <- "GENE.SET"
     rownames(res.tbl) <- NULL

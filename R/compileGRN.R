@@ -27,7 +27,7 @@ get.kegg.rels.of.organism <- function(  pwys,
 {
     if(class(pwys) == "character")
     {
-        if(nchar(pwys) == 3) pwys <- download.pathways.of.organism(pwys)
+        if(nchar(pwys) == 3) pwys <- download.kegg.pathways(pwys)
         else pwys <- extract.pwys(pwys)
     }
 

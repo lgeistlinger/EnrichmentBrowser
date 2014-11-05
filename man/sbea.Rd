@@ -76,7 +76,7 @@
     on gene sets, extends the SAM method for single genes to gene set analysis
     (Dinu et al., 2007).
 
-    It is also possible to use one's own set-based enrichment method.
+    It is also possible to use additional set-based enrichment methods.
     This requires to implement a function that takes 'eset', 'gs', 'alpha', and
     'perm' as arguments and returns a numeric vector 'ps' storing the resulting
     p-value for each gene set in 'gs'. This vector must be named accordingly 

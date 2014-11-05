@@ -11,15 +11,11 @@
     Benjamini and Hochberg.
 }
 \usage{
-    de.ana(eset, value.type=c("log2count", "log2ratio"))
+    de.ana(eset)
 }
 \arguments{
     \item{eset}{
         An object of class 'ExpressionSet'    
-    }
-    \item{value.type}{
-        Type of values in the expression matrix: 
-        either 'log2count' or 'log2ratio' (defaults to 'log2count').   
     }
 }
 \value{
@@ -32,7 +28,7 @@
 
 \seealso{
     \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}}, 
-    \code{\link{get.fold.change.and.t.test}}, 
+    \code{\link{eBayes}}, 
     \code{\link{p.adjust}}
 }
 \examples{

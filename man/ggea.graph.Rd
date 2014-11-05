@@ -17,7 +17,7 @@
     of the expression of both interaction partners.     
 }
 \usage{
-    ggea.graph(gs, grn, eset, alpha=0.05, beta=1, max.edges=50)
+    ggea.graph(gs, grn, eset, org=NA, alpha=0.05, beta=1, max.edges=50, cons.thresh=0.7)
     ggea.graph.legend()
 }
 \arguments{
@@ -38,6 +38,13 @@
         See 'read.eset' and 'probe.2.gene.eset' for required annotations 
         in the pData and fData slot.
     }
+    \item{org}{
+        Organism under investigation in KEGG three letter code, 
+        e.g. \sQuote{hsa} for \sQuote{homo sapiens}.
+        Used to map gene IDs to gene symbols as displayed in 
+        KEGG pathway maps.
+        If not annotated, gene IDs are plotted as default.
+    }
     \item{alpha}{
         Statistical significance level. Defaults to 0.05.
     }
@@ -48,6 +55,11 @@
         Maximum number of edges that should be displayed. 
         Defaults to 50.
     }  
+    \item{cons.thresh}{
+        Consistency threshold.
+        Graphical parameter that correspondingly increases line width 
+        of edges with a consistency above the chosen threshold (defaults to 0.7).
+    }
 }
 \value{
     None, plots to a graphics device.
@@ -80,7 +92,7 @@
     hsa.grn <- compile.grn.from.kegg(pwys)
 
     # plot consistency graph
-    ggea.graph(gs=hsa.gs[["hsa05211_Renal_cell_carcinoma"]], 
+    ggea.graph(gs=hsa.gs[["hsa05416_Viral_myocarditis"]], 
                                                 grn=hsa.grn, eset=gene.eset)
 
     # get legend

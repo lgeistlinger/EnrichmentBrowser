@@ -8,15 +8,15 @@
     the standard enrichment analysis pipeline implemented 
     in the EnrichmentBrowser package.
     
-    Given flat gene expression data on probe level, the 
-    data is read in, transformed to gene level and subsequently
+    Given flat gene expression data, the 
+    data is read in and subsequently
     subjected to chosen enrichment analysis methods.
 
     The results from different methods can be combined and
     investigated in detail in the default browser. 
 }
 \usage{
-    ebrowser( meth, exprs, pdat, fdat, value.type="log2count",
+    ebrowser( meth, exprs, pdat, fdat, 
             gs, grn=NULL, perm=1000, alpha=0.05, beta=1,
             comb=FALSE, browse=TRUE, nr.show=-1, out.dir=NULL )
 }
@@ -25,25 +25,35 @@
         Enrichment analysis method.
         Currently, the following enrichment analysis methods are supported:
         \sQuote{ora}, \sQuote{safe}, \sQuote{gsea}, \sQuote{samgs}, 
-        \sQuote{ggea}, and \sQuote{nea}.
+        \sQuote{ggea}, \sQuote{spia}, and \sQuote{nea}.
         See \sQuote{sbea} and \sQuote{nbea} for details.
     }
     \item{exprs}{
-        Expression matrix.
-        A tab separated text file containing the numerical expression values.
-        Colums = samples/subjects; rows = features/probes/genes; NO headers, 
-        row or column names. 
+      Expression matrix.
+        A tab separated text file containing *normalized* expression values 
+        on a *log* scale.
+        Columns = samples/subjects; rows = features/probes/genes; 
+        NO headers, row or column names.
+        Supported data types are log2 counts (microarray single-channel),
+        log2 ratios (microarray two-color), and log2-counts per million 
+        (RNA-seq logCPMs).
+        See the limma's user guide 
+        http://www.bioconductor.org/packages/release/bioc/vignettes/limma/inst/doc/usersguide.pdf
+        for definition and normalization of the different data types.        
     }
     \item{pdat}{
         Phenotype data.
         A tab separated text file containing annotation information 
-        for the samples. 
-        Exactly *TWO* cols; 1st col = sample names; 
-        2nd column = *BINARY* group assignment. 
-        Use '0' and '1' for unaffected and affected sample class, respectively. 
+        for the samples in either *two or three* columns. 
         NO headers, row or column names.
-        The nr of rows/samples in this file should match the number of 
-        columns/samples of the expression matrix. 
+        The number of rows/samples in this file should match the number of 
+        columns/samples of the expression matrix.
+        The 1st colum is reserved for the sample IDs; 
+        The 2nd column is reserved for a *BINARY* group assignment. 
+        Use '0' and '1' for unaffected (controls) and affected (cases) sample 
+        class, respectively. 
+        For paired samples or sample blocks a third column is expected that
+        defines the blocks. 
     }
     \item{fdat}{
         Feature data.
@@ -54,10 +64,6 @@
         for each feature ID in 1st col; NO headers, row or column names.    
         The number of rows/features in this file should match the number of 
         rows/features of the expression matrix. 
-    }
-    \item{value.type}{
-        Type of values in the expression matrix: 
-        either 'log2count' or 'log2ratio' (defaults to 'log2count').   
     }
     \item{gs}{
         Gene sets.

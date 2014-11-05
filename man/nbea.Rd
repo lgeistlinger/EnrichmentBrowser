@@ -13,7 +13,7 @@
 }
 \usage{
     nbea(method=c("ggea", "nea", "spia"), eset, gs, grn, 
-                    alpha=0.05, beta=1, perm=1000, out.file=NULL, browse=FALSE)
+                    alpha=0.05, perm=1000, out.file=NULL, browse=FALSE, ...)
 
     nbea.methods()
 }
@@ -48,9 +48,6 @@
     \item{alpha}{
         Statistical significance level. Defaults to 0.05.
     }
-    \item{beta}{
-        Log2 fold change significance level. Defaults to 1 (2-fold).
-    }  
     \item{perm}{
         Number of permutations of the expression matrix to estimate the 
         null distribution. Defaults to 1000. If using method=\sQuote{ggea},
@@ -63,6 +60,19 @@
     \item{browse}{
         Logical. Should results be displayed in the browser for interactive 
         exploration? Defaults to FALSE.
+    }
+    \item{...}{
+        Additional arguments passed to individual nbea methods.
+        This includes currently for GGEA:
+        \itemize{
+        \item beta: Log2 fold change significance level. Defaults to 1 (2-fold).
+        \item cons.thresh: consistency threshold. Defaults to -1.
+        \item gs.edges: Decides which edges of the grn are considered for a
+                gene set under investigation. Should be one out of c('&', '|'), 
+                denoting logical AND and OR. respectively. Accordingly, this 
+                either includes edges for which regulator AND / OR target gene
+                are members of the investigated gene set.            
+        }
     }
 }
 \value{
@@ -90,7 +100,7 @@
     'spia': signaling pathway impact analysis, implemented in Bioconductor's 
     SPIA package.
 
-    It is also possible to use one's own network-based enrichment method.
+    It is also possible to use additional network-based enrichment methods.
     This requires to implement a function that takes 'eset', 'gs', 'grn', 
     'alpha', and 'perm' as arguments and returns a numeric matrix 'res.tbl' 
     with a mandatory column named 'P.VALUE' storing the resulting p-value for 

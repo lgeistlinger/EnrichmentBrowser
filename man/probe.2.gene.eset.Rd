@@ -10,24 +10,22 @@
     is automatically performed.
 }
 \usage{
-    probe.2.gene.eset(probe.eset, value.type=c("log2count", "log2ratio"), 
-        gene.eset.file=NULL, heatm.file=NULL, distr.file=NULL, volc.file=NULL)
+    probe.2.gene.eset(probe.eset, use.mean=TRUE,  
+        heatm.file=NULL, distr.file=NULL, volc.file=NULL)
 }
 \arguments{
     \item{probe.eset}{
-        Probe expression set.
-        Either an object of class 'ExpressionSet' or an absolute file path to
-        an RData file containing the expression set for the probes. 
+        Probe expression set of class 'ExpressionSet'.         
         The fData slot of the expression set must contain a 'GENE' column 
         that lists for each probe the corresponding KEGG gene ID.
     }
-    \item{value.type}{
-        Type of values in the expression matrix: 
-        either 'log2count' or 'log2ratio' (defaults to 'log2count').   
-    }
-    \item{gene.eset.file}{
-        Optional. If specified, the processed gene expression set 
-        is saved to file (using \code{\link{save}}).
+    \item{use.mean}{
+        Logical.
+        Determining, in case of multiple probes for one gene,
+        whether a mean value is computed or the probe
+        that discriminate the most between the two sample
+        group is kept.
+        Defaults to TRUE.
     }
     \item{heatm.file}{
         Optional. If specified, a heatmap is plotted in PNG format to file.
@@ -50,7 +48,7 @@
 }
 \seealso{
     \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}}, 
-    \code{\link{get.fold.change.and.t.test}}, 
+    \code{\link{eBayes}}, 
     \code{\link{p.adjust}}
 }
 \examples{

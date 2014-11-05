@@ -37,11 +37,11 @@
 \seealso{
     \code{\link[KEGGgraph:KEGGPathway-class]{KEGGPathway-class}}, 
     \code{\link[KEGGgraph:parseKGML]{parseKGML}}, 
-    \code{\link{download.pathways.of.organism}}
+    \code{\link{download.kegg.pathways}}
 }
 \examples{
     # (1) download human pathways
-    #   pwys <- download.pathways.of.organism("hsa")
+    #   pwys <- download.kegg.pathways("hsa")
     # (2) compile gene regulatory network
     #   grn <- compile.grn.from.kegg(pwys)
     

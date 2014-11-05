@@ -60,7 +60,7 @@
 
     # (2) extract from pathways
     # download human pathways via: 
-    # pwys <- download.pathways.of.organism("hsa")
+    # pwys <- download.kegg.pathways("hsa")
     pwys <- system.file("extdata/hsa_kegg_pwys.zip", package="EnrichmentBrowser")
     gs <- get.kegg.genesets(pwys)
 

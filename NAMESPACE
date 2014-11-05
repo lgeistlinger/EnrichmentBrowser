@@ -8,11 +8,11 @@ importFrom("stringr", str_trim)
 importFrom("neaGUI", nea)
 importFrom("SPIA", spia)
 importFrom("safe", safe)
-importFrom("genefilter", rowttests)
-importFrom("simpleaffy", get.fold.change.and.t.test)
+importFrom("limma", lmFit, makeContrasts, contrasts.fit, eBayes, topTable)
 importFrom("qvalue", qvalue)
+importFrom("mixtools", normalmixEM, rnormmix)
 importFrom("Rgraphviz", layoutGraph, renderGraph, edgeData)
-importFrom("KEGGREST", keggLink, keggList, keggGet)
+importFrom("KEGGREST", keggLink, keggList, keggGet, keggConv)
 
 export( 
     read.eset, 
@@ -26,7 +26,7 @@ export(
     sbea.methods,
     sbea, 
     gs.ranking,
-    download.pathways.of.organism, 
+    download.kegg.pathways, 
     compile.grn.from.kegg,
     nbea.methods,
     nbea,

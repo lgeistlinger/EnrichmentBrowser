@@ -31,6 +31,7 @@ method2html <- function(    method,
     }
 
     ## create and write the header to html
+    if(file.exists(html.out)) file.remove(html.out)
     html.out <- file(html.out, open='a')
     header <- create.html.header(method=method, 
         title=TABLE.OF.RESULTS, html.out=html.out)
@@ -44,6 +45,7 @@ method2html <- function(    method,
 create.index <- function(out.dir, meth, comb=FALSE)
 {
     index <- file.path(out.dir, "index.html")
+    if(file.exists(index)) file.remove (index)
     index <- file(index, open='a')
     header <- create.html.header(method="eBrowser", 
         title="Index of Result Files", html.out=index)
@@ -191,7 +193,9 @@ make.view.col <- function(view)
         system.file("images", package="EnrichmentBrowser"), VIEW.TAGS)
     view.hrefs <- sapply(seq_len(ncol(view)), 
         function(i) make.href.cols( refs=view[,i], tag=VIEW.TAGS[i]))
-    view.col <- apply(view.hrefs, 1, paste, collapse=" ")
+    if(is.matrix(view.hrefs)) 
+        view.col <- apply(view.hrefs, 1, paste, collapse=" ")
+    else view.col <- paste(view.hrefs, collapse=" ")
     return(view.col)
 }
 

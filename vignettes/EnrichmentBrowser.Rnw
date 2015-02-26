@@ -61,6 +61,40 @@ pdat.file <- file.path(data.dir, "ALL_pData.tab")
 fdat.file <- file.path(data.dir, "ALL_fData.tab")
 eset2 <- read.eset(exprs.file, pdat.file, fdat.file)
 @
+%Thus, we write the restricted ALL data in a simple format that requires minimal 
+%annotation to file. In accordance to the structure of the \Rclass{ExpressionSet}
+%class the input should contain
+%\begin{enumerate}
+%\item{The expression matrix (features as rows, samples as columns)
+%<<>>=
+%out.dir <- system.file("extdata", package="EnrichmentBrowser")
+%exprs.file <- file.path(out.dir, "ALL_exprs.tab")
+%write.table(exprs(b.eset), file=exprs.file, 
+%    sep="\t", col.names=FALSE, row.names=FALSE, quote=FALSE)
+%@
+%}nnotationDbi
+%\item{The phenotype data (group assignment for the samples)
+%<<>>=
+%pdat.file <- file.path(out.dir, "ALL_pData.tab")
+%grp <- ifelse(b.eset$mol.biol == "BCR/ABL", 1, 0)
+%pdat <- cbind(sampleNames(b.eset), grp)
+%write.table(pdat, file=pdat.file, sep="\t",
+%        col.names=FALSE, row.names=FALSE, quote=FALSE)
+%@
+%}
+%\item{The feature data (maps features to genes)
+%<<>>=
+%library(hgu95av2.db)
+%xx <- as.list(hgu95av2ENTREZID)
+%entrez.ids <- xx[featureNames(ALL)]
+%fdat <- cbind(featureNames(ALL), unlist(entrez.ids))
+%fdat.file <- file.path(out.dir, "ALL_fData.tab")
+%write.table(fdat, file=fdat.file, sep="\t",
+%        col.names=FALSE, row.names=FALSE, quote=FALSE)
+%@
+%}
+%\end{enumerate}  
+%
 We can now access the expression values, which are intensity measurements 
 on a log-scale for 12,625 probes (rows) across 79 patients (columns).
 
@@ -78,7 +112,8 @@ table(pData(eset)$GROUP)
 @
 
 The \Rfunction{de.ana} function carries out a differential 
-expression analysis between the two groups using the \Biocpkg{limma} package.\\
+expression analysis between the two groups using the function 
+\Rfunction{get.fold.change.and.t.test} from the \Biocpkg{simpleaffy} package.\\
 Resulting fold changes and $t$-test derived $p$-values for each probe are 
 appended to the \Robject{fData} slot.
 

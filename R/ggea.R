@@ -303,9 +303,10 @@ approx.pval <- function(res.tbl, grn.cons)
     ps <- apply(res.tbl, 1,
         function(x)
         {
-            nr.rels <- as.integer(x["NR.RELS"])
+            nr.rels <- sqrt(as.integer(x["NR.RELS"]))
             d <- sapply(1:2, function(i) 
-                l[i] * pnorm(x["RAW.SCORE"], mean=0, sd=nr.rels * s[i]))
+                l[i] * pnorm(x["RAW.SCORE"], 
+                mean=nr.rels * m[i], sd=nr.rels * s[i]))
             p <- 1 - sum(d)
             return(p)
         })

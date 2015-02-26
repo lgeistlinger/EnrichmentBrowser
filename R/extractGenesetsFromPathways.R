@@ -7,7 +7,7 @@
 # of pathways. The genesets are subsequently written in gmt format
 # that is suitable for input to GSEA.
 #
-# Update, 05 May 2014:  easy & fasr  geneset getter for organism of choice 
+# Update, 05 May 2014:  easy & fast geneset getter for organism of choice 
 #           based on KEGGREST functionality 
 #
 #
@@ -17,20 +17,22 @@ get.kegg.genesets <- function(pwys, gmt.file=NULL)
 {
     if(class(pwys) == "character")
     {
-        if(nchar(pwys) == 3)
-            return(download.kegg.genesets(org=pwys, gmt.file=gmt.file))
-        else pwys <- extract.pwys(pwys)
+        if(length(pwys) == 1 && file.exists(pwys)) pwys <- extract.pwys(pwys)
+        else return(download.kegg.genesets(pwys, gmt.file=gmt.file))
     }
     return(extract.kegg.genesets(pwys, gmt.file=gmt.file))
 }
 
-# 
-download.kegg.genesets <- function(org, gmt.file=NULL)
+download.kegg.genesets <- function(pwys, gmt.file=NULL)
 {
-    pwys <- keggList("pathway", org)
-    pwy2gene <- keggLink(org, "pathway")
+    # download all gs of organism
+    if(length(pwys) == 1 && length(grep("^[a-z]{3}$", pwys)))
+    {   
+        org <- pwys
+        pwys <- keggList("pathway", org)
+        pwy2gene <- keggLink(org, "pathway")
 
-    gs <- sapply(names(pwys), 
+        gs <- sapply(names(pwys), 
             function(pwy)
             { 
                 genes <- pwy2gene[names(pwy2gene) == pwy]
@@ -39,9 +41,27 @@ download.kegg.genesets <- function(org, gmt.file=NULL)
                 names(genes) <- NULL
                 return(genes)
             }, simplify=FALSE)
-
+    }
+    # download selected ids
+    else
+    {
+        gs <- sapply(pwys, 
+            function(pwy)
+            { 
+                info <- keggLink(paste0("path:", pwy))
+                genes <- grep(paste0("^", 
+                    substring(pwy, 1, 3), ":"), info, value=TRUE)
+                genes <- sub("^[a-z]{3}:", "", genes)
+                genes <- sort(genes)
+                names(genes) <- NULL
+                return(genes)
+            }, simplify=FALSE)
+        titles <- sapply(pwys, 
+            function(pwy) keggList(paste0("map", sub("^[a-z]{3}", "", pwy))))
+        names(titles) <- pwys
+        pwys <- titles
+    }
     names(gs) <- make.gs.names(names(pwys), pwys)
-    
     if(!is.null(gmt.file)) write.gmt(gs, gmt.file=gmt.file)
     return(gs)
 }
@@ -100,6 +120,7 @@ make.gs.names <- function(ids, titles)
     titles <- str_trim(titles)
     titles <- gsub(" ", "_", titles)
     ids <- paste(ids, titles, sep="_")
+    return(ids)
 }
 
 # write genesets to file in GMT format

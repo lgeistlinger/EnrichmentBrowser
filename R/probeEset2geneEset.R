@@ -151,7 +151,6 @@ anno.pkg.2.org <- function(anno.pkg)
     return(org.id)
 }
 
-
 probe.2.gene.eset <- function(
     probe.eset, 
     use.mean=TRUE,

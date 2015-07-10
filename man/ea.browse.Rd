@@ -9,7 +9,7 @@
     enrichment analysis result object and to detailedly explored it. 
 }
 \usage{
-    ea.browse(res, nr.show=-1, set.view=TRUE, graph.view=NULL)
+    ea.browse(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
 
     gs.ranking(res, signif.only=TRUE)
 }
@@ -22,11 +22,6 @@
         Number of gene sets to show. 
         As default all statistical significant gene sets are displayed.
     }
-    \item{set.view}{
-        Logical.
-        Should a set-based summary (includes a report, plots, and browsing in 
-        KEGG) be created for the result? Defaults to TRUE. 
-    }
     \item{graph.view}{
         Optional. 
         Should a graph-based summary (reports and visualizes consistency of 
@@ -36,6 +31,11 @@
         exactly *THREE* cols; 1st col = IDs of regulating genes; 
         2nd col = corresponding regulated genes;
         3rd col = regulation effect; Use '+' and '-' for activation/inhibition.
+    }
+    \item{html.only}{
+        Logical.
+        Should the html file only be written (without opening the browser to 
+        view the result page)? Defaults to FALSE.
     }
     \item{signif.only}{
         Logical.
@@ -54,22 +54,20 @@
     Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
 }
 \examples{
+    
+    # real data
     # (1) reading the expression data from file
-    exprs.file <- system.file("extdata/ALL_exprs.tab", package="EnrichmentBrowser")
-    pdat.file <- system.file("extdata/ALL_pData.tab", package="EnrichmentBrowser")
-    fdat.file <- system.file("extdata/ALL_fData.tab", package="EnrichmentBrowser")
+    exprs.file <- system.file("extdata/exprs.tab", package="EnrichmentBrowser")
+    pdat.file <- system.file("extdata/pData.tab", package="EnrichmentBrowser")
+    fdat.file <- system.file("extdata/fData.tab", package="EnrichmentBrowser")
     probe.eset <- read.eset(exprs.file, pdat.file, fdat.file)
-
-    # (2) summarizing probe expression on gene level
     gene.eset <- probe.2.gene.eset(probe.eset) 
+    gene.eset <- de.ana(gene.eset)
+    annotation(gene.eset) <- "hsa"
 
-    # (3) getting all human KEGG gene sets
-    # hsa.gs <- get.kegg.genesets("hsa")
-    gs.file <- system.file("extdata/hsa_kegg_gs.gmt", package="EnrichmentBrowser")
-    hsa.gs <- parse.genesets.from.GMT(gs.file)
-
-    # (4) performing the enrichment analysis
-    ea.res <- sbea(method="ora", eset=gene.eset, gs=hsa.gs, perm=0)
+    # artificial enrichment analysis results
+    gs <- make.example.data(what="gs", gnames=featureNames(gene.eset))
+    ea.res <- make.example.data(what="ea.res", method="ora", eset=gene.eset, gs=gs)
 
     # (5) result visualization and exploration
     gs.ranking(ea.res)

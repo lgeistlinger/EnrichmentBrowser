@@ -40,7 +40,11 @@
     and the genes in the gene set. See references.
 }
 \references{
+    GMT file format
     http://www.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats
+
+    KEGG Organism code
+    http://www.genome.jp/kegg/catalog/org_list.html
 }
 \author{
     Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>

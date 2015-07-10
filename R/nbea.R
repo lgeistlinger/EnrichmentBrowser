@@ -10,10 +10,10 @@
 #
 ############################################################
 
-nbea.methods <- function() NBEA.METHODS
+nbea.methods <- function() c("ggea", "nea",  "spia")
 
 nbea <- function(
-    method=c("ggea", "nea", "spia"), 
+    method=nbea.methods(), 
     eset, 
     gs, 
     grn,
@@ -22,19 +22,27 @@ nbea <- function(
     out.file=NULL,
     browse=FALSE, ...)
 {
-    if(class(eset) == "character") eset <- get(load(eset))
-    if(class(gs) == "character") gs <- parse.genesets.from.GMT(gs)
-    if(class(grn) == "character") grn <- read.grn(grn)
-        
+    GS.MIN.SIZE <- config.ebrowser("GS.MIN.SIZE")
+    GS.MAX.SIZE <- config.ebrowser("GS.MAX.SIZE")
+
+    # restrict eset and gs to intersecting genes
+    igenes <- intersect(featureNames(eset), unique(unlist(gs)))
+    eset <- eset[igenes,]
+    gs <- sapply(gs, function(s) s[s%in% igenes]) 
+    lens <- sapply(gs, length)
+    gs <- gs[lens >= GS.MIN.SIZE & lens <= GS.MAX.SIZE]
+
     if(class(method) == "character")
     {
-        method <- method[1]
-        if(length(find(method))) res.tbl <- do.call(method, 
-                list(eset=eset, gs=gs, grn=grn, alpha=alpha, perm=perm, ...))
-        else if(!(method %in% nbea.methods())) 
-            stop(paste("\'method\' must be one out of {", 
-                paste(nbea.methods(), collapse=", "), "}"))
-        else if(method == "nea") 
+        method <- match.arg(method)
+        #if(length(find(method))) res.tbl <- do.call(method, 
+        #        list(eset=eset, gs=gs, grn=grn, alpha=alpha, perm=perm, ...))
+        #else 
+        #if(!(method %in% nbea.methods())) 
+        #    stop(paste("\'method\' must be one out of {", 
+        #        paste(nbea.methods(), collapse=", "), "}"))
+        #else 
+        if(method == "nea") 
             res.tbl <- nea.wrapper(eset=eset, 
                 gs=gs, grn=grn, alpha=alpha, perm=perm, ...)
         else if(method == "spia") 
@@ -47,12 +55,13 @@ nbea <- function(
         res.tbl <- method(eset=eset, gs=gs, grn=grn, alpha=alpha, perm=perm, ...)
     else stop(paste(method, "is not a valid method for nbea"))
 
-    res.tbl <- signif(res.tbl, digits=3)
-    sorting.df <- cbind(res.tbl[,ncol(res.tbl)], -res.tbl[,(ncol(res.tbl)-1):1])
+    res.tbl <- data.frame(signif(res.tbl, digits=3))
+    sorting.df <- cbind(res.tbl[,ncol(res.tbl)], 
+        -res.tbl[,rev(seq_len(ncol(res.tbl)-1))])
     res.tbl <- res.tbl[do.call(order, as.data.frame(sorting.df)),]
 
-    res.tbl <- cbind(rownames(res.tbl), res.tbl)
-    colnames(res.tbl)[1] <- "GENE.SET"
+    res.tbl <- DataFrame(rownames(res.tbl), res.tbl)
+    colnames(res.tbl)[1] <- config.ebrowser("GS.COL") 
     rownames(res.tbl) <- NULL
     
     if(!is.null(out.file))
@@ -65,7 +74,7 @@ nbea <- function(
     {
         res <- list(
             res.tbl=res.tbl, method=method,
-            nr.sigs=sum(as.numeric(res.tbl[,"P.VALUE"]) < alpha),
+            nr.sigs=sum(as.numeric(res.tbl[,config.ebrowser("GSP.COL")]) < alpha),
             eset=eset, gs=gs, alpha=alpha)
 
         if(browse) ea.browse(res)
@@ -75,6 +84,9 @@ nbea <- function(
 
 nea.wrapper <- function(eset, gs, grn, alpha=0.05, perm=100)
 {
+    ADJP.COL <- config.ebrowser("ADJP.COL")
+    GSP.COL <- config.ebrowser("GSP.COL")
+
     if(perm > 100) perm <- 100
     ags <- featureNames(eset)[fData(eset)[,ADJP.COL] < alpha]
     grn <- unique(grn[,1:2])
@@ -82,7 +94,7 @@ nea.wrapper <- function(eset, gs, grn, alpha=0.05, perm=100)
     grn <- grn[(grn[,1] %in% gs.genes) & (grn[,2] %in% gs.genes),]
     network <- apply(grn, 1, function(x) paste(x, collapse=" "))
     message("Computing NEA permutations, this may take a few minutes ...")
-    res <- nea(ags=ags, fgs=gs, network=network, nperm=perm)
+    res <- neaGUI::nea(ags=ags, fgs=gs, network=network, nperm=perm)
     res <- res$MainResult
     res <- res[, c("Number_of_Genes", 
         "Number_of_AGS_genes", "Number_links", "Z_score", "P_value")]
@@ -93,22 +105,26 @@ nea.wrapper <- function(eset, gs, grn, alpha=0.05, perm=100)
     colnames(res) <- gsub("_", ".", colnames(res))
     colnames(res) <- toupper(colnames(res))
     res <- as.matrix(res)
-    res <- res[order(res[,"P.VALUE"]),]
+    res <- res[order(res[,GSP.COL]),]
     return(res) 
 }
 
 spia.wrapper <- function(eset, gs, alpha=0.05, perm=1000)
 {
+    FC.COL <- config.ebrowser("FC.COL")
+    ADJP.COL <- config.ebrowser("ADJP.COL")
+    GSP.COL <- config.ebrowser("GSP.COL")
+
     de.genes <- fData(eset)[,ADJP.COL] < alpha
     de <- fData(eset)[de.genes, FC.COL]
     names(de) <- featureNames(eset)[de.genes]
     all <- featureNames(eset)
     organism <- substring(names(gs)[1],1,3) 
-    res <- spia(de=de, all=all, organism=organism, nB=perm)
+    res <- SPIA::spia(de=de, all=all, organism=organism, nB=perm)
     res[,"Name"] <- gsub(" ", "_", res[,"Name"])
     rownames(res) <- paste(paste0(organism, res[,"ID"]), res[,"Name"], sep="_")
     res <- res[, c("pSize", "NDE", "tA", "Status", "pG")]
-    colnames(res) <- c("SIZE", "NDE", "T.ACT", "STATUS", "P.VALUE")
+    colnames(res) <- c("SIZE", "NDE", "T.ACT", "STATUS", GSP.COL)
     res[,"STATUS"] <- ifelse(res[,"STATUS"] == "Activated", 1, -1)
     res <- as.matrix(res)
     return(res)

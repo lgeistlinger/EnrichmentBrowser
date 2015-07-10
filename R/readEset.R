@@ -11,17 +11,17 @@
 # de analysis is now based on limma rather than simpleaffy
 # supported data types now include RNA-seq
 #
+#
+# UPDATE: Oct 21th, 2014
+#
 ###############################################################################
 
-read.eset <- function(
-    exprs.file, 
-    pdat.file, 
-    fdat.file, 
-    de=TRUE,
-    heatm.file=NULL, 
-    distr.file=NULL, 
-    volc.file=NULL)
+read.eset <- function(exprs.file, pdat.file, fdat.file, 
+    data.type=c(NA, "ma", "rseq"), NA.method=c("mean", "rm", "keep"))
 {
+    data.type <- match.arg(data.type)
+    NA.method <- match.arg(NA.method)
+
     # read features
     anno <- ifelse(file.exists(fdat.file), NA, fdat.file)
     if(is.na(anno))
@@ -50,114 +50,49 @@ read.eset <- function(
     rownames(expr) <- fDat[,1]
     colnames(expr) <- pDat[,1]
 
+    # deal with NAs
+    expr <- na.treat(expr, NA.method) 
+   
+    # create the eset
+    eset <- new("ExpressionSet", exprs=expr)
+    if(!is.na(anno)) annotation(eset) <- anno
+    pData(eset) <- data.frame(pDat, stringsAsFactors=FALSE)
+    fData(eset) <- data.frame(fDat, stringsAsFactors=FALSE)
+    
+    colnames(pData(eset))[1:2] <- sapply(c("SMPL.COL", "GRP.COL"), config.ebrowser)
+    if(ncol.pdat > 2) colnames(pData(eset))[3] <- config.ebrowser("BLK.COL")
+    if(ncol.fdat == 1) colnames(fData(eset))[1] <- config.ebrowser("EZ.COL") 
+    else colnames(fData(eset))[1:2] <- sapply(c("PRB.COL", "EZ.COL"), config.ebrowser)
+   
+    # ma or rseq?
+    if(!(data.type %in% c("ma", "rseq"))) 
+        data.type <- auto.detect.data.type(expr)
+    experimentData(eset)@other$dataType <- data.type
+ 
+    return(eset)
+}
+
+na.treat <- function(expr, NA.method=c("mean", "rm", "keep"))
+{
+    NA.method <- match.arg(NA.method)
     # replace NAs by mean expression values
+    if(!(NA.method %in% c("mean", "rm"))) return(expr)
+
     na.indr <- which(apply(expr, 1, function(x) any(is.na(x))))
+    if(length(na.indr) == 0) return(expr)
+    if(NA.method == "rm") return(expr[-na.indr,])
+
     for(i in seq_along(na.indr))
     {
         cexpr <- expr[na.indr[i],]
         na.indc <- is.na(cexpr)
         cexpr[na.indc] <- mean(cexpr[!na.indc])
         expr[na.indr[i],] <- cexpr
-    }
-    
-    # create the eset
-    eset <- new("ExpressionSet", exprs=expr)
-    if(!is.na(anno)) annotation(eset) <- anno
-    for(i in seq_len(ncol.pdat)) pData(eset)[, i] <- pDat[,i]
-    for(i in seq_len(ncol.fdat)) fData(eset)[, i] <- fDat[,i]
-    
-    colnames(pData(eset))[1:2] <- c(SMPL.COL, GRP.COL)
-    if(ncol.pdat > 2) colnames(pData(eset))[3] <- BLK.COL
-
-    colnames(fData(eset))[1:2] <- c(PRB.COL, GN.COL)
-    
-    # (a) heatmap
-    if(!is.null(heatm.file)) exprs.heatmap(eset, heatm.file)
-   
-    if(de)
-    { 
-        eset <- de.ana(eset)
-        # (b) pval distribution
-        if(!is.null(distr.file)) pdistr(eset, distr.file)   
-    
-        # (c) volcano plot
-        if(!is.null(volc.file)) volcano(eset, volc.file)
-    }
-    
-    return(eset)
+    }    
+    return(expr)
 }
 
-# perform de analysis
-de.ana <- function(eset)
-{
-    groups <- sort(unique(pData(eset)[,GRP.COL]), decreasing=TRUE)
-    if(!all(groups == GRPS)) 
-        stop(paste0("Group classification in pData is not binary:\n",
-            "Expected (0, 1) but found (", paste(groups, collapse=", "), ")"))
+auto.detect.data.type <- function(expr) 
+    ifelse(all(is.wholenumber(expr)), "rseq", "ma")
     
-    block <- 0
-    paired <- BLK.COL %in% colnames(pData(eset))
-    if(paired) block <- factor(pData(eset)[,BLK.COL])
-    
-    g <- factor(ifelse(pData(eset)[,GRP.COL] == "1", "d", "c"))
-    if(paired) design <- model.matrix(~0 + g + block)
-    else design <- model.matrix(~0 + g)
-    colnames(design)[1:2] <- levels(g)
-    fit <- lmFit(exprs(eset), design)
-    cont.matrix <- makeContrasts(contrasts="d-c", levels=design)
-    fit2 <- contrasts.fit(fit, cont.matrix)
-    fit2 <- eBayes(fit2)
-    aT1 <- topTable(fit2, coef=1, 
-        number=nrow(eset), sort.by="none", adjust.method="none")
-    fData(eset)[, FC.COL] <- aT1[, "logFC"]
-    fData(eset)[, RAWP.COL] <- aT1[, "P.Value"]
-    fData(eset)[, ADJP.COL] <- p.adjust(
-        fData(eset)[, RAWP.COL], method=ADJ.METH)
-    return(eset)
-}
-
-# P-Value Distribution
-pdistr <- function(eset, out.file=NULL, use.adjp=TRUE)
-{
-    if(use.adjp) p <- fData(eset)[, ADJP.COL]
-    else p <- fData(eset)[, RAWP.COL]
-    if(!is.null(out.file)) png(filename=out.file) 
-    truehist(p, nbins=100, prob=TRUE,
-            main="P-Value Distribution", xlab="P-Value", ylab="Frequency")
-    if(!is.null(out.file)) dev.off()
-}
-
-# Volcano Plot (fold change vs. p-value)
-volcano <- function(eset, out.file=NULL)
-{
-    if(!is.null(out.file)) png(filename=out.file)
-    plot(x=fData(eset)[, FC.COL], 
-        y=-log(fData(eset)[,ADJP.COL], base=10), col="red", 
-            main="Volcano Plot", xlab="log2(foldChange)", ylab="-log10(p)")
-    if(!is.null(out.file)) dev.off()
-}
-
-# Heatmap
-exprs.heatmap <- function(eset, out.file=NULL)
-{
-    HMcols <- rev(brewer.pal(10,"RdBu"))
-    cols <- brewer.pal(10, "BrBG")
-
-    expr <- exprs(eset)
-    grp <- pData(eset)[, GRP.COL]
-    ord <- order(grp)
-    expr <- expr[,ord]
-    grp <- grp[ord] 
-    grpColors <- ifelse(grp==1, "brown", "grey")  
-    if(!is.null(out.file)) png(filename=out.file)
-    heatmap(exprs(eset), scale="row", col = HMcols, Colv=NA,
-        ColSideColors=grpColors, keep.dendro=TRUE,
-        #distfun=onecor,
-        labRow=FALSE, xlab="Samples", ylab="Features")
-    if(!is.null(out.file)) dev.off()
-}
-
-onecor <- function(x) as.dist(1-cor(t(x)))
-
-
-
+is.wholenumber <- function(x, tol=.Machine$double.eps^0.5) abs(x-round(x)) < tol

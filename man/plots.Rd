@@ -7,25 +7,27 @@
 }
 \description{
     Visualization of differential gene expression via 
-    heatmaps, p-value histograms and volcano plots (fold change vs. p-value).
+    heatmap, p-value histogram and volcano plot (fold change vs. p-value).
 }
 \usage{
-    pdistr(eset, out.file=NULL, use.adjp=TRUE)
-    volcano(eset, out.file=NULL)
-    exprs.heatmap(eset, out.file=NULL)
+    pdistr(p)
+    volcano(fc, p)
+    exprs.heatmap(expr, grp)
 }
 \arguments{
-    \item{eset}{
-        Expression set. An object of class 'ExpressionSet' containing the 
-        gene expression set. See 'read.eset' and 'probe.2.gene.eset' for 
-        required annotations in the pData and fData slot.
+    \item{p}{
+        Numeric vector of p-values for each gene.
     }
-    \item{use.adjp}{
-        Logical. Use differential expression p-values that are already corrected
-        for multiple testing? Defaults to TRUE.
+    \item{fc}{
+        Numeric vector of fold changes (typically on log2 scale).
     }
-    \item{out.file}{
-        Optional output file to which graphics are plotted to.
+    \item{expr}{
+        Expression matrix. Rows correspond to genes, columns to samples.    
+    }
+    \item{grp}{
+        *BINARY* group assignment for the samples. 
+        Use '0' and '1' for unaffected (controls) and affected (cases) 
+        samples, respectively.
     }
 }
 \value{
@@ -35,17 +37,18 @@
     Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
 }
 \seealso{
-    \code{\link{heatmap}}, \code{\link{truehist}} 
+    \code{\link{de.ana}} for differential expression analysis,
+    \code{\link{heatmap}} and \code{\link{truehist}} for generic plotting. 
 }
 \examples{
-    # (1) reading the expression data from file
-    exprs.file <- system.file("extdata/ALL_exprs.tab", package="EnrichmentBrowser")
-    pdat.file <- system.file("extdata/ALL_pData.tab", package="EnrichmentBrowser")
-    fdat.file <- system.file("extdata/ALL_fData.tab", package="EnrichmentBrowser")
-    eset <- read.eset(exprs.file, pdat.file, fdat.file)
+    # (1) simulating expression data: 100 genes, 12 samples
+    eset <- make.example.data(what="eset") 
+    
+    # plot heatmap
+    exprs.heatmap(expr=exprs(eset), grp=as.factor(pData(eset)$GROUP))
 
-    # (2) plot
-    exprs.heatmap(eset)
-    pdistr(eset)
-    volcano(eset)
+    # (2) DE analysis
+    eset <- de.ana(eset)
+    pdistr(fData(eset)$ADJ.PVAL)
+    volcano(fc=fData(eset)$FC, p=fData(eset)$ADJ.PVAL)
 }

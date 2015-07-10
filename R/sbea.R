@@ -3,18 +3,15 @@
 # author: Ludwig Geistlinger
 # date: 06 Dec 2010
 #
-# Set-based Enrichment Analysis (SEA)
-#
-# Update, 06 May 2014: extension of file-based SEA 
-#           to invokement within R
+# Set-based Enrichment Analysis (SBEA)
 #
 ############################################################
 
 # A INPUT FASSADE - wrapping & delegation
-sbea.methods <- function() SBEA.METHODS
+sbea.methods <- function() c("ora", "safe", "gsea", "samgs")
 
 sbea <- function(   
-    method=c("ora", "safe", "gsea", "samgs"), 
+    method=sbea.methods(), 
     eset, 
     gs, 
     alpha=0.05, 
@@ -22,17 +19,28 @@ sbea <- function(
     out.file=NULL,
     browse=FALSE)
 {   
-    if(class(eset) == "character") eset <- get(load(eset))
-    if(class(method) == "character")
+    GS.MIN.SIZE <- config.ebrowser("GS.MIN.SIZE")
+    GS.MAX.SIZE <- config.ebrowser("GS.MAX.SIZE")
+
+    # restrict eset and gs to intersecting genes
+    igenes <- intersect(featureNames(eset), unique(unlist(gs)))
+    eset <- eset[igenes,]
+    gs <- sapply(gs, function(s) s[s %in% igenes]) 
+    lens <- sapply(gs, length)
+    gs <- gs[lens >= GS.MIN.SIZE & lens <= GS.MAX.SIZE]
+
+    if(is.character(method))
     { 
-        method <- method[1]
-        if(length(find(method))) gs.ps <- do.call(method, 
-            list(eset=eset, gs=gs, alpha=alpha, perm=perm))
-        else if(!(method %in% sbea.methods())) 
-            stop(paste("\'method\' must be one out of {", 
-                paste(sbea.methods(), collapse=", "), "}"))
+        method <- match.arg(method)
+        #if(length(find(method))) gs.ps <- do.call(method, 
+        #    list(eset=eset, gs=gs, alpha=alpha, perm=perm))
+        #else 
+        #if(!(method %in% sbea.methods())) 
+        #    stop(paste("\'method\' must be one out of {", 
+        #        paste(sbea.methods(), collapse=", "), "}"))
+        # else 
         # gsea
-        else if(method == "gsea") 
+        if(method == "gsea") 
             gs.ps <- gsea(eset, gs, perm=perm, alpha=alpha) 
         else
         {
@@ -50,12 +58,11 @@ sbea <- function(
             # samgs
             else if(method == "samgs")
             {
-                if(is.null(out.file)) 
-                    out.dir <- file.path(system.file(
-                        package="EnrichmentBrowser"), "results")
+                if(is.null(out.file)) out.dir <- config.ebrowser("OUTDIR.DEFAULT")
                 else out.dir <- sub("\\.[a-z]+$","_files", out.file)
                 if(!file.exists(out.dir)) dir.create(out.dir)
                 samt.file <- file.path(out.dir, "samt.RData")
+                GRP.COL <- config.ebrowser("GRP.COL")
                 gs.ps <- SAMGS(GS=as.data.frame(cmat), DATA=exprs(eset), 
                         cl=as.factor(as.integer(eset[[GRP.COL]]) + 1), 
                         nbPermutations=perm, 
@@ -63,14 +70,14 @@ sbea <- function(
             }
         }
     }
-    else if(class(method) == "function") 
+    else if(is.function(method)) 
         gs.ps <- method(eset=eset, gs=gs, alpha=alpha, perm=perm)
     else stop(paste(method, "is not a valid method for sbea"))
 
     gs.ps <- sort(gs.ps)
     gs.ps <- signif(gs.ps, digits=3)
-    res.tbl <- cbind(names(gs.ps), gs.ps)
-    colnames(res.tbl) <- c("GENE.SET", "P.VALUE")
+    res.tbl <- DataFrame(names(gs.ps), gs.ps)
+    colnames(res.tbl) <- sapply(c("GS.COL", "GSP.COL"), config.ebrowser)
     rownames(res.tbl) <- NULL
 
        
@@ -96,17 +103,17 @@ gs.ranking <- function(res, signif.only=TRUE)
     if(signif.only)
     {
         nr.sigs <- res$nr.sigs
-        if(nr.sigs) ranking <- res$res.tbl[seq_len(nr.sigs),,drop=FALSE]
+        if(nr.sigs) ranking <- res$res.tbl[seq_len(nr.sigs),]
         else return(NULL)
     }
     else ranking <- res$res.tbl
-    return(as.data.frame(ranking))
+    return(ranking)
 }
 
 # 0 HELPER
 gmt.2.cmat <- function(gs, features, min.size=0, max.size=Inf)
 {
-    if(class(gs) == "character") gs <- parse.genesets.from.GMT(gs)
+    if(is.character(gs)) gs <- parse.genesets.from.GMT(gs)
     # transform gs gmt to cmat
     cmat <- sapply(gs, function(x) features %in% x)
     rownames(cmat) <- features
@@ -172,6 +179,9 @@ ora.hyperg <- function(ps, cmat, alpha=0.05)
 #
 ora <- function(mode=2, eset, cmat, perm=1000, alpha=0.05)
 {
+    GRP.COL <- config.ebrowser("GRP.COL")
+    ADJP.COL <- config.ebrowser("ADJP.COL")
+
     x <- exprs(eset)
     y <- as.integer(pData(eset)[, GRP.COL]) 
 
@@ -185,12 +195,12 @@ ora <- function(mode=2, eset, cmat, perm=1000, alpha=0.05)
             nr.sigs <- sum(fData(eset)[ , ADJP.COL] < alpha)
             args <- list(one.sided=FALSE, genelist.length=nr.sigs)
 
-            gs.ps <- safe(  X.mat=x, y.vec=y, 
+            gs.ps <- safe::safe(  X.mat=x, y.vec=y, 
                     C.mat=cmat, Pi.mat=perm, alpha=alpha, 
                     global="Fisher", args.global=args)
         } 
         # SAFE default                  
-        else gs.ps <- safe(X.mat=x, y.vec=y, 
+        else gs.ps <- safe::safe(X.mat=x, y.vec=y, 
             C.mat=cmat, Pi.mat=perm, alpha=alpha)
         gs.ps <- gs.ps@global.pval
     }
@@ -206,13 +216,14 @@ gsea <- function(
     perm=1000, 
     out.file=NULL)
 {        
+    GRP.COL <- config.ebrowser("GRP.COL")
     # build class list
     cls <- list()
     cls$phen <- levels(as.factor(eset[[GRP.COL]]))
     cls$class.v <- ifelse(eset[[GRP.COL]] == cls$phen[1], 0, 1)
 
     if(is.null(out.file)) 
-        out.dir <- file.path(system.file(package="EnrichmentBrowser"), "results")
+        out.dir <- config.ebrowser("OUTDIR.DEFAULT") 
     else out.dir <- sub("\\.[a-z]+$", "_files", out.file)
     if(!file.exists(out.dir)) dir.create(out.dir)
 
@@ -231,9 +242,8 @@ gsea <- function(
         doc.string            = doc.string,
         nperm                 = perm,
         fdr.q.val.threshold   = -1,
-        topgs                 = NROW.TOP.TABLE,
-        gs.size.threshold.min = GS.MIN.SIZE,
-        gs.size.threshold.max = GS.MAX.SIZE)
+        gs.size.threshold.min = config.ebrowser("GS.MIN.SIZE"),
+        gs.size.threshold.max = config.ebrowser("GS.MAX.SIZE"))
       
     res.file <- file.path(out.dir, 
         paste(doc.string, ".SUMMARY.RESULTS.REPORT.1.txt", sep=""))

@@ -13,7 +13,7 @@
     resulting gene set rankings. 
 }
 \usage{
-    sbea(method=c("ora", "safe", "gsea", "samgs"), eset, gs, 
+    sbea(method=sbea.methods(), eset, gs, 
             alpha=0.05, perm=1000, out.file=NULL, browse=FALSE)
 
     sbea.methods()
@@ -120,40 +120,38 @@
     # currently supported methods
     sbea.methods()
 
-    # (1) reading the expression data from file
-    exprs.file <- system.file("extdata/ALL_exprs.tab", package="EnrichmentBrowser")
-    pdat.file <- system.file("extdata/ALL_pData.tab", package="EnrichmentBrowser")
-    fdat.file <- system.file("extdata/ALL_fData.tab", package="EnrichmentBrowser")
-    probe.eset <- read.eset(exprs.file, pdat.file, fdat.file)
+    # (1) expression data: 
+    # simulated expression values of 100 genes
+    # in two sample groups of 6 samples each
+    eset <- make.example.data(what="eset")
+    eset <- de.ana(eset)
 
-    # (2) summarizing probe expression on gene level
-    gene.eset <- probe.2.gene.eset(probe.eset) 
+    # (2) gene sets:
+    # draw 10 gene sets with 15-25 genes
+    gs <- make.example.data(what="gs", gnames=featureNames(eset))
 
-    # (3) getting all human KEGG gene sets
-    # hsa.gs <- get.kegg.genesets("hsa")
-    gs.file <- system.file("extdata/hsa_kegg_gs.gmt", package="EnrichmentBrowser")
-    hsa.gs <- parse.genesets.from.GMT(gs.file)
+    # (3) make 2 artificially enriched sets:
+    sig.genes <- featureNames(eset)[fData(eset)$ADJ.PVAL < 0.1]
+    gs[[1]] <- sample(sig.genes, length(gs[[1]])) 
+    gs[[2]] <- sample(sig.genes, length(gs[[2]]))   
 
     # (4) performing the enrichment analysis
-    ea.res <- sbea(method="ora", eset=gene.eset, gs=hsa.gs, perm=0)
+    ea.res <- sbea(method="ora", eset=eset, gs=gs, perm=0)
 
     # (5) result visualization and exploration
     gs.ranking(ea.res)
-    \donttest{
-    ea.browse(ea.res)
-    }
 
     # using your own tailored function as enrichment method
     dummy.sbea <- function(eset, gs, alpha, perm)
     {
-        sig.ps <- sample(seq(0,0.05, length=1000),5)
-        insig.ps <- sample(seq(0.1,1, length=1000), length(gs)-5)
-        ps <- sample(c(sig.ps, insig.ps), length(gs))
+        sig.ps <- sample(seq(0, 0.05, length=1000), 5)
+        nsig.ps <- sample(seq(0.1, 1, length=1000), length(gs)-5)
+        ps <- sample(c(sig.ps, nsig.ps), length(gs))
         names(ps) <- names(gs)
         return(ps)
     }
 
-    sbea.res2 <- sbea(method="dummy.sbea", eset=gene.eset, gs=hsa.gs)
-    gs.ranking(sbea.res2) 
+    ea.res2 <- sbea(method=dummy.sbea, eset=eset, gs=gs)
+    gs.ranking(ea.res2) 
 }
 

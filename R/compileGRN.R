@@ -7,7 +7,6 @@
 #
 ############################################################
 
-GRN.HEADER.COLS <- c("FROM", "TO", "TYPE", "REL", "PWY")
 
 compile.grn.from.kegg <- function(pwys, out.file=NULL)
 {
@@ -25,7 +24,7 @@ get.kegg.rels.of.organism <- function(  pwys,
                                         types=c("-->", "--|"), 
                                         rels=c("GErel", "PPrel"))
 {
-    if(class(pwys) == "character")
+    if(is.character(pwys))
     {
         if(nchar(pwys) == 3) pwys <- download.kegg.pathways(pwys)
         else pwys <- extract.pwys(pwys)
@@ -36,12 +35,14 @@ get.kegg.rels.of.organism <- function(  pwys,
     if(is.null(out.file))
     {
         no.out <- TRUE
-        out.file <- file.path(system.file(package="EnrichmentBrowser"), 
-                                paste(org, "_rels.txt", sep=""))
+        out.dir <- config.ebrowser("OUTDIR.DEFAULT")
+        if(!file.exists(out.dir)) dir.create(out.dir)
+        out.file <- file.path(out.dir, paste(org, "rels.txt", sep="_"))
     }
 
     if(file.exists(out.file)) file.remove(out.file)
     con <- file(out.file, open="at")
+    GRN.HEADER.COLS <- c("FROM", "TO", "TYPE", "REL", "PWY")
     writeLines(paste(GRN.HEADER.COLS, collapse="\t"), con)
 
     sapply(pwys, 
@@ -50,21 +51,23 @@ get.kegg.rels.of.organism <- function(  pwys,
             nr <- getPathwayInfo(p)@number
             sapply(edges(p),
                 function(e)
-                {   
+                {  
                     # effect type: -->, --|, ...
                     # relation type: GErel, PPrel, ...
-                    et <- get.edge.type(e)
                     rt <- getType(e)
-
-                    if((et %in% types) && (rt %in% rels))
+                    if(rt %in% rels)
                     {
-                        entries <- getEntryID(e)
-                        ids1 <- get.node.name(entries[1], nodes(p))
-                        ids2 <- get.node.name(entries[2], nodes(p))
-                        sapply(ids1, function(i) 
-                            sapply(ids2, function(j)
-                                writeLines(
-                                    paste(c(i,j,et,rt,nr), collapse="\t"), con)))
+                        et <- get.edge.type(e)
+                        if(et %in% types)
+                        {
+                            entries <- getEntryID(e)
+                            ids1 <- get.node.name(entries[1], nodes(p))
+                            ids2 <- get.node.name(entries[2], nodes(p))
+                            sapply(ids1, function(i) 
+                                sapply(ids2, function(j)
+                                    writeLines(
+                                        paste(c(i,j,et,rt,nr), collapse="\t"), con)))
+                        }
                     }
                 })
             flush(con)
@@ -84,9 +87,10 @@ get.kegg.rels.of.organism <- function(  pwys,
 }
 
 get.edge.type <- function(edge)
-        ifelse(length(getSubtype(edge)) == 0,
-                        NA,
-                        getSubtype(edge)$subtype@value)
+{
+    if(length(getSubtype(edge)) == 0) return(NA)
+    return(getSubtype(edge)$subtype@value)
+}
 
 get.node.name <- function(entry, nodes)
 {

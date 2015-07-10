@@ -1,27 +1,26 @@
 import("Biobase")
+import("GSEABase")
 import("graph")
 import("KEGGgraph")
+import("pathview")
+import("KEGGREST")
 
-importFrom("MASS", truehist)
-importFrom("RColorBrewer", brewer.pal)
-importFrom("stringr", str_trim)
-importFrom("neaGUI", nea)
-importFrom("SPIA", spia)
-importFrom("safe", safe)
-importFrom("limma", lmFit, makeContrasts, contrasts.fit, eBayes, topTable)
-importFrom("qvalue", qvalue)
-importFrom("mixtools", normalmixEM, rnormmix)
-importFrom("Rgraphviz", layoutGraph, renderGraph, edgeData)
-importFrom("KEGGREST", keggLink, keggList, keggGet, keggConv)
+importMethodsFrom("AnnotationDbi", mapIds, keys, keytypes, select)
+importFrom("S4Vectors", DataFrame)
+importMethodsFrom("ReportingTools", publish, finish)
+importFrom("ReportingTools", HTMLReport, Link)
+importFrom("hwriter", hmakeTag, hwrite, hwriteImage)
 
 export( 
     read.eset, 
+    normalize,
     de.ana,
     pdistr,
     volcano,
     exprs.heatmap,
     probe.2.gene.eset, 
     get.kegg.genesets,
+    get.go.genesets,
     parse.genesets.from.GMT,
     sbea.methods,
     sbea, 
@@ -34,5 +33,7 @@ export(
     ggea.graph.legend,
     ea.browse,
     comb.ea.results,
-    ebrowser
+    ebrowser,
+    make.example.data,
+    config.ebrowser
 )

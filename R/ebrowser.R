@@ -10,38 +10,29 @@
 #
 ######################################################################
 
-# CONSTANTS
-ADJ.METH <- "BH"
-ADJP.COL <- "ADJ.PVAL"
-FC.COL <- "FC"
-GN.COL <- "GENE"
-GRP.COL <- "GROUP"
-GRPS <- c("1", "0")
-PRB.COL <- "PROBE"
-RAWP.COL <- "RAW.PVAL"
-SMPL.COL <- "SAMPLE"
-BLK.COL <- "BLOCK"
-TABLE.OF.RESULTS <- "Table of Results"
 
-CSS <- "eBro.css"
-OUTDIR.DEFAULT <- "./"
-KEGG.SHOW.URL <- "http://www.genome.jp/dbget-bin/show_pathway?"
-VIEW.TAGS <- paste0("<img src=\"file://IMG.DIR/",
-            c("report_icon.jpg", "plot_icon.jpg", "browse_icon.gif"),
-            "\" width=\"30\" height=\"30\" border=\"0\" alt=\"report\">")
-NODE.LWD <- 3
-NROW.TOP.TABLE <- 20
-NR.SHOW.DEFAULT <- 10
+# CONSTANTS: 
+# TODO resolve:
+# options: 
+# 1) par-like style --> current solution
+#
+# 2) methods/functions for getting/setting, e.g. group(obj), adjp(obj), ... 
+#
+# 3) convert them all to function parameters 
 
-NBEA.METHODS <- c("ggea", "nea",  "spia")
-SBEA.METHODS <- c("ora", "safe", "gsea", "samgs")
-METHODS <- c(SBEA.METHODS, NBEA.METHODS)
-GS.MIN.SIZE <- 5
-GS.MAX.SIZE <- 500
-ALPHA.DEFAULT <- 0.05
-PERM.DEFAULT <- 1000
-PERM.BLOCK.LENGTH <- 100
+.ebrowser_config_cache <- new.env(parent=emptyenv())
 
+config.ebrowser <- function(key, value=NULL) 
+{
+    .key_readonly <- c(
+        "PRB.COL", "EZ.COL", "GN.COL", "SYM.COL", "PMID.COL", 
+        "NCBI.URL", "PUBMED.URL", "GENE.URL", "KEGG.URL", "KEGG.GENE.URL",
+        "KEGG.SHOW.URL", "GO.SHOW.URL")
+ 
+    if(is.null(value)) .ebrowser_config_cache[[key]]
+    else if(!(key %in% .key_readonly)) .ebrowser_config_cache[[key]] <- value
+}
+    
 ##
 # set the output directory
 ##
@@ -54,6 +45,7 @@ set.out.dir <- function(out.dir)
             "does not exist.\nThus, the directory is going to be created."))
         dir.create(out.dir)
     }
+    setwd(out.dir)
 }
 
 
@@ -61,43 +53,80 @@ set.out.dir <- function(out.dir)
 ##
 # eBrowser functionality
 ##
-ebrowser <- function(meth, exprs, pdat, fdat, gs, grn=NULL, perm=1000, 
-    alpha=0.05, beta=1, comb=FALSE, browse=TRUE, nr.show=-1, out.dir=NULL)
+ebrowser <- function(
+    meth, exprs, pdat, fdat, org, data.type=c(NA, "ma", "rseq"),
+    norm.method="quantile", de.method="limma",
+    gs, grn=NULL, perm=1000, alpha=0.05, beta=1, 
+    comb=FALSE, browse=TRUE, nr.show=-1)
 {
-    sapply(meth, function(m)
-        if(!(m %in% METHODS))
-            stop(paste("No such method:\'",m,
-                    "\'!\nChoose method out of {", 
-                    paste(METHODS, collapse=", "), "}.")))
+    GRP.COL <- config.ebrowser("GRP.COL")
+    FC.COL <- config.ebrowser("FC.COL")
+    ADJP.COL <- config.ebrowser("ADJP.COL")
+    EZ.COL <- config.ebrowser("EZ.COL")    
+
+    METHODS <- c(sbea.methods(), nbea.methods())
+    is.method <- (meth %in% METHODS) | is.function(meth)
+    if(!all(is.method)) stop("No such method: ", meth[!is.method])
     
-    if(any(NBEA.METHODS %in% meth)) 
+    if(any(nbea.methods() %in% meth)) 
         if(is.null(grn))
             stop("\'grn\' must be not null")
-
-    if(is.null(out.dir)) 
-        out.dir <- 
-            file.path(system.file(package="EnrichmentBrowser"), "results")
+  
+    out.dir <- config.ebrowser("OUTDIR.DEFAULT")
     set.out.dir(out.dir)
     
     # execution
-    message("Read expression data ...")
-    eset <- read.eset( exprs.file=exprs, pdat.file=pdat, fdat.file=fdat )
+    # read expression data
+    data.type <- match.arg(data.type)
+    if(!is(exprs, "ExpressionSet"))
+    {
+        message("Read expression data ...")
+        eset <- read.eset( exprs.file=exprs, 
+            pdat.file=pdat, fdat.file=fdat, data.type=data.type)
+    }
+    else
+    { 
+        eset <- exprs
+        if(is.na(data.type))
+            data.type <- auto.detect.data.type(exprs(eset))
+        experimentData(eset)@other$dataType <- data.type
+    }
     
-    message("Transform probe expression to gene expression ...")    
-    gene.eset <- probe.2.gene.eset( probe.eset=eset, 
-                    heatm.file=file.path(out.dir,"heatmap.png"),
-                    distr.file=file.path(out.dir,"pdistr.png"),
-                    volc.file=file.path(out.dir, "volcano.png"))
+    # normalize?
+    if(norm.method != 'none')
+    {
+        message("Normalize ...")
+        eset <- normalize(eset, norm.method=norm.method)
+    }
+    
+    # probe 2 gene if data.type = ma
+    # ... and it's not already a gene level eset 
+    if(experimentData(eset)@other$dataType == "ma")
+    {
+        has.pcol <- config.ebrowser("PRB.COL") %in% colnames(fData(eset))
+        has.anno <- ifelse(length(annotation(eset)), nchar(annotation(eset)) > 3, FALSE)
+        if(has.pcol || has.anno)
+        {
+            message("Transform probe expression to gene expression ...")    
+            gene.eset <- probe.2.gene.eset(eset)
+        }
+    }
+    else gene.eset <- eset
 
+    message("DE analysis ...")    
+    gene.eset <- de.ana(gene.eset)
+    if(missing(org)) org <- annotation(gene.eset) 
+    else annotation(gene.eset) <- org
+        
     nr.meth <- length(meth)
     if(comb) res.list <- vector("list", length=nr.meth)
     for(i in seq_len(nr.meth))
     {
         m <- meth[i]
         message(paste("Execute", toupper(m), "..."))
-        out.file <- file.path(out.dir, paste0("eBrowser_", m, "_RESULT.txt"))
+        out.file <- paste0(m, ".txt")
 
-        if(m %in% NBEA.METHODS) 
+        if(m %in% nbea.methods()) 
             res <- nbea( method=m, eset=gene.eset, gs=gs, 
                     grn=grn, alpha=alpha, beta=beta, perm=perm )
 
@@ -108,31 +137,27 @@ ebrowser <- function(meth, exprs, pdat, fdat, gs, grn=NULL, perm=1000,
             quote=FALSE, row.names=FALSE, sep="\t")
 
         # produce html reports, if desired
-        if(browse)
-        {
-            to.html( res=res, nr.show=nr.show,
-                graph.view=grn, html.out=sub("txt$", "html", out.file) )
-        }
+        if(browse) ea.browse( res, nr.show, graph.view=grn, html.only=TRUE )
         
         # link gene statistics
         if(m == "samgs")
             fData(gene.eset)$SAM.T <- 
-                round(get(load(file.path(out.dir,"samt.RData"))), digits=2)
+                round(get(load("samt.RData")), digits=2)
 
         if(m == "gsea")
             fData(gene.eset)$GSEA.S2N <- 
-                round(get(load(file.path(out.dir,"gsea_s2n.RData"))), digits=2)
+                round(get(load("gsea_s2n.RData")), digits=2)
 
         if(comb) res.list[[i]] <- res
     }
 
     # write genewise differential expression
-    gene.diffexp.file <- file.path(out.dir, "gene_diffexp.txt")
+    gene.diffexp.file <- "de.txt"
     gene.diffexp <- apply(as.matrix(fData(gene.eset)), 2, as.numeric) 
     ord <- order(gene.diffexp[,ADJP.COL])
     gene.diffexp <- signif(gene.diffexp[ord,], digits=2)
     gene.diffexp <- cbind(featureNames(gene.eset)[ord], gene.diffexp)
-    colnames(gene.diffexp)[1] <- GN.COL
+    colnames(gene.diffexp)[1] <- EZ.COL
 
     write.table(gene.diffexp, 
         file=gene.diffexp.file, row.names=FALSE, quote=FALSE, sep="\t")
@@ -149,28 +174,29 @@ ebrowser <- function(meth, exprs, pdat, fdat, gs, grn=NULL, perm=1000,
         else
         {
             # combine results in a specified out file
-            out.file <- file.path(out.dir, "eBrowser_comb_RESULT.txt")
+            out.file <- "comb.txt"
             res <- comb.ea.results(res.list=res.list)
             write.table(res$res.tbl, 
                 file=out.file, quote=FALSE, row.names=FALSE, sep="\t")
 
             # produce html report, if desired
             if(browse)
-                to.html(res=res, 
-                    nr.show=nr.show,
-                    graph.view=grn,
-                    html.out=sub("txt$", "html", out.file))
+                ea.browse(res, nr.show, graph.view=grn, html.only=TRUE)
         }
     }
     
-    message(paste("Your output files are in",out.dir,"!"))
+    message(paste("Your output files are in", out.dir, "!"))
     
     # create INDEX.html
     if(browse)
     { 
+        # plot DE
+        gt <- get.gene.symbol.and.name(featureNames(gene.eset), org)
+        fData(gene.eset)[,colnames(gt)[2:3]] <- gt[,2:3]
+        vs <- view.set(gene.eset, out.prefix=file.path(out.dir,"global"))
+
         message("Produce html report ...")
-        create.index(out.dir=out.dir, meth=meth, comb=comb)
-        browseURL(file.path(out.dir, "index.html"))
+        create.index(meth, comb)
     }
 }
 

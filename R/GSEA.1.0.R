@@ -41,8 +41,6 @@
 #       for FWER p-vals for gene sets (default: -1, no thres) 
 #   fdr.q.val.threshold: Significance threshold for 
 #       FDR q-vals for gene sets (default: 0.25) 
-#   topgs: Besides those passing test, 
-#       number of top scoring gene sets used for detailed reports (default: 10) 
 #   adjust.FDR.q.val: Adjust the FDR q-vals (default: F) 
 #   gs.size.threshold.min: Minimum size (in genes) 
 #       for database gene sets to be considered (default: 25) 
@@ -144,7 +142,6 @@ weighted.score.type = 1,
 nom.p.val.threshold = -1, 
 fwer.p.val.threshold = -1, 
 fdr.q.val.threshold = 0.25, 
-topgs = 10,
 adjust.FDR.q.val =FALSE, 
 gs.size.threshold.min = 25, 
 gs.size.threshold.max = 500, 

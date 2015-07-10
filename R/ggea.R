@@ -30,7 +30,8 @@ ggea <- function(eset, gs, grn,
     # map gs & grn to indices implied by fDat
     # due to performance issues, transforms character2integer
     # map gene.id -> index, e.g. "b0031" -> 10
-    fDat <- as.matrix(fData(eset)[, c(FC.COL, ADJP.COL)])
+    fDat <- as.matrix(fData(eset)[,
+        sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)])
     fMap <- seq_len(nrow(fDat))
     names(fMap) <- rownames(fDat) 
         
@@ -39,9 +40,9 @@ ggea <- function(eset, gs, grn,
     gs <- transform.gs(gs, fMap)
 
     # restrict to gene sets with a minimal number of edges
-    gs.grns <- sapply(gs, function(s) query.grn(s, grn, gs.edges))
+    gs.grns <- lapply(gs, function(s) query.grn(s, grn, gs.edges))
     nr.rels <- sapply(gs.grns, length)
-    ind <- which(nr.rels >= GS.MIN.SIZE) 
+    ind <- which(nr.rels >= config.ebrowser("GS.MIN.SIZE")) 
         #& (res.tbl[,"NR.RELS"] <= GS.MAX.SIZE)
     if(length(ind) == 0) stop("No gene set with minimal number of interactions")
     gs <- gs[ind]
@@ -53,8 +54,8 @@ ggea <- function(eset, gs, grn,
     grn.cons <- score.grn(fDat, grn, alpha, beta, cons.thresh) 
 
     # compute consistency scores for gene sets  
-    gs.rels.cons <- sapply(gs.grns, function(gg) grn.cons[gg])
-    thresh.rels <- sapply(gs.rels.cons, 
+    gs.rels.cons <- lapply(gs.grns, function(gg) grn.cons[gg])
+    thresh.rels <- lapply(gs.rels.cons, 
         function(gsc) which(gsc >= cons.thresh))   
     nr.thresh.rels <- sapply(thresh.rels, length)
     
@@ -76,7 +77,7 @@ ggea <- function(eset, gs, grn,
         ps <- perm.edges.pval(res.tbl, grn.cons, perm)
     else ps <- approx.pval(res.tbl, grn.cons)
     res.tbl <- cbind(res.tbl, ps)
-    colnames(res.tbl)[ncol(res.tbl)] <- "P.VALUE" 
+    colnames(res.tbl)[ncol(res.tbl)] <- config.ebrowser("GSP.COL") 
     return(res.tbl)
 }
 
@@ -144,7 +145,7 @@ transform.gs <- function(gs, fMap)
 
 query.grn <- function(gs, grn, gs.edges=c("&", "|"), index=TRUE)
 {
-    gs.edges <- gs.edges[1]
+    gs.edges <- match.arg(gs.edges)
     ind <- which(do.call(gs.edges, list(grn[,1] %in% gs, grn[,2] %in% gs)))
     if(index) return(ind)
     else return(grn[ind, , drop=FALSE])
@@ -215,7 +216,8 @@ perm.samples.pval <- function(eset, gs.grns, grn,
     message(paste(perm, "permutations to do ..."))  
     
     # init
-    grp <- eset[[GRP.COL]]
+    GRP.COL <- config.ebrowser("GRP.COL")
+    grp <- pData(eset)[,GRP.COL]
     nr.samples <- length(grp)
     count.larger <- vector("integer", length(obs.scores))
     
@@ -226,11 +228,12 @@ perm.samples.pval <- function(eset, gs.grns, grn,
         if(i %% 100 == 0) message(paste(i,"permutations done ..."))
         # sample & permute
         grp.perm <- grp[sample(nr.samples)]
-        eset[[GRP.COL]] <- grp.perm
+        pData(eset)[,GRP.COL] <- grp.perm
         
         # recompute de measures fc and p
-        eset <- de.ana(eset)
-        fDat <- as.matrix(fData(eset)[, c(FC.COL, ADJP.COL)])
+        eset <- de.ana(exprs(eset), grp.perm)
+        fDat <- as.matrix(fData(eset)[,
+            sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)])
         
         # recompute ggea scores
         grn.cons <- score.grn(fDat, grn, alpha, beta, cons.thresh) 
@@ -295,7 +298,7 @@ perm.edges.pval <- function(res.tbl, grn.cons, perm)
 # approx by analytical edge consistency distribution (mixture of 2 gaussians)
 approx.pval <- function(res.tbl, grn.cons)
 {
-    mixmdl <- normalmixEM(grn.cons)
+    mixmdl <- mixtools::normalmixEM(grn.cons)
     l <- mixmdl$lambda
     m <- mixmdl$mu
     s <- mixmdl$sigma

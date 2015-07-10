@@ -7,11 +7,11 @@
 #
 ############################################################
 
-ggea.graph <- function(gs, grn, eset, org=NA,
+ggea.graph <- function(gs, grn, eset, 
     alpha=0.05, beta=1, max.edges=50, cons.thresh=0.7)
 {
     sgrn <- query.grn(gs, grn, index=FALSE)
-    g <- construct.ggea.graph(grn=sgrn, eset=eset, org=org,
+    g <- construct.ggea.graph(grn=sgrn, eset=eset,
         alpha=alpha, beta=beta, max.edges=max.edges, cons.thresh=cons.thresh)
     plot.ggea.graph(g)
 }
@@ -37,11 +37,11 @@ plot.ggea.graph <- function(graph, show.scores=FALSE, title="GGEA Graph")
     ncolor <- nodeRenderInfo(graph)$col
     ecolor <- edgeRenderInfo(graph)$col
     elwd <- edgeRenderInfo(graph)$lwd
-    graph <- layoutGraph(graph)
+    graph <- Rgraphviz::layoutGraph(graph)
 
     nodeRenderInfo(graph) <- list(col=ncolor)
     edgeRenderInfo(graph) <- list(col=ecolor, lwd=elwd)
-    renderGraph(graph)
+    graph <- Rgraphviz::renderGraph(graph)
     return(invisible(graph))
 }
 
@@ -50,7 +50,7 @@ plot.ggea.graph <- function(graph, show.scores=FALSE, title="GGEA Graph")
 ##
 ## function construct and renders a graph of a gene regulatory network
 ##
-construct.ggea.graph <- function(grn, eset, org=NA,
+construct.ggea.graph <- function(grn, eset, 
     alpha=0.05, beta=1, max.edges=50, cons.thresh=0.7)
 {
     # consistency
@@ -62,7 +62,8 @@ construct.ggea.graph <- function(grn, eset, org=NA,
 
     grn <- transform.grn(grn, node.grid)
 
-    fDat <- as.matrix(fData(eset)[nodes, c(FC.COL, ADJP.COL)])
+    fDat <- as.matrix(fData(eset)[nodes, 
+        sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)])
     de <- comp.de(fDat, alpha=alpha, beta=beta)
     grn.de <- cbind(de[grn[,1]], de[grn[,2]], grn[,3])
     edge.cons <- apply(grn.de, MARGIN=1, FUN=is.consistent)
@@ -104,9 +105,10 @@ construct.ggea.graph <- function(grn, eset, org=NA,
     # render graph
     # (a) render nodes
     nColor <- apply(fDat, 1, determine.node.color)
-    nLwd <- rep(NODE.LWD, nr.nodes)
+    nLwd <- rep(3, nr.nodes)
     names(nLwd) <- nodes
-    if(is.na(org)) nLabel <- nodes
+    org <- annotation(eset)
+    if(!length(org)) nLabel <- nodes
     else nLabel <- get.kegg.display.name(nodes, org=org)
     names(nLabel) <- nodes
 
@@ -123,7 +125,7 @@ construct.ggea.graph <- function(grn, eset, org=NA,
     names(eCol) <- edges
     eLabel <- round(edge.cons, digits=1)
     names(eLabel) <- edges
-    eArrowhead <- ifelse(grn[,3] == 1, "normal", "tee")
+    eArrowhead <- ifelse(grn[,3] == 1, "open", "tee")
     names(eArrowhead) <- edges
     eLwd <- sapply(edge.cons, function(e) 
         determine.edge.lwd(e, cons.thresh=cons.thresh))
@@ -157,7 +159,7 @@ determine.edge.lwd <- function(edge.cons, cons.thresh=0.7)
 ## function returns a color depending on edge consistency
 ##
 determine.edge.color <- function(edge.cons) 
-    ifelse(edge.cons < 0, rgb(0,0,abs(edge.cons)), "black")
+    ifelse(edge.cons < 0, rgb(0,0,abs(edge.cons)), rgb(abs(edge.cons),0,0))
 
 ##
 ## determine.node.color

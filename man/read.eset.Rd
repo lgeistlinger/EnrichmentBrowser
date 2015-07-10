@@ -4,26 +4,19 @@
     Reading gene expression data from file into an expression set 
 }
 \description{
-    The function reads in plain expression data with minimum annotation 
-    requirements for the pData and fData slots. A differential 
-    expression analysis can be performed and annotated to the expression set.
-    If desired, overview plots such as a heatmap, p-value distribution and 
-    volcano plot (fold change vs. p-value) are created.
+    The function reads in plain expression data from file with minimum 
+    annotation requirements for the pData and fData slots. 
 }
 \usage{
-    read.eset(exprs.file, pdat.file, fdat.file, de=TRUE,
-                heatm.file=NULL, distr.file = NULL, volc.file = NULL)
+    read.eset(exprs.file, pdat.file, fdat.file, 
+        data.type=c(NA, "ma", "rseq"), NA.method=c("mean", "rm", "keep"))
 }
 \arguments{
     \item{exprs.file}{
         Expression matrix.
-        A tab separated text file containing *normalized* expression values 
-        on a *log* scale.
+        A tab separated text file containing expression values. 
         Columns = samples/subjects; rows = features/probes/genes; 
         NO headers, row or column names.
-        Supported data types are log2 counts (microarray single-channel),
-        log2 ratios (microarray two-color), and log2-counts per million 
-        (RNA-seq logCPMs).
         See details.
     }
     \item{pdat.file}{
@@ -44,36 +37,42 @@
         Feature data.
         A tab separated text file containing annotation information 
         for the features.
-        Exactly *TWO* columns; 1st col = feature IDs; 
-        2nd col = corresponding KEGG gene ID for each feature ID in 1st col; 
+        In case of probe level data: exactly *TWO* columns; 1st col = probe/feature IDs; 
+        2nd col = corresponding gene ID for each feature ID in 1st col; 
+        In case of gene level data: The list of gene IDs newline-separated (i.e. just one column).
+        It is recommended to use *ENTREZ* gene IDs (to benefit from downstream 
+        visualization and exploration functionality of the enrichment analysis).
         NO headers, row or column names.    
-        The number of rows/features in this file should match the number of 
+        The number of rows (features/probes/genes) in this file should match the number of 
         rows/features of the expression matrix. 
         Alternatively, this can also be the ID of a recognized platform
         such as 'hgu95av2' (Affymetrix Human Genome U95 chip) or 'ecoli2'
         (Affymetrix E. coli Genome 2.0 Array). 
         See details.
     }
-    \item{de}{
-        Logical.
-        Should a simultanous differential expression (de) analysis be carried 
-        out for each gene. Defaults to TRUE.
+    \item{data.type}{
+        Expression data type.
+        Use 'ma' for microarray and 'rseq' for RNA-seq data.
+        If NA, data.type is automatically guessed. 
+        If the expression values in 'eset' are decimal numbers 
+        they are assumed to be microarray intensities.
+        Whole numbers are assumed to be RNA-seq read counts. 
+        Defaults to NA.
     }
-    \item{heatm.file}{
-        Optional. If specified, a heatmap is plotted in PNG format to file.
-    }
-    \item{distr.file}{
-        Optional. If specified, the p-value distribution is plotted 
-        in PNG format to file.
-    }
-    \item{volc.file}{
-        Optional. If specified, the volcano is plotted in 
-        PNG format to file.
+    \item{NA.method}{
+        Determines how to deal with NA's (missing values).
+        This can be one out of:
+        \itemize{
+        \item mean: replace NA's by the row means for a feature over all samples.
+        \item rm: rows (features) that contain NA's are removed.
+        \item keep: do nothing. Missing values are kept (which, however, can 
+            then cause several issues in the downstream analysis)          
+        }
+        Defaults to 'mean'.
     }
 }
 \value{
-    An \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}} 
-    with measures of differential expression annotated in the fData slot.
+    An object of \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}}.
 }
 \details{
 See the limma's user guide 
@@ -93,23 +92,19 @@ be outdated and sometimes the KEGG gene ID does not correspond to the Entrez ID
 (e.g. for E. coli and S. cerevisae). In these cases probe identifiers are mapped
  twice (probe ID -> Entrez ID -> KEGG ID) which almost always results in loss
 of information. Thus, mapping quality should always be checked and in case
-properly defined with a 2 column fdat.file.
+properly defined with a 2-column fdat.file.
 }
 \author{
     Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
 }
 \seealso{
     \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}}, 
-    \code{\link{eBayes}},
-    \code{\link{voom}}, 
-    \code{\link{p.adjust}}
 }
 \examples{
     # reading the expression data from file
-    exprs.file <- system.file("extdata/ALL_exprs.tab", package="EnrichmentBrowser")
-    pdat.file <- system.file("extdata/ALL_pData.tab", package="EnrichmentBrowser")
-    fdat.file <- system.file("extdata/ALL_fData.tab", package="EnrichmentBrowser")
+    exprs.file <- system.file("extdata/exprs.tab", package="EnrichmentBrowser")
+    pdat.file <- system.file("extdata/pData.tab", package="EnrichmentBrowser")
+    fdat.file <- system.file("extdata/fData.tab", package="EnrichmentBrowser")
     eset <- read.eset(exprs.file, pdat.file, fdat.file)
-    head(fData(eset))
 }
 

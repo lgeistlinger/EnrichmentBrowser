@@ -17,7 +17,7 @@
     of the expression of both interaction partners.     
 }
 \usage{
-    ggea.graph(gs, grn, eset, org=NA, alpha=0.05, beta=1, max.edges=50, cons.thresh=0.7)
+    ggea.graph(gs, grn, eset, alpha=0.05, beta=1, max.edges=50, cons.thresh=0.7)
     ggea.graph.legend()
 }
 \arguments{
@@ -37,13 +37,6 @@
         An object of class 'ExpressionSet' containing the gene expression set. 
         See 'read.eset' and 'probe.2.gene.eset' for required annotations 
         in the pData and fData slot.
-    }
-    \item{org}{
-        Organism under investigation in KEGG three letter code, 
-        e.g. \sQuote{hsa} for \sQuote{homo sapiens}.
-        Used to map gene IDs to gene symbols as displayed in 
-        KEGG pathway maps.
-        If not annotated, gene IDs are plotted as default.
     }
     \item{alpha}{
         Statistical significance level. Defaults to 0.05.
@@ -72,29 +65,22 @@
     \code{\link{ea.browse}} for exploration of resulting gene sets. 
 }
 \examples{
-    # (1) reading the expression data from file
-    exprs.file <- system.file("extdata/ALL_exprs.tab", package="EnrichmentBrowser")
-    pdat.file <- system.file("extdata/ALL_pData.tab", package="EnrichmentBrowser")
-    fdat.file <- system.file("extdata/ALL_fData.tab", package="EnrichmentBrowser")
-    probe.eset <- read.eset(exprs.file, pdat.file, fdat.file)
+    # (1) expression set: 
+    # simulated expression values of 100 genes
+    # in two sample groups of 6 samples each
+    eset <- make.example.data(what="eset")
+    eset <- de.ana(eset)
 
-    # (2) summarizing probe expression on gene level
-    gene.eset <- probe.2.gene.eset(probe.eset) 
+    # (2) gene sets:
+    # draw 10 gene sets with 15-25 genes
+    gs <- make.example.data(what="gs", gnames=featureNames(eset))
 
-    # (3a) getting all human KEGG gene sets
-    # hsa.gs <- get.kegg.genesets("hsa")
-    gs.file <- system.file("extdata/hsa_kegg_gs.gmt", package="EnrichmentBrowser")
-    hsa.gs <- parse.genesets.from.GMT(gs.file)
+    # (3) compiling artificial regulatory network 
+    grn <- make.example.data(what="grn", nodes=featureNames(eset))
 
-    # (3b) compiling gene regulatory network from KEGG pathways
-    # hsa.grn <- compile.grn.from.kegg("hsa")
-    pwys <- system.file("extdata/hsa_kegg_pwys.zip", package="EnrichmentBrowser")
-    hsa.grn <- compile.grn.from.kegg(pwys)
+    # (4) plot consistency graph
+    ggea.graph(gs=gs[[1]], grn=grn, eset=eset)
 
-    # plot consistency graph
-    ggea.graph(gs=hsa.gs[["hsa05416_Viral_myocarditis"]], 
-                                                grn=hsa.grn, eset=gene.eset)
-
-    # get legend
+    # (5) get legend
     ggea.graph.legend()
 }

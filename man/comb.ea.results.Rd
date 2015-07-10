@@ -12,37 +12,18 @@
     across methods and of combined gene set p-values. 
 }
 \usage{
-    comb.ea.results(res.list, pcomb.meth=c("fisher","stouffer"), out.file=NULL)
+    comb.ea.results(res.list)
 }
 \arguments{
     \item{res.list}{
-        A list of enrichment analysis result objects as returned 
+        A list of enrichment analysis result lists as returned 
         by the functions \sQuote{sbea} and \sQuote{nbea}.
     } 
-    \item{pcomb.meth}{
-        P-value combination method.
-        See details. Defaults to \sQuote{fisher}.
-    }
-    \item{out.file}{
-        Optional output file the combined ranking is written to.
-    }
 }
 \value{
-    if(is.null(out.file)): an enrichment analysis result object 
+    An enrichment analysis result list 
     that can be detailedly explored by calling 'ea.browse' and from 
     which a flat gene set ranking can be extracted by calling 'gs.ranking'.
-    If 'out.file' is given, the ranking is written to the specified file. 
-}
-\details{
-    Fisher's method (pcomb.meth="fisher") combines the statistical significance 
-    from several independent tests.
-    Stouffer's method (pcomb.meth="stouffer") allows the combination from 
-    dependent tests. See Kim et al., 2013.
-}
-\references{
-    Kim et al. (2013)
-    Stouffer's test in a large scale simultaneous hypothesis testing
-    PLoS One, 8(5), e63290.
 }
 \seealso{
     \code{\link{sbea}}, \code{\link{nbea}}, \code{\link{ea.browse}}}
@@ -50,42 +31,27 @@
     Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
 }
 \examples{
-    # (1) reading the expression data from file
-    exprs.file <- system.file("extdata/ALL_exprs.tab", package="EnrichmentBrowser")
-    pdat.file <- system.file("extdata/ALL_pData.tab", package="EnrichmentBrowser")
-    fdat.file <- system.file("extdata/ALL_fData.tab", package="EnrichmentBrowser")
-    probe.eset <- read.eset(exprs.file, pdat.file, fdat.file)
 
-    # (2) summarizing probe expression on gene level
-    gene.eset <- probe.2.gene.eset(probe.eset) 
+    # (1) expression set: 
+    # simulated expression values of 100 genes
+    # in two sample groups of 6 samples each
+    eset <- make.example.data(what="eset")
+    eset <- de.ana(eset)
 
-    # (3a) getting all human KEGG gene sets
-    # hsa.gs <- get.kegg.genesets("hsa")
-    gs.file <- system.file("extdata/hsa_kegg_gs.gmt", package="EnrichmentBrowser")
-    hsa.gs <- parse.genesets.from.GMT(gs.file)
+    # (2) gene sets:
+    # draw 10 gene sets with 15-25 genes
+    gs <- make.example.data(what="gs", gnames=featureNames(eset))
 
-    # (3b) compiling gene regulatory network from KEGG pathways
-    # hsa.grn <- compile.grn.from.kegg("hsa")
-    pwys <- system.file("extdata/hsa_kegg_pwys.zip", package="EnrichmentBrowser")
-    hsa.grn <- compile.grn.from.kegg(pwys)
-
-    # (4) performing the set-based and network-based enrichment analysis
-    # Note: reduced permutations for demonstration
-    #       recommended default is 1000 permutations
-    # sbea.res <- sbea(method="gsea", eset=gene.eset, gs=hsa.gs)
-    # nbea.res <- nbea(method="ggea", eset=gene.eset, gs=hsa.gs, grn=hsa.grn)
-    sbea.res <- sbea(method="ora", eset=gene.eset, gs=hsa.gs, perm=0)
-    nbea.res <- nbea(method="ggea", 
-                        eset=gene.eset, gs=hsa.gs, grn=hsa.grn, perm=100)
+    # (3) make artificial enrichment analysis results:
+    # 2 ea methods with 5 significantly enriched gene sets each 
+    ora.res <- make.example.data(what="ea.res", method="ora", eset=eset, gs=gs) 
+    gsea.res <- make.example.data(what="ea.res", method="gsea", eset=eset, gs=gs)
     
-    # (5) combining the results
-    res.list <- list(sbea.res, nbea.res)
+    # (4) combining the results
+    res.list <- list(ora.res, gsea.res)
     comb.res <- comb.ea.results(res.list)
 
-    # (6) result visualization and exploration
+    # (5) result visualization and exploration
     gs.ranking(comb.res)
-    \donttest{
-    ea.browse(comb.res)
-    }
 }
 

@@ -488,7 +488,7 @@ a gene set member, the sum of consistencies over all relations (RAW.SCORE), the
 score normalized by induced network size (NORM.SCORE = RAW.SCORE / NR.RELS), 
 and the statistical significance of each gene set based on a permutation 
 approach.\\
-A GGEA graph for a gene set of interest displays the consistency of each 
+A GGEA graph for a gene set of interest depicts the consistency of each 
 interaction in the network that involves a gene set member. Nodes (genes) are 
 colored according to expression (up-/down-regulated) and edges (interactions) 
 are colored according to consistency, i.e.~how well the interaction type 

@@ -19,11 +19,13 @@ nbea <- function(
     grn,
     alpha=0.05, 
     perm=1000, 
+    padj.method="BH",
     out.file=NULL,
     browse=FALSE, ...)
 {
     GS.MIN.SIZE <- config.ebrowser("GS.MIN.SIZE")
     GS.MAX.SIZE <- config.ebrowser("GS.MAX.SIZE")
+    GSP.COL <- config.ebrowser("GSP.COL")
 
     # restrict eset and gs to intersecting genes
     igenes <- intersect(featureNames(eset), unique(unlist(gs)))
@@ -59,6 +61,8 @@ nbea <- function(
     sorting.df <- cbind(res.tbl[,ncol(res.tbl)], 
         -res.tbl[,rev(seq_len(ncol(res.tbl)-1))])
     res.tbl <- res.tbl[do.call(order, as.data.frame(sorting.df)),]
+    
+    res.tbl[,GSP.COL] <- p.adjust(res.tbl[,GSP.COL], method=padj.method)
 
     res.tbl <- DataFrame(rownames(res.tbl), res.tbl)
     colnames(res.tbl)[1] <- config.ebrowser("GS.COL") 
@@ -74,7 +78,7 @@ nbea <- function(
     {
         res <- list(
             res.tbl=res.tbl, method=method,
-            nr.sigs=sum(as.numeric(res.tbl[,config.ebrowser("GSP.COL")]) < alpha),
+            nr.sigs=sum(res.tbl[,GSP.COL] < alpha),
             eset=eset, gs=gs, alpha=alpha)
 
         if(browse) ea.browse(res)

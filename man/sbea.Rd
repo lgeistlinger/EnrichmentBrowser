@@ -13,8 +13,8 @@
     resulting gene set rankings. 
 }
 \usage{
-    sbea(method=sbea.methods(), eset, gs, 
-            alpha=0.05, perm=1000, out.file=NULL, browse=FALSE)
+    sbea(method=sbea.methods(), eset, gs, alpha=0.05, 
+            perm=1000, padj.method="BH", out.file=NULL, browse=FALSE)
 
     sbea.methods()
 }
@@ -46,6 +46,12 @@
         Number of permutations of the expression matrix to estimate the null 
         distribution. Defaults to 1000. For basic ora set 'perm=0'.
     }  
+    \item{padj.method}{
+        Method for adjusting p-values to multiple testing.
+        For available methods see the man of page the of the 
+        stats function \code{\link{p.adjust}}.
+        Defaults to 'BH'.
+    }
     \item{out.file}{
         Optional output file the gene set ranking will be written to.
     }

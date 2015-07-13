@@ -12,8 +12,8 @@
     resulting gene set rankings. 
 }
 \usage{
-    nbea(method=nbea.methods(), eset, gs, grn, 
-                    alpha=0.05, perm=1000, out.file=NULL, browse=FALSE, ...)
+    nbea(method=nbea.methods(), eset, gs, grn, alpha=0.05, 
+            perm=1000, padj.method="BH", out.file=NULL, browse=FALSE, ...)
 
     nbea.methods()
 }
@@ -53,7 +53,13 @@
         null distribution. Defaults to 1000. If using method=\sQuote{ggea},
         it is possible to set perm < 1 to use a fast approximation of
         gene set significance to avoid permutation testing. See Details.
-    }  
+    } 
+    \item{padj.method}{
+        Method for adjusting p-values to multiple testing.
+        For available methods see the man of page the of the 
+        stats function \code{\link{p.adjust}}.
+        Defaults to 'BH'.
+    } 
     \item{out.file}{
         Optional output file the gene set ranking will be written to.
     }

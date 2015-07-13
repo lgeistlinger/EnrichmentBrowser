@@ -166,8 +166,8 @@ SAMGS <- function(GS,
 
     GeneSets.pval <- apply(
         t(sam.sumsquareT.permut) >= sam.sumsquareT.ok, 1, sum) / nbPermutations
-    GeneSets.qval <- qvalue::qvalue(GeneSets.pval)$qvalues
-    GeneSets.pval <- GeneSets.qval
+    #GeneSets.qval <- qvalue::qvalue(GeneSets.pval)$qvalues
+    #GeneSets.pval <- GeneSets.qval
     names(GeneSets.pval) <- names(GS)
     return(GeneSets.pval)
 }

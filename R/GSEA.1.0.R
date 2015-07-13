@@ -28,20 +28,11 @@
 #   input.cls:  Input class vector (phenotype) file in CLS format 
 #   gs.file: Gene set database in GMT format 
 #   output.directory: Directory where to store output and results (default: .) 
-#   doc.string:  Documentation string used as a 
-#       prefix to name result files (default: "GSEA.analysis") 
 #   reshuffling.type: Type of permutation reshuffling: 
 #       "sample.labels" or "gene.labels" (default: "sample.labels") 
 #   nperm: Number of random permutations (default: 1000) 
 #   weighted.score.type: Enrichment correlation-based weighting: 
 #       0=no weight (KS), 1=standard weigth, 2 = over-weigth (default: 1) 
-#   nom.p.val.threshold: Significance threshold 
-#       for nominal p-vals for gene sets (default: -1, no thres) 
-#   fwer.p.val.threshold: Significance threshold 
-#       for FWER p-vals for gene sets (default: -1, no thres) 
-#   fdr.q.val.threshold: Significance threshold for 
-#       FDR q-vals for gene sets (default: 0.25) 
-#   adjust.FDR.q.val: Adjust the FDR q-vals (default: F) 
 #   gs.size.threshold.min: Minimum size (in genes) 
 #       for database gene sets to be considered (default: 25) 
 #   gs.size.threshold.max: Maximum size (in genes) 
@@ -119,11 +110,8 @@
 #GSEA(input.ds = as.data.frame(exprs(eset)),
 #        input.cls = cls,
 #        gs.db = gs.gmt,
-#        output.directory = file.path(out.dir, ""),
-#        doc.string            = doc.string,
+#        output.directory = out.dir,
 #        nperm                 = perm,
-#        fdr.q.val.threshold   = -1,
-#        topgs                 = NROW.TOP.TABLE,
 #        gs.size.threshold.min = GS.MIN.SIZE,
 #        gs.size.threshold.max = GS.MAX.SIZE)
 ################
@@ -135,16 +123,11 @@ input.ds,
 input.cls, 
 gs.db, 
 output.directory = "", 
-doc.string = "GSEA.analysis", 
 reshuffling.type = "sample.labels", 
 nperm = 1000, 
 weighted.score.type = 1, 
-nom.p.val.threshold = -1, 
-fwer.p.val.threshold = -1, 
-fdr.q.val.threshold = 0.25, 
-adjust.FDR.q.val =FALSE, 
-gs.size.threshold.min = 25, 
-gs.size.threshold.max = 500, 
+#gs.size.threshold.min = 25, 
+#gs.size.threshold.max = 500, 
 random.seed = 123456) 
 {
      
@@ -179,45 +162,47 @@ random.seed = 123456)
     colnames(A) <- sample.names
   
     # Read input gene set database
-    temp <- readLines(gs.db, warn=FALSE)
-    max.Ng <- length(temp)
-    temp.size.G <- sapply(temp, 
-        function(t) length(unlist(strsplit(t, "\t"))) - 2)
+#    temp <- readLines(gs.db, warn=FALSE)
+#    max.Ng <- length(temp)
+#    temp.size.G <- sapply(temp, 
+#        function(t) length(unlist(strsplit(t, "\t"))) - 2)
 
-    max.size.G <- max(temp.size.G)      
-    gs <- matrix(rep("null", max.Ng*max.size.G), nrow=max.Ng, ncol= max.size.G)
-    temp.names <- temp.desc <- vector(length = max.Ng, mode = "character")
-    gs.count <- 1
-    for (i in seq_len(max.Ng)) 
-    {
-        spl <- unlist(strsplit(temp[[i]], "\t"))
-        gene.set.size <- length(spl) - 2
-        gs.line <- noquote(spl)
-        gene.set.name <- gs.line[1] 
-        gene.set.desc <- gs.line[2] 
-        gene.set.tags <- 
-            sapply(seq_len(gene.set.size), function(j) gs.line[j + 2])
-        existing.set <- is.element(gene.set.tags, gene.labels)
-        set.size <- sum(existing.set)
-        if ((set.size >= gs.size.threshold.min) && 
-              (set.size <= gs.size.threshold.max))
-        {
-            temp.size.G[gs.count] <- set.size
-            gs[gs.count,] <- c(gene.set.tags[existing.set], 
-                rep(NA, max.size.G - temp.size.G[gs.count]))
-            temp.names[gs.count] <- gene.set.name
-            temp.desc[gs.count] <- gene.set.desc
-            gs.count <- gs.count + 1
-        }
-    } 
-    Ng <- gs.count - 1
-    gs.names <- temp.names[1:Ng]
-    gs.desc <- temp.desc[1:Ng] 
-    size.G <- temp.size.G[1:Ng]
+#   max.size.G <- max(temp.size.G)      
+#    gs <- matrix(rep("null", max.Ng*max.size.G), nrow=max.Ng, ncol= max.size.G)
+#    temp.names <- temp.desc <- vector(length = max.Ng, mode = "character")
+#    gs.count <- 1
+#    for (i in seq_len(max.Ng)) 
+#    {
+#        spl <- unlist(strsplit(temp[[i]], "\t"))
+#        gene.set.size <- length(spl) - 2
+#        gs.line <- noquote(spl)
+#        gene.set.name <- gs.line[1] 
+#        gene.set.desc <- gs.line[2] 
+#        gene.set.tags <- 
+#            sapply(seq_len(gene.set.size), function(j) gs.line[j + 2])
+#        existing.set <- is.element(gene.set.tags, gene.labels)
+#        set.size <- sum(existing.set)
+#        if ((set.size >= gs.size.threshold.min) && 
+#              (set.size <= gs.size.threshold.max))
+#        {
+#            temp.size.G[gs.count] <- set.size
+#            gs[gs.count,] <- c(gene.set.tags[existing.set], 
+#                rep(NA, max.size.G - temp.size.G[gs.count]))
+#            temp.names[gs.count] <- gene.set.name
+#            temp.desc[gs.count] <- gene.set.desc
+#            gs.count <- gs.count + 1
+#        }
+#    } 
+
+    Ng <- length(gs.db)
+    gs.names <- names(gs.db)
+    size.G <- sapply(gs.db, length) 
+    gs <- matrix(NA, nrow=Ng, ncol=max(size.G))
+    for(i in seq_len(Ng)) gs[i, seq_len(size.G[i])] <- gs.db[[i]]
+
     N <- nrow(A)
     Ns <- ncol(A)
-    all.gene.descs <- all.gene.symbols <-  gene.labels[i]
-    all.gs.descs <- gs.desc[i]
+    #all.gene.descs <- all.gene.symbols <-  gene.labels[i]
     
     Obs.indicator <- Obs.RES <- matrix(nrow= Ng, ncol=N)
     Obs.ES <- Obs.arg.ES <- Obs.ES.norm <- vector(length = Ng, mode = "numeric")
@@ -254,13 +239,13 @@ random.seed = 123456)
     # using median to assign enrichment scores
     obs.s2n <- apply(obs.correl.matrix, 1, median)    
     names(obs.s2n) <- gene.labels
-    save(obs.s2n, file=paste0(output.directory, "gsea_s2n.RData"))  
+    save(obs.s2n, file=file.path(output.directory, "gsea_s2n.RData"))  
           
     obs.index <- order(obs.s2n, decreasing=TRUE)            
     obs.s2n <- obs.s2n[obs.index]       
-    obs.gene.labels <- gene.labels[obs.index]       
-    obs.gene.descs <- all.gene.descs[obs.index]       
-    obs.gene.symbols <- all.gene.symbols[obs.index]       
+    #obs.gene.labels <- gene.labels[obs.index]       
+    #obs.gene.descs <- all.gene.descs[obs.index]       
+    #obs.gene.symbols <- all.gene.symbols[obs.index]       
  
     for (r in seq_len(nperm)) 
     {
@@ -372,179 +357,181 @@ random.seed = 123456)
     }
     
     # Compute FWER p-vals
-    max.ES.vals.p <- NULL
-    max.ES.vals.n <- NULL
-    for (j in seq_len(nperm)) 
-    {
-        ind <- phi.norm[,j] >= 0
-        pos.phi <- phi.norm[ind, j]
-        neg.phi <- phi[!ind, j] 
-
-        if (length(pos.phi)) max.ES.vals.p <- c(max.ES.vals.p, max(pos.phi))
-        if (length(neg.phi)) max.ES.vals.n <- c(max.ES.vals.n, min(neg.phi))
-    }
-
-    for (i in seq_len(Ng)) 
-    {
-        ES.value <- Obs.ES.norm[i]
-        p.vals[i, 2] <- signif(ifelse(ES.value >= 0, 
-                            sum(max.ES.vals.p >= ES.value),
-                            sum(max.ES.vals.n <= ES.value)) / 
-                            length(max.ES.vals.p), digits=5)
-    }
-
-    # Compute FDRs 
-    NES <- phi.norm.mean <- obs.phi.norm.mean <- phi.norm.median <- 
-        obs.phi.norm.median <- phi.norm.mean <- obs.phi.mean <- 
-        FDR.mean <- FDR.median <- phi.norm.median.d <- 
-        obs.phi.norm.median.d <- vector(length=Ng, mode="numeric")
-
-    Obs.ES.index <- order(Obs.ES.norm, decreasing=TRUE)
-    Orig.index <- seq(1, Ng)
-    Orig.index <- Orig.index[Obs.ES.index]
-    Orig.index <- order(Orig.index, decreasing=FALSE)
-    Obs.ES.norm.sorted <- Obs.ES.norm[Obs.ES.index]
-    gs.names.sorted <- gs.names[Obs.ES.index]
-
-    NES <- Obs.ES.norm.sorted
-    for (k in seq_len(Ng)) 
-    {
-        ES.value <- NES[k]
-        count.col <- obs.count.col <- vector(length=nperm, mode="numeric")
-        for (i in seq_len(nperm)) 
-        {
-            phi.vec <- phi.norm[,i]
-            obs.phi.vec <- obs.phi.norm[,i]
-            if (ES.value >= 0) 
-            {
-                count.col.norm <- sum(phi.vec >= 0)
-                obs.count.col.norm <- sum(obs.phi.vec >= 0)
-                count.col[i] <- ifelse(count.col.norm > 0, 
-                    sum(phi.vec >= ES.value)/count.col.norm, 0)
-                obs.count.col[i] <- ifelse(obs.count.col.norm > 0, 
-                    sum(obs.phi.vec >= ES.value)/obs.count.col.norm, 0)
-            } 
-            else 
-            {
-                count.col.norm <- sum(phi.vec < 0)
-                obs.count.col.norm <- sum(obs.phi.vec < 0)
-                count.col[i] <- ifelse(count.col.norm > 0, 
-                    sum(phi.vec <= ES.value)/count.col.norm, 0)
-                obs.count.col[i] <- ifelse(obs.count.col.norm > 0, 
-                    sum(obs.phi.vec <= ES.value)/obs.count.col.norm, 0)
-            }
-        }
-        phi.norm.mean[k] <- mean(count.col)
-        obs.phi.norm.mean[k] <- mean(obs.count.col)
-        phi.norm.median[k] <- median(count.col)
-        obs.phi.norm.median[k] <- median(obs.count.col)
-        FDR.mean[k] <- ifelse(phi.norm.mean[k]/obs.phi.norm.mean[k] < 1, 
-            phi.norm.mean[k]/obs.phi.norm.mean[k], 1)
-        FDR.median[k] <- ifelse(phi.norm.median[k]/obs.phi.norm.median[k] < 1, 
-            phi.norm.median[k]/obs.phi.norm.median[k], 1)
-    }
-
-    # adjust q-values
-    if (adjust.FDR.q.val ==TRUE) 
-    {
-        pos.nes <- sum(NES >= 0)
-        min.FDR.mean <- FDR.mean[pos.nes]
-        min.FDR.median <- FDR.median[pos.nes]
-        for(k in seq(pos.nes - 1, 1, -1)) 
-        {
-            if(FDR.mean[k] < min.FDR.mean) min.FDR.mean <- FDR.mean[k]
-            if(min.FDR.mean < FDR.mean[k]) FDR.mean[k] <- min.FDR.mean
-        }
-        neg.nes <- pos.nes + 1
-        min.FDR.mean <- FDR.mean[neg.nes]
-        min.FDR.median <- FDR.median[neg.nes]
-        for (k in seq(neg.nes + 1, Ng)) 
-        {
-             if(FDR.mean[k] < min.FDR.mean) min.FDR.mean <- FDR.mean[k]
-             if (min.FDR.mean < FDR.mean[k]) FDR.mean[k] <- min.FDR.mean
-        }
-    }   
-
-    obs.phi.norm.mean.sorted <- obs.phi.norm.mean[Orig.index]
-    phi.norm.mean.sorted <- phi.norm.mean[Orig.index]
-    FDR.mean.sorted <- FDR.mean[Orig.index]
-    FDR.median.sorted <- FDR.median[Orig.index]
-    
-    #   Compute global statistic
-    glob.p.vals <- vector(length=Ng, mode="numeric")
-    NULL.pass <- OBS.pass <- vector(length=nperm, mode="numeric")
-    for (k in seq_len(Ng)) 
-    {
-        if (NES[k] >= 0) 
-        {
-            for (i in seq_len(nperm)) 
-            {
-                NULL.pos <- sum(phi.norm[,i] >= 0)            
-                NULL.pass[i] <- ifelse(NULL.pos > 0, 
-                    sum(phi.norm[,i] >= NES[k])/NULL.pos, 0)
-                OBS.pos <- sum(obs.phi.norm[,i] >= 0)
-                OBS.pass[i] <- ifelse(OBS.pos > 0, 
-                    sum(obs.phi.norm[,i] >= NES[k])/OBS.pos, 0)
-            }
-        } 
-        else 
-        {
-            for (i in seq_len(nperm)) 
-            {
-                NULL.neg <- sum(phi.norm[,i] < 0)
-                NULL.pass[i] <- ifelse(NULL.neg > 0, 
-                    sum(phi.norm[,i] <= NES[k])/NULL.neg, 0)
-                OBS.neg <- sum(obs.phi.norm[,i] < 0)
-                OBS.pass[i] <- ifelse(OBS.neg > 0, 
-                    sum(obs.phi.norm[,i] <= NES[k])/OBS.neg, 0)
-            }
-        }
-        glob.p.vals[k] <- sum(NULL.pass >= mean(OBS.pass))/nperm
-    }
-    glob.p.vals.sorted <- glob.p.vals[Orig.index]
+#    max.ES.vals.p <- NULL
+#    max.ES.vals.n <- NULL
+#    for (j in seq_len(nperm)) 
+#    {
+#        ind <- phi.norm[,j] >= 0
+#        pos.phi <- phi.norm[ind, j]
+#        neg.phi <- phi[!ind, j] 
+#
+#        if (length(pos.phi)) max.ES.vals.p <- c(max.ES.vals.p, max(pos.phi))
+#        if (length(neg.phi)) max.ES.vals.n <- c(max.ES.vals.n, min(neg.phi))
+#    }
+#
+#    for (i in seq_len(Ng)) 
+#    {
+#        ES.value <- Obs.ES.norm[i]
+#        p.vals[i, 2] <- signif(ifelse(ES.value >= 0, 
+#                            sum(max.ES.vals.p >= ES.value),
+#                            sum(max.ES.vals.n <= ES.value)) / 
+#                            length(max.ES.vals.p), digits=5)
+#    }
+#
+#    # Compute FDRs 
+#    NES <- phi.norm.mean <- obs.phi.norm.mean <- phi.norm.median <- 
+#        obs.phi.norm.median <- phi.norm.mean <- obs.phi.mean <- 
+#        FDR.mean <- FDR.median <- phi.norm.median.d <- 
+#        obs.phi.norm.median.d <- vector(length=Ng, mode="numeric")
+#
+#    Obs.ES.index <- order(Obs.ES.norm, decreasing=TRUE)
+#    Orig.index <- seq(1, Ng)
+#    Orig.index <- Orig.index[Obs.ES.index]
+#    Orig.index <- order(Orig.index, decreasing=FALSE)
+#    Obs.ES.norm.sorted <- Obs.ES.norm[Obs.ES.index]
+#    gs.names.sorted <- gs.names[Obs.ES.index]
+#
+#    NES <- Obs.ES.norm.sorted
+#    for (k in seq_len(Ng)) 
+#    {
+#        ES.value <- NES[k]
+#        count.col <- obs.count.col <- vector(length=nperm, mode="numeric")
+#        for (i in seq_len(nperm)) 
+#        {
+#            phi.vec <- phi.norm[,i]
+#            obs.phi.vec <- obs.phi.norm[,i]
+#            if (ES.value >= 0) 
+#            {
+#                count.col.norm <- sum(phi.vec >= 0)
+#                obs.count.col.norm <- sum(obs.phi.vec >= 0)
+#                count.col[i] <- ifelse(count.col.norm > 0, 
+#                    sum(phi.vec >= ES.value)/count.col.norm, 0)
+#                obs.count.col[i] <- ifelse(obs.count.col.norm > 0, 
+#                    sum(obs.phi.vec >= ES.value)/obs.count.col.norm, 0)
+#            } 
+#            else 
+#            {
+#                count.col.norm <- sum(phi.vec < 0)
+#                obs.count.col.norm <- sum(obs.phi.vec < 0)
+#                count.col[i] <- ifelse(count.col.norm > 0, 
+#                    sum(phi.vec <= ES.value)/count.col.norm, 0)
+#                obs.count.col[i] <- ifelse(obs.count.col.norm > 0, 
+#                    sum(obs.phi.vec <= ES.value)/obs.count.col.norm, 0)
+#            }
+#        }
+#        phi.norm.mean[k] <- mean(count.col)
+#        obs.phi.norm.mean[k] <- mean(obs.count.col)
+#        phi.norm.median[k] <- median(count.col)
+#        obs.phi.norm.median[k] <- median(obs.count.col)
+#        FDR.mean[k] <- ifelse(phi.norm.mean[k]/obs.phi.norm.mean[k] < 1, 
+#            phi.norm.mean[k]/obs.phi.norm.mean[k], 1)
+#        FDR.median[k] <- ifelse(phi.norm.median[k]/obs.phi.norm.median[k] < 1, 
+#            phi.norm.median[k]/obs.phi.norm.median[k], 1)
+#    }
+#
+#    # adjust q-values
+#    if (adjust.FDR.q.val ==TRUE) 
+#    {
+#        pos.nes <- sum(NES >= 0)
+#        min.FDR.mean <- FDR.mean[pos.nes]
+#        min.FDR.median <- FDR.median[pos.nes]
+#        for(k in seq(pos.nes - 1, 1, -1)) 
+#        {
+#            if(FDR.mean[k] < min.FDR.mean) min.FDR.mean <- FDR.mean[k]
+#            if(min.FDR.mean < FDR.mean[k]) FDR.mean[k] <- min.FDR.mean
+#        }
+#        neg.nes <- pos.nes + 1
+#        min.FDR.mean <- FDR.mean[neg.nes]
+#        min.FDR.median <- FDR.median[neg.nes]
+#        for (k in seq(neg.nes + 1, Ng)) 
+#        {
+#             if(FDR.mean[k] < min.FDR.mean) min.FDR.mean <- FDR.mean[k]
+#             if (min.FDR.mean < FDR.mean[k]) FDR.mean[k] <- min.FDR.mean
+#        }
+#    }   
+#
+#    obs.phi.norm.mean.sorted <- obs.phi.norm.mean[Orig.index]
+#    phi.norm.mean.sorted <- phi.norm.mean[Orig.index]
+#    FDR.mean.sorted <- FDR.mean[Orig.index]
+#    FDR.median.sorted <- FDR.median[Orig.index]
+#    
+#    #   Compute global statistic
+#    glob.p.vals <- vector(length=Ng, mode="numeric")
+#    NULL.pass <- OBS.pass <- vector(length=nperm, mode="numeric")
+#    for (k in seq_len(Ng)) 
+#    {
+#        if (NES[k] >= 0) 
+#        {
+#            for (i in seq_len(nperm)) 
+#            {
+#                NULL.pos <- sum(phi.norm[,i] >= 0)            
+#                NULL.pass[i] <- ifelse(NULL.pos > 0, 
+#                    sum(phi.norm[,i] >= NES[k])/NULL.pos, 0)
+#                OBS.pos <- sum(obs.phi.norm[,i] >= 0)
+#                OBS.pass[i] <- ifelse(OBS.pos > 0, 
+#                    sum(obs.phi.norm[,i] >= NES[k])/OBS.pos, 0)
+#            }
+#        } 
+#        else 
+#        {
+#            for (i in seq_len(nperm)) 
+#            {
+#                NULL.neg <- sum(phi.norm[,i] < 0)
+#                NULL.pass[i] <- ifelse(NULL.neg > 0, 
+#                    sum(phi.norm[,i] <= NES[k])/NULL.neg, 0)
+#                OBS.neg <- sum(obs.phi.norm[,i] < 0)
+#                OBS.pass[i] <- ifelse(OBS.neg > 0, 
+#                    sum(obs.phi.norm[,i] <= NES[k])/OBS.neg, 0)
+#            }
+#        }
+#        glob.p.vals[k] <- sum(NULL.pass >= mean(OBS.pass))/nperm
+#    }
+#    glob.p.vals.sorted <- glob.p.vals[Orig.index]
 
     # Produce results report
     Obs.ES <- signif(Obs.ES, digits=5)
     Obs.ES.norm <- signif(Obs.ES.norm, digits=5)
     p.vals <- signif(p.vals, digits=4)
-    signal.strength <- signif(signal.strength, digits=3)
-    tag.frac <- signif(tag.frac, digits=3)
-    gene.frac <- signif(gene.frac, digits=3)
-    FDR.mean.sorted <- signif(FDR.mean.sorted, digits=5)
-    FDR.median.sorted <-  signif(FDR.median.sorted, digits=5)
-    glob.p.vals.sorted <- signif(glob.p.vals.sorted, digits=5)
+#    signal.strength <- signif(signal.strength, digits=3)
+#    tag.frac <- signif(tag.frac, digits=3)
+#    gene.frac <- signif(gene.frac, digits=3)
+#    FDR.mean.sorted <- signif(FDR.mean.sorted, digits=5)
+#    FDR.median.sorted <-  signif(FDR.median.sorted, digits=5)
+#    glob.p.vals.sorted <- signif(glob.p.vals.sorted, digits=5)
 
-    report <- data.frame(cbind(gs.names, size.G, all.gs.descs, Obs.ES, 
-         Obs.ES.norm, p.vals[,1], FDR.mean.sorted, p.vals[,2], tag.frac, 
-         gene.frac, signal.strength, FDR.median.sorted, glob.p.vals.sorted))
-    names(report) <- c("GS", "SIZE", "SOURCE", "ES", "NES", "NOM p-val", 
-         "FDR q-val", "FWER p-val", "Tag \\%", "Gene \\%", "Signal", 
-         "FDR (median)", "glob.p.val")
-    report2 <- report[order(Obs.ES.norm, decreasing=TRUE),]
-    report3 <- report[order(Obs.ES.norm, decreasing=FALSE),]
-    phen1.rows <- sum(Obs.ES.norm >= 0)
-    phen2.rows <- length(Obs.ES.norm) - phen1.rows
-    report.phen1 <- report2[seq_len(phen1.rows),]
-    report.phen2 <- report3[seq_len(phen2.rows),]
+    report <- DataFrame(gs.names, size.G, Obs.ES, Obs.ES.norm, p.vals[,1])
+#            , FDR.mean.sorted, p.vals[,2], tag.frac, 
+#         gene.frac, signal.strength, FDR.median.sorted, glob.p.vals.sorted))
+    colnames(report) <- c("GS", "SIZE", "ES", "NES", "NOM p-val")#, 
+    rownames(report) <- NULL
+    return(report)
+#         "FDR q-val", "FWER p-val", "Tag \\%", "Gene \\%", "Signal", 
+#         "FDR (median)", "glob.p.val")
+#    report2 <- report[order(Obs.ES.norm, decreasing=TRUE),]
+#    report3 <- report[order(Obs.ES.norm, decreasing=FALSE),]
+#    phen1.rows <- sum(Obs.ES.norm >= 0)
+#    phen2.rows <- length(Obs.ES.norm) - phen1.rows
+#    report.phen1 <- report2[seq_len(phen1.rows),]
+#    report.phen2 <- report3[seq_len(phen2.rows),]
 
-    if (output.directory != "")  
-    {
-        if (phen1.rows > 0) 
-        {
-            filename <- paste(output.directory, doc.string, 
-                ".SUMMARY.RESULTS.REPORT.", phen1,".txt", sep="", collapse="")
-            write.table(report.phen1, 
-                file = filename, quote=FALSE, row.names=FALSE, sep = "\t")
-        }
-        if (phen2.rows > 0) {
-            filename <- paste(output.directory, doc.string, 
-                ".SUMMARY.RESULTS.REPORT.", phen2,".txt", sep="", collapse="")
-            write.table(report.phen2, 
-                file = filename, quote=FALSE, row.names=FALSE, sep = "\t")
-        }
-    }
-
-    return(list(report1 = report.phen1, report2 = report.phen2))
+#    if (output.directory != "")  
+#    {
+#        if (phen1.rows > 0) 
+#        {
+#            filename <- paste(output.directory, doc.string, 
+#                ".SUMMARY.RESULTS.REPORT.", phen1,".txt", sep="", collapse="")
+#            write.table(report.phen1, 
+#                file = filename, quote=FALSE, row.names=FALSE, sep = "\t")
+#        }
+#        if (phen2.rows > 0) {
+#            filename <- paste(output.directory, doc.string, 
+#                ".SUMMARY.RESULTS.REPORT.", phen2,".txt", sep="", collapse="")
+#            write.table(report.phen2, 
+#                file = filename, quote=FALSE, row.names=FALSE, sep = "\t")
+#        }
+#    }
+#
+#    return(list(report1 = report.phen1, report2 = report.phen2))
 
 }  # end of definition of GSEA.analysis
 
@@ -599,8 +586,8 @@ GSEA.GeneRanking <- function(A, class.labels, gene.labels, nperm)
         class.labels1 <- class.labels2 <- matrix(0, nrow=Ns, ncol=nperm)
     order.matrix <- obs.order.matrix <- s2n.matrix <- 
         obs.s2n.matrix <- matrix(0, nrow = N, ncol = nperm)
-    obs.gene.labels <- obs.gene.descs <- 
-        obs.gene.symbols <- vector(length = N, mode="character")
+    #obs.gene.labels <- obs.gene.descs <- 
+    #    obs.gene.symbols <- vector(length = N, mode="character")
     M1 <- M2 <- S1 <- S2 <- matrix(0, nrow = N, ncol = nperm)
     C <- split(class.labels, class.labels)
     class1.size <- length(C[[1]])

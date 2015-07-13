@@ -16,6 +16,7 @@ sbea <- function(
     gs, 
     alpha=0.05, 
     perm=1000, 
+    padj.method="BH",
     out.file=NULL,
     browse=FALSE)
 {   
@@ -41,7 +42,7 @@ sbea <- function(
         # else 
         # gsea
         if(method == "gsea") 
-            gs.ps <- gsea(eset, gs, perm=perm, alpha=alpha) 
+            gs.ps <- gsea(eset, gs, perm=perm) 
         else
         {
             cmat <- gmt.2.cmat(gs, featureNames(eset), 
@@ -75,6 +76,7 @@ sbea <- function(
     else stop(paste(method, "is not a valid method for sbea"))
 
     gs.ps <- sort(gs.ps)
+    gs.ps <- p.adjust(gs.ps, method=padj.method)
     gs.ps <- signif(gs.ps, digits=3)
     res.tbl <- DataFrame(names(gs.ps), gs.ps)
     colnames(res.tbl) <- sapply(c("GS.COL", "GSP.COL"), config.ebrowser)
@@ -195,13 +197,12 @@ ora <- function(mode=2, eset, cmat, perm=1000, alpha=0.05)
             nr.sigs <- sum(fData(eset)[ , ADJP.COL] < alpha)
             args <- list(one.sided=FALSE, genelist.length=nr.sigs)
 
-            gs.ps <- safe::safe(  X.mat=x, y.vec=y, 
-                    C.mat=cmat, Pi.mat=perm, alpha=alpha, 
-                    global="Fisher", args.global=args)
+            gs.ps <- safe::safe(X.mat=x, y.vec=y, global="Fisher", C.mat=cmat, 
+                 Pi.mat=perm, alpha=alpha, error="none", args.global=args)
         } 
         # SAFE default                  
         else gs.ps <- safe::safe(X.mat=x, y.vec=y, 
-            C.mat=cmat, Pi.mat=perm, alpha=alpha)
+            C.mat=cmat, Pi.mat=perm, alpha=alpha, error="none")
         gs.ps <- gs.ps@global.pval
     }
     return(gs.ps)
@@ -211,8 +212,6 @@ ora <- function(mode=2, eset, cmat, perm=1000, alpha=0.05)
 gsea <- function(
     eset, 
     gs.gmt, 
-    doc.string="GSEA.Analysis", 
-    alpha=0.05, 
     perm=1000, 
     out.file=NULL)
 {        
@@ -227,34 +226,25 @@ gsea <- function(
     else out.dir <- sub("\\.[a-z]+$", "_files", out.file)
     if(!file.exists(out.dir)) dir.create(out.dir)
 
-    if(class(gs.gmt) != "character") 
-    {
-        gmt.out <- file.path(out.dir, paste(doc.string, "gs.gmt", sep="_"))
-        write.gmt(gs.gmt, gmt.file=gmt.out)
-        gs.gmt <- gmt.out
-    }
+    #if(class(gs.gmt) != "character") 
+    #{
+    #    gmt.out <- file.path(out.dir, "gs.gmt")
+    #    write.gmt(gs.gmt, gmt.file=gmt.out)
+    #    gs.gmt <- gmt.out
+    #}
     
     # run GSEA
-    GSEA(input.ds = as.data.frame(exprs(eset)), 
+    res <- GSEA(input.ds = as.data.frame(exprs(eset)), 
         input.cls = cls,
         gs.db = gs.gmt, 
-        output.directory = file.path(out.dir, ""),
-        doc.string            = doc.string,
-        nperm                 = perm,
-        fdr.q.val.threshold   = -1,
-        gs.size.threshold.min = config.ebrowser("GS.MIN.SIZE"),
-        gs.size.threshold.max = config.ebrowser("GS.MAX.SIZE"))
+        output.directory = out.dir,
+        nperm                 = perm)#,
+        #gs.size.threshold.min = config.ebrowser("GS.MIN.SIZE"),
+        #gs.size.threshold.max = config.ebrowser("GS.MAX.SIZE"))
       
-    res.file <- file.path(out.dir, 
-        paste(doc.string, ".SUMMARY.RESULTS.REPORT.1.txt", sep=""))
-    res <- as.matrix(read.delim(res.file))
-    gs.ps <- as.numeric(res[,6])
+    gs.ps <- res[,5]
     names(gs.ps) <- res[,1]
 
-    tmp.files <- list.files(out.dir, 
-        pattern=paste("^", doc.string, sep=""), full.names=TRUE)
-    invisible(file.remove(tmp.files))
-    
     return(gs.ps)
 }
 

@@ -1,6 +1,6 @@
 Package: EnrichmentBrowser
-Version: 1.99.1
-Date: 2015-07-10
+Version: 1.99.2
+Date: 2015-07-13
 Title: Seamless navigation through combined results of set-based and
         network-based enrichment analysis
 Author: Ludwig Geistlinger
@@ -9,7 +9,7 @@ Depends: R(>= 3.0.0), Biobase, GSEABase, pathview
 Imports: AnnotationDbi, ComplexHeatmap, DESeq2, EDASeq, GO.db,  
     KEGGREST, KEGGgraph, MASS, ReportingTools, Rgraphviz, S4Vectors, SPIA, 
     SummarizedExperiment, biocGraph, biomaRt, edgeR, geneplotter, graph, 
-    hwriter, limma, mixtools, neaGUI, qvalue, safe, stringr, topGO
+    hwriter, limma, mixtools, neaGUI, safe, stringr, topGO
 Suggests: ALL, BiocStyle, airway, hgu95av2.db
 Description: The EnrichmentBrowser package implements essential functionality 
     for the enrichment analysis of gene expression data. The analysis combines 

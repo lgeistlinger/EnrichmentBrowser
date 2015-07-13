@@ -539,8 +539,7 @@ gene.table <- function(im, org, fcs=NULL, grn=NULL)#, context="")
     # (1) gene identification 
     EZ.COL <- config.ebrowser("EZ.COL")
     gn.cols <- sapply(c("SYM.COL", "GN.COL"), config.ebrowser)
-    gt <- select(org.pkg, keys=colnames(im),
-            columns=gn.cols, keytype=EZ.COL)
+    gt <- select(org.pkg, keys=colnames(im), columns=gn.cols, keytype=EZ.COL)
 
     # (2) fold change
     if(!is.null(fcs))

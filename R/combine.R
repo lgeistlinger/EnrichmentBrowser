@@ -33,19 +33,57 @@ fisher.comb <- function(pvals) {
     return(p)
 }
 
+# input: named ranking measure vector
+# e.g. pvalues/scores of gene sets
+# res <- c(0.01, 0.02, ..)
+# names(res) <- c("gs1", "gs2", ..)
+get.ranks <- function(res, rank.fun=c("rel.ranks", "abs.ranks"))
+{
+    if(is.function(rank.fun)) ranks <- rank.fun(res)
+    else{
+        rank.fun <- match.arg(rank.fun)
+        GS.COL <- config.ebrowser("GS.COL")
+        GSP.COL <- config.ebrowser("GSP.COL")
+        ps <- res[, GSP.COL]
+        names(ps) <- res[, GS.COL] 
+
+        ucats <- unique(ps)
+        ranks <- match(ps, ucats)
+        if(rank.fun == "rel.ranks") 
+            ranks <- ranks / length(ucats) * 100
+        return(ranks)
+    }
+    return(ranks)
+}
+
+comb.ranks <- function(rankm, 
+    comb.fun=c("mean", "median", "min", "max", "sum"))
+{   
+    if(is.function(comb.fun)) ranks <- apply(rankm, 1, comb.fun)
+    else
+    {   
+        comb.fun <- match.arg(comb.fun)
+        ranks <- apply(rankm, 1, 
+            function(x) do.call(comb.fun, list(x, na.rm=TRUE)))
+    }
+    return(ranks)
+}
+
 ###
 # combine results of different enrichment analyises
 # and compute average measures (rank & p-value)
 ###
 # TODO: (1) weighted average ranks (to prioritize methods)
 #       (2) what to do with equal average ranks (stouffer?)
-comb.ea.results <- function(res.list)
+comb.ea.results <- function(res.list, 
+    rank.fun=c("rel.ranks", "abs.ranks"), 
+    comb.fun=c("mean", "median", "min", "max", "sum"))
 {
     GS.COL <- config.ebrowser("GS.COL")
     GSP.COL <- config.ebrowser("GSP.COL")
 
     # requires min. 2 results
-    if(length(res.list) < 2) stop("Length of \'res.list\' should be > 1")   
+    stopifnot(length(res.list) > 1)   
 
     # compute the intersect of gene sets in all result tables
     nr.res <- length(res.list)  
@@ -66,24 +104,28 @@ comb.ea.results <- function(res.list)
     for(i in seq_len(nr.res))
     {
         res.tbl <- res.list[[i]]$res.tbl
-        ranking <- sapply(gs, function(s) which(res.tbl[,GS.COL] == s))
-        rankm[,i] <- ranking 
-        pvalm[,i] <- as.numeric(res.tbl[rankm[,i], GSP.COL])
+        ranks <- get.ranks(res.tbl, rank.fun=rank.fun)
+        ord <- match(gs, res.tbl[,GS.COL])
+        pvalm[,i] <- res.tbl[ord, GSP.COL]
+        rankm[,i] <- ranks[ord] 
     }
 
     # compute average ranks
-    av.ranks <- rowMeans(rankm, na.rm=TRUE)
+    av.ranks <- comb.ranks(rankm, comb.fun)
+    if(is.character(comb.fun)) avr.cname <- toupper(match.arg(comb.fun))
+    else avr.cname <- "COMB"
+    avr.cname <- paste(avr.cname, "RANK", sep=".")
 
     # construct combined table
     res.tbl <- data.frame(rankm, av.ranks, pvalm)
     methods <- sapply(res.list, function(x) toupper(x$method))
-    colnames(res.tbl) <- c(paste0(methods, ".RANK"), "AVG.RANK", 
+    colnames(res.tbl) <- c(paste0(methods, ".RANK"), avr.cname, 
                 paste0(methods, ".PVAL"))
     rownames(res.tbl) <- gs
 
     # order and format results
     res.tbl <- res.tbl[order(av.ranks),]
-    res.tbl[,seq_len(nr.res+1)] <- floor(res.tbl[,seq_len(nr.res+1)])
+    res.tbl[,seq_len(nr.res+1)] <- round(res.tbl[,seq_len(nr.res+1)], digits=1)
     res.tbl[,(nr.res+2):ncol(res.tbl)] <- 
         signif(res.tbl[,(nr.res+2):ncol(res.tbl)], digits=3)
     res.tbl <- DataFrame(rownames(res.tbl), res.tbl)

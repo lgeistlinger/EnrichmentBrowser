@@ -94,8 +94,8 @@ make.exmpl.ea.res <- function(eset=NULL, gs=NULL, method="ora", alpha=0.05)
         runif(length(gs) - nr.sigs, alpha+0.1, 1)
         ))
     p.res <- round(p.res, digits=3)
-
-    res.tbl <- cbind(gs.res, p.res)
+    
+    res.tbl <- DataFrame(gs.res, p.res)
     colnames(res.tbl) <- c(config.ebrowser("GS.COL"), config.ebrowser("GSP.COL"))
 
     ea.res <- list(method=method,

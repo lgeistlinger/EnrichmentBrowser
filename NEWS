@@ -1,3 +1,8 @@
+2015-07-14:
+EnrichmentBrowser 1.99.3:
+    - GSEA permutation approximation based on npGSEA
+    - extended combination functionality
+
 2015-07-10
 EnrichmentBrowser 1.99.1:
     - major overhaul of the look'n'feel based on ReportingTools

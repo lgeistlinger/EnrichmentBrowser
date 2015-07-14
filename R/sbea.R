@@ -216,6 +216,17 @@ gsea <- function(
     out.file=NULL)
 {        
     GRP.COL <- config.ebrowser("GRP.COL")
+    
+    # npGSEA
+    if(perm==0)
+    {
+        gsc <- gs.list.2.gs.coll(gs.gmt)
+        res <- npGSEA::npGSEA(x=exprs(eset), y=eset[[GRP.COL]], set=gsc)
+        ps <- sapply(res, npGSEA::pTwoSided)
+        names(ps) <- names(gs.gmt)
+        return(ps)
+    }
+
     # build class list
     cls <- list()
     cls$phen <- levels(as.factor(eset[[GRP.COL]]))
@@ -225,22 +236,10 @@ gsea <- function(
         out.dir <- config.ebrowser("OUTDIR.DEFAULT") 
     else out.dir <- sub("\\.[a-z]+$", "_files", out.file)
     if(!file.exists(out.dir)) dir.create(out.dir)
-
-    #if(class(gs.gmt) != "character") 
-    #{
-    #    gmt.out <- file.path(out.dir, "gs.gmt")
-    #    write.gmt(gs.gmt, gmt.file=gmt.out)
-    #    gs.gmt <- gmt.out
-    #}
-    
+        
     # run GSEA
-    res <- GSEA(input.ds = as.data.frame(exprs(eset)), 
-        input.cls = cls,
-        gs.db = gs.gmt, 
-        output.directory = out.dir,
-        nperm                 = perm)#,
-        #gs.size.threshold.min = config.ebrowser("GS.MIN.SIZE"),
-        #gs.size.threshold.max = config.ebrowser("GS.MAX.SIZE"))
+    res <- GSEA(input.ds=as.data.frame(exprs(eset)), 
+        input.cls=cls, gs.db=gs.gmt, output.directory=out.dir, nperm=perm)
       
     gs.ps <- res[,5]
     names(gs.ps) <- res[,1]

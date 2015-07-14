@@ -55,10 +55,11 @@
         gene set significance to avoid permutation testing. See Details.
     } 
     \item{padj.method}{
-        Method for adjusting p-values to multiple testing.
+        Method for adjusting nominal gene set p-valuesp-values to multiple testing.
         For available methods see the man of page the of the 
         stats function \code{\link{p.adjust}}.
-        Defaults to 'BH'.
+        Use 'none' to leave the nominal gene set p-values uncorrected.
+        Defaults to 'BH'. 
     } 
     \item{out.file}{
         Optional output file the gene set ranking will be written to.

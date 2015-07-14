@@ -44,13 +44,16 @@
     }
     \item{perm}{
         Number of permutations of the expression matrix to estimate the null 
-        distribution. Defaults to 1000. For basic ora set 'perm=0'.
+        distribution. Defaults to 1000. For basic ora set 'perm=0'. 
+        *New*: using method="gsea" and 'perm=0' invokes the permutation
+        approximation from the npGSEA package.
     }  
     \item{padj.method}{
-        Method for adjusting p-values to multiple testing.
+        Method for adjusting nominal gene set p-values to multiple testing.
         For available methods see the man of page the of the 
         stats function \code{\link{p.adjust}}.
-        Defaults to 'BH'.
+        Use 'none' to leave the nominal gene set p-values uncorrected.
+        Defaults to 'BH'.     
     }
     \item{out.file}{
         Optional output file the gene set ranking will be written to.

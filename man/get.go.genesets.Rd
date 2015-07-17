@@ -8,12 +8,12 @@
     either via download from BioMart or based on BioC annotation packages.
 }
 \usage{
-    get.go.genesets(org, onto=c("BP", "MF", "CC"), mode=c("GO.db","biomart"))
+    get.go.genesets( org, onto = c("BP", "MF", "CC"), mode = c("GO.db","biomart") )
 }
 \arguments{
     \item{org}{
         An organism in (KEGG) three letter code, 
-        e.g. \sQuote{hsa} for \sQuote{homo sapiens}.
+        e.g. \sQuote{hsa} for \sQuote{Homo sapiens}.
     }
     \item{onto}{
         Character. Specifies one of the three GO ontologies:
@@ -37,7 +37,7 @@
     A list of gene sets (vectors of gene IDs).
 }
 \references{
-http://geneontology.org/
+    \url{http://geneontology.org/}
 }
 \author{
     Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
@@ -46,7 +46,7 @@ http://geneontology.org/
     \code{\link{annFUN}} for general GO2gene mapping used in the 'GO.db' mode,
     \code{\link{getBM}} for general queries to BioMart.
     \code{\link{get.kegg.genesets}} for defining gene sets according to KEGG, 
-    \code{\link{parse.genesets.from.GMT}} to parse user-def. gene sets from file,
+    \code{\link{parse.genesets.from.GMT}} to parse user-def. gene sets from file.
 }
 \examples{
     # Typical usage for gene set enrichment analysis:

@@ -7,13 +7,13 @@
 }
 \description{
     This is the main function for network-based enrichment analysis.
-    It implements and uses existing implementations of several frequently 
+    It implements and wraps existing implementations of several frequently 
     used state-of-art methods and allows a flexible inspection of 
     resulting gene set rankings. 
 }
 \usage{
-    nbea(method=nbea.methods(), eset, gs, grn, alpha=0.05, 
-            perm=1000, padj.method="BH", out.file=NULL, browse=FALSE, ...)
+    nbea( method = nbea.methods(), eset, gs, grn, alpha = 0.05, 
+          perm = 1000, padj.method = "BH", out.file = NULL, browse = FALSE, ... )
 
     nbea.methods()
 }
@@ -24,13 +24,13 @@
         are supported:
         \sQuote{ggea}, \sQuote{nea}, \sQuote{spia}.
         See Details. Default is 'ggea'.
-        This can also be the name of a tailored function implementing 
+        This can also be the name of a user-defined function implementing 
         network-based enrichment. See Details. 
     } 
     \item{eset}{
-        Expression set. Either an object of class 'ExpressionSet' or an 
-        absolute file path to an RData file containing the gene expression set. 
-        See 'read.eset' and 'probe.2.gene.eset'
+        Expression set. 
+        An object of class \code{\linkS4class{ExpressionSet}}.
+        See \code{\link{read.eset}} and \code{\link{probe.2.gene.eset}}
         for required annotations in the pData and fData slot.
     }
     \item{gs}{
@@ -51,7 +51,7 @@
     \item{perm}{
         Number of permutations of the expression matrix to estimate the 
         null distribution. Defaults to 1000. If using method=\sQuote{ggea},
-        it is possible to set perm < 1 to use a fast approximation of
+        it is possible to set 'perm=0' to use a fast approximation of
         gene set significance to avoid permutation testing. See Details.
     } 
     \item{padj.method}{
@@ -86,8 +86,8 @@
     nbea.methods: a character vector of currently supported methods;
 
     nbea: if(is.null(out.file)): an enrichment analysis result object 
-    that can be detailedly explored by calling 'ea.browse' and from 
-    which a flat gene set ranking can be extracted by calling 'gs.ranking'.
+    that can be detailedly explored by calling \code{\link{ea.browse}} and from 
+    which a flat gene set ranking can be extracted by calling \code{\link{gs.ranking}}.
     If 'out.file' is given, the ranking is written to the specified file. 
 }
 \details{
@@ -123,7 +123,7 @@
 }
 \seealso{
     Input:    
-    \code{\link{read.eset}}, \code{\link{probe.2.gene.eset}}
+    \code{\link{read.eset}}, \code{\link{probe.2.gene.eset}}, 
     \code{\link{get.kegg.genesets}} to retrieve gene set definitions from KEGG.
     \code{\link{compile.grn.from.kegg}} to construct a GRN from KEGG pathways.
   

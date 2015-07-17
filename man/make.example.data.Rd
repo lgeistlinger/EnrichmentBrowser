@@ -6,10 +6,10 @@
 \description{
     Functionality to construct example data sets for demonstration.
     This includes expression data, gene sets, gene regulatory networks, 
-    and enrichment analysis results
+    and enrichment analysis results.
 }
 \usage{
-    make.example.data(what=c("eset", "gs", "grn", "ea.res"), ...)
+    make.example.data( what = c("eset", "gs", "grn", "ea.res"), ... )
 }
 \arguments{
     \item{what}{
@@ -29,7 +29,7 @@
         For what='eset':
         \itemize{
         \item type: Expression data type. Should be either 
-            'ma' (Microarray intensity measurments) or 
+            'ma' (Microarray intensity measurements) or 
             'rseq' (RNA-seq read counts). 
         \item nfeat: Number of features/genes. Defaults to 100.
         \item nsmpl: Number of samples. Defaults to 12.
@@ -41,7 +41,7 @@
         
         For what='gs':
         \itemize{
-        \item gnames: gene names from which the sets will be sample. Per default
+        \item gnames: gene names from which the sets will be sampled. Per default
             the sets will be drawn from c(g1, ..., g100).
         \item n: number of sets. Defaults to 10.
         \item min.size: minimal set size. Defaults to 15.

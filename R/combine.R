@@ -37,20 +37,25 @@ fisher.comb <- function(pvals) {
 # e.g. pvalues/scores of gene sets
 # res <- c(0.01, 0.02, ..)
 # names(res) <- c("gs1", "gs2", ..)
-get.ranks <- function(res, rank.fun=c("rel.ranks", "abs.ranks"))
+get.ranks <- function(res, 
+    rank.fun=c("comp.ranks", "rel.ranks", "abs.ranks"), 
+    rank.col=config.ebrowser("GSP.COL"))
 {
     if(is.function(rank.fun)) ranks <- rank.fun(res)
     else{
         rank.fun <- match.arg(rank.fun)
         GS.COL <- config.ebrowser("GS.COL")
-        GSP.COL <- config.ebrowser("GSP.COL")
-        ps <- res[, GSP.COL]
-        names(ps) <- res[, GS.COL] 
+        rcol <- res[, rank.col]
+        names(rcol) <- res[, GS.COL] 
 
-        ucats <- unique(ps)
-        ranks <- match(ps, ucats)
-        if(rank.fun == "rel.ranks") 
-            ranks <- ranks / length(ucats) * 100
+        if(rank.fun == "comp.ranks")
+            ranks <- sapply(rcol, function(p) mean(rcol <= p) * 100)
+        else
+        {
+            ucats <- unique(rcol)
+            ranks <- match(rcol, ucats)
+            if(rank.fun == "rel.ranks") ranks <- ranks / length(ucats) * 100
+        }
         return(ranks)
     }
     return(ranks)
@@ -73,10 +78,8 @@ comb.ranks <- function(rankm,
 # combine results of different enrichment analyises
 # and compute average measures (rank & p-value)
 ###
-# TODO: (1) weighted average ranks (to prioritize methods)
-#       (2) what to do with equal average ranks (stouffer?)
 comb.ea.results <- function(res.list, 
-    rank.fun=c("rel.ranks", "abs.ranks"), 
+    rank.fun=c("comp.ranks", "rel.ranks", "abs.ranks"), 
     comb.fun=c("mean", "median", "min", "max", "sum"))
 {
     GS.COL <- config.ebrowser("GS.COL")

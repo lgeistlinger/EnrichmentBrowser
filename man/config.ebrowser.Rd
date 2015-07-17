@@ -8,7 +8,7 @@
     the default behavior of the EnrichmentBrowser
 }
 \usage{
-    config.ebrowser(key, value=NULL)
+    config.ebrowser( key, value = NULL )
 }
 \arguments{
     \item{key}{
@@ -53,8 +53,8 @@
 
     Default output directory:
     \itemize{
-        \item EBROwSER.HOME: system.file(package="EnrichmentBrowser")
-        \item OUTDIR.DEFAULT: file.path(EBROwSER.HOME, "results")    
+        \item EBROWSER.HOME: system.file(package="EnrichmentBrowser")
+        \item OUTDIR.DEFAULT: file.path(EBROWSER.HOME, "results")    
     }
 
     Gene set size:

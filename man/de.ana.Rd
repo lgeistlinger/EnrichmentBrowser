@@ -9,15 +9,16 @@
     Raw p-values are corrected for multiple testing.
 }
 \usage{
-    de.ana(expr, grp=NULL, blk=NULL, 
-        padj.method="BH", de.method=c("limma", "edgeR", "DESeq"))
+    de.ana( expr, grp = NULL, blk = NULL, 
+        padj.method = "BH", de.method = c("limma", "edgeR", "DESeq") )
 }
 \arguments{
     \item{expr}{
         Expression data. 
         A numeric matrix. Rows correspond to genes, columns to samples.
-        Alternatively, this can also be an object of class ExpressionSet 
-        (in case of microarray data) or an object of class SeqExpressionSet 
+        Alternatively, this can also be an object of class 
+        \code{\linkS4class{ExpressionSet}} (in case of microarray data) 
+        or an object of class \code{\linkS4class{SeqExpressionSet}} 
         (in case of RNA-seq data).
         See the man page of \code{\link{read.eset}} for prerequisites 
         for the expression data.

@@ -8,7 +8,7 @@
     KEGG XML format for a specified organism.
 }
 \usage{
-    download.kegg.pathways(org, out.dir = NULL, zip = FALSE)
+    download.kegg.pathways( org, out.dir = NULL, zip = FALSE )
 }
 \arguments{
     \item{org}{

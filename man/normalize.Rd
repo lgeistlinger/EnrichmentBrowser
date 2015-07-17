@@ -4,11 +4,12 @@
     Normalization of microarray and RNA-seq expression data 
 }
 \description{
-    This function wraps commonly used funtionality from limma for microarray
+    This function wraps commonly used functionality from limma for microarray
     normalization and from EDASeq for RNA-seq normalization.
 }
 \usage{
-    normalize(eset, norm.method="quantile", within=FALSE, data.type=c(NA, "ma", "rseq"))
+    normalize( eset, 
+        norm.method = "quantile", within = FALSE, data.type = c(NA, "ma", "rseq") )
 }
 \arguments{
     \item{eset}{
@@ -59,10 +60,11 @@
 
     Microarray data is expected to be single-channel.
     For two-color arrays, it is expected here that normalization within arrays
-    has been already carried out, e.g. using 'normalizeWithinArrays' from limma.
+    has been already carried out, e.g. using \code{\link{normalizeWithinArrays}}
+    from limma.
 
     RNA-seq data is expected to be raw read counts.
-    Please note that normalization for downstream DE analyis, e.g. with edgeR 
+    Please note that normalization for downstream DE analysis, e.g. with edgeR 
     and DESeq, is not ultimately necessary (and in some cases even discouraged)
     as many of these tools implement specific normalization approaches.
     See the vignette of EDASeq, edgeR, and DESeq for details.
@@ -71,11 +73,13 @@
     Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
 }
 \seealso{
-    \code{\link{read.eset}} describes prerequisites for the expression data,
+    \code{\link{read.eset}} describes prerequisites for the expression data;
+
     \code{\link{normalizeWithinArrays}} and
-    \code{\link{normalizeBetweenArrays}} for normalization of microarray data,
+    \code{\link{normalizeBetweenArrays}} for normalization of microarray data;
+
     \code{\link{withinLaneNormalization}} and
-    \code{\link{betweenLaneNormalization}} for normalization of RNA-seq data,
+    \code{\link{betweenLaneNormalization}} for normalization of RNA-seq data.
 }
 \examples{
     #

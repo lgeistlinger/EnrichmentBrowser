@@ -8,8 +8,8 @@
     annotation requirements for the pData and fData slots. 
 }
 \usage{
-    read.eset(exprs.file, pdat.file, fdat.file, 
-        data.type=c(NA, "ma", "rseq"), NA.method=c("mean", "rm", "keep"))
+    read.eset( exprs.file, pdat.file, fdat.file, 
+        data.type = c(NA, "ma", "rseq"), NA.method = c("mean", "rm", "keep") )
 }
 \arguments{
     \item{exprs.file}{
@@ -26,7 +26,7 @@
         NO headers, row or column names.
         The number of rows/samples in this file should match the number of 
         columns/samples of the expression matrix.
-        The 1st colum is reserved for the sample IDs; 
+        The 1st column is reserved for the sample IDs; 
         The 2nd column is reserved for a *BINARY* group assignment. 
         Use '0' and '1' for unaffected (controls) and affected (cases) sample 
         class, respectively. 
@@ -37,14 +37,16 @@
         Feature data.
         A tab separated text file containing annotation information 
         for the features.
-        In case of probe level data: exactly *TWO* columns; 1st col = probe/feature IDs; 
+        In case of probe level data: exactly *TWO* columns; 
+        1st col = probe/feature IDs; 
         2nd col = corresponding gene ID for each feature ID in 1st col; 
-        In case of gene level data: The list of gene IDs newline-separated (i.e. just one column).
+        In case of gene level data: The list of gene IDs newline-separated 
+        (i.e. just one column).
         It is recommended to use *ENTREZ* gene IDs (to benefit from downstream 
         visualization and exploration functionality of the enrichment analysis).
         NO headers, row or column names.    
-        The number of rows (features/probes/genes) in this file should match the number of 
-        rows/features of the expression matrix. 
+        The number of rows (features/probes/genes) in this file should match 
+        the number of rows/features of the expression matrix. 
         Alternatively, this can also be the ID of a recognized platform
         such as 'hgu95av2' (Affymetrix Human Genome U95 chip) or 'ecoli2'
         (Affymetrix E. coli Genome 2.0 Array). 
@@ -72,11 +74,11 @@
     }
 }
 \value{
-    An object of \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}}.
+    An object of \code{\linkS4class{ExpressionSet}}.
 }
 \details{
 See the limma's user guide 
-http://www.bioconductor.org/packages/release/bioc/vignettes/limma/inst/doc/usersguide.pdf
+\url{http://www.bioconductor.org/packages/limma}
 for definition and normalization of the different expression data types.        
 
 In case of microarry data the feature IDs typically correspond to probe IDs.
@@ -85,12 +87,12 @@ corresponding KEGG gene ID (2nd column).
 The mapping can be defined automatically by providing the ID of a 
 recognized platform such as 'hgu95av2' (Affymetrix Human Genome U95 chip).
 This requires that a corresponding '.db' package exists (see 
-http://www.bioconductor.org/packages/release/BiocViews.html#___ChipName
+\url{http://www.bioconductor.org/packages/release/BiocViews.html#___ChipName}
 for all available chips/packages) and that you have it installed.
 *However, this option should be used with care*. Existing mappings might
 be outdated and sometimes the KEGG gene ID does not correspond to the Entrez ID 
 (e.g. for E. coli and S. cerevisae). In these cases probe identifiers are mapped
- twice (probe ID -> Entrez ID -> KEGG ID) which almost always results in loss
+ twice (probe ID -> Entrez ID -> KEGG ID), which almost always results in loss
 of information. Thus, mapping quality should always be checked and in case
 properly defined with a 2-column fdat.file.
 }

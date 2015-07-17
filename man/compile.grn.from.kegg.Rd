@@ -13,14 +13,14 @@
     KEGG database.
 }
 \usage{
-    compile.grn.from.kegg(pwys, out.file = NULL)
+    compile.grn.from.kegg( pwys, out.file = NULL )
 }
 \arguments{
     \item{pwys}{
-        Either a list of KEGGPathway objects or an absolute file path
-        of a zip compressed archive of pathway xml files in KGML format. 
+        Either a list of \code{\linkS4class{KEGGPathway}} objects or an absolute
+        file path of a zip compressed archive of pathway xml files in KGML format. 
         Alternatively, you can specify an organism in KEGG three letter code, 
-        e.g. \sQuote{hsa} for \sQuote{homo sapiens}, and the pathways will be
+        e.g. \sQuote{hsa} for \sQuote{Homo sapiens}, and the pathways will be
         downloaded automatically.
     }
     \item{out.file}{
@@ -28,7 +28,7 @@
     }
 }
 \value{
-    if(is.null(out.file)): the gene regulatory network
+    if(is.null(out.file)): the gene regulatory network;
     else: none, as the gene regulatory network is written to file
 }
 \author{

@@ -6,21 +6,21 @@
 }
 \description{
     Functions to extract a flat gene set ranking from an 
-    enrichment analysis result object and to detailedly explored it. 
+    enrichment analysis result object and to detailedly explore it. 
 }
 \usage{
-    ea.browse(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
+    ea.browse( res, nr.show = -1, graph.view = NULL, html.only = FALSE )
 
-    gs.ranking(res, signif.only=TRUE)
+    gs.ranking( res, signif.only = TRUE )
 }
 \arguments{
     \item{res}{
-        Enrichment analysis result object as returned by the functions 
-        \sQuote{sbea} and \sQuote{nbea}.
+        Enrichment analysis result list (as returned by the functions 
+        \code{\link{sbea}} and \code{\link{nbea}}).
     } 
     \item{nr.show}{
         Number of gene sets to show. 
-        As default all statistical significant gene sets are displayed.
+        As default all statistically significant gene sets are displayed.
     }
     \item{graph.view}{
         Optional. 
@@ -39,12 +39,12 @@
     }
     \item{signif.only}{
         Logical.
-        Display only those gene sets in the ranking which satisfy the 
+        Display only those gene sets in the ranking, which satisfy the 
         significance level? Defaults to TRUE.
     }
 }
 \value{
-    gs.ranking: data.frame with gene sets ranked by the corresponding p-value;
+    gs.ranking: DataFrame with gene sets ranked by the corresponding p-value;
 
     ea.browse: none, opens the browser to explore results.
 } 

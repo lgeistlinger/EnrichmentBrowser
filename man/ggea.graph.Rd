@@ -17,7 +17,9 @@
     of the expression of both interaction partners.     
 }
 \usage{
-    ggea.graph(gs, grn, eset, alpha=0.05, beta=1, max.edges=50, cons.thresh=0.7)
+    ggea.graph( gs, grn, eset, 
+        alpha = 0.05, beta = 1, max.edges = 50, cons.thresh = 0.7 )
+
     ggea.graph.legend()
 }
 \arguments{
@@ -34,8 +36,9 @@
     }
     \item{eset}{
         Expression set. 
-        An object of class 'ExpressionSet' containing the gene expression set. 
-        See 'read.eset' and 'probe.2.gene.eset' for required annotations 
+        An object of class \code{\linkS4class{ExpressionSet}} containing the 
+        gene expression set. See \code{\link{read.eset}} and 
+        \code{\link{probe.2.gene.eset}} for required annotations 
         in the pData and fData slot.
     }
     \item{alpha}{

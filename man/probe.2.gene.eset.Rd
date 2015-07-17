@@ -9,11 +9,11 @@
     gene. 
 }
 \usage{
-    probe.2.gene.eset(probe.eset, use.mean=TRUE)
+    probe.2.gene.eset( probe.eset, use.mean = TRUE )
 }
 \arguments{
     \item{probe.eset}{
-        Probe expression set of class 'ExpressionSet'.         
+        Probe expression set of class \code{\linkS4class{ExpressionSet}}.
         The fData slot of the expression set must contain a 'GENE' column 
         that lists for each probe the corresponding KEGG gene ID.
     }
@@ -27,8 +27,7 @@
     }
 }
 \value{
-    An \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}} 
-    on gene level.
+    An \code{\linkS4class{ExpressionSet}} on gene level.
 }
 \author{
     Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>

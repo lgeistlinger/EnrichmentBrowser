@@ -9,17 +9,17 @@
     This function allows to combine results from the different 
     set-based and network-based enrichment analysis methods.
     This includes the computation of average gene set ranks 
-    across methods and of combined gene set p-values. 
+    across methods. 
 }
 \usage{
-    comb.ea.results(res.list, 
-        rank.fun=c("rel.ranks", "abs.ranks"), 
-        comb.fun=c("mean", "median", "min", "max", "sum"))
+    comb.ea.results( res.list, 
+        rank.fun = c("comp.ranks", "rel.ranks", "abs.ranks"), 
+        comb.fun = c("mean", "median", "min", "max", "sum") )
 }
 \arguments{
     \item{res.list}{
-        A list of enrichment analysis result lists as returned 
-        by the functions \sQuote{sbea} and \sQuote{nbea}.
+        A list of enrichment analysis result lists (as returned 
+        by the functions \code{\link{sbea}} and \code{\link{nbea}}).
     }
     \item{rank.fun}{
         Ranking function.
@@ -28,16 +28,18 @@
         function). This is typically done according to gene set p-values,
         but can also take into account gene set scores/statistics, especially
         in case of gene sets with equal p-value.
-        Can be either one of the predefined functions (rel.ranks, abs.ranks)
-        or a user-defined function.
-        See details.
-        Default to 'rel.ranks', i.e. relative ranks are computed in 2 steps:
+        Can be either one of the predefined functions ('comp.ranks', 'rel.ranks', 
+        'abs.ranks') or a user-defined function.
+        Defaults to 'comp.ranks', i.e. competitive (percentile) ranks are computed
+        by calculating for each gene set the percentage of gene sets with a 
+        p-value as small or smaller.
+        Alternatively, 'rel.ranks', i.e. relative ranks are computed in 2 steps:
         \enumerate{
             \item Ranks are assigned according to distinct gene set p-value
                 *categories*, i.e. gene sets with equal p-value obtain the *same*
-                rank. Thus the gene sets with lowest p-value obtain rank 1, 
+                rank. Thus, the gene sets with lowest p-value obtain rank 1, 
                 and so on.
-            \item As opposed to absolute ranks (rank.fun='abs.ranks'), which
+            \item As opposed to absolute ranks (rank.fun = 'abs.ranks'), which
                 are returned from step 1, relative ranks are then computed by 
                 dividing the absolute rank by number of distinct p-value 
                 categories and multiplying with 100 (= percentile rank).
@@ -48,15 +50,14 @@
         Used to combine gene set ranks across methods.
         Can be either one of the predefined functions (mean, median,
         max, min, sum) or a user-defined function.
-        See details.
         Defaults to 'mean', i.e. the average rank across methods is
         computed.  
     } 
 }
 \value{
     An enrichment analysis result list 
-    that can be detailedly explored by calling 'ea.browse' and from 
-    which a flat gene set ranking can be extracted by calling 'gs.ranking'.
+    that can be detailedly explored by calling \code{\link{ea.browse}} and from 
+    which a flat gene set ranking can be extracted by calling \code{\link{gs.ranking}}.
 }
 \seealso{
     \code{\link{sbea}}, \code{\link{nbea}}, \code{\link{ea.browse}}

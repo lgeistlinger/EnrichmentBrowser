@@ -14,16 +14,17 @@
     for each pathway and the conversion to GMT format.
 }
 \usage{
-    get.kegg.genesets(pwys, gmt.file = NULL)
+    get.kegg.genesets( pwys, gmt.file = NULL )
 
-    parse.genesets.from.GMT(gmt.file)
+    parse.genesets.from.GMT( gmt.file )
 }
 \arguments{
     \item{pwys}{
-        Either a list of KEGGPathway objects or an absolute file path
-        of a zip compressed archive of pathway xml files in KGML format. 
+        Either a list of \code{\linkS4class{KEGGPathway}} objects or an 
+        absolute file path of a zip compressed archive of pathway xml files 
+        in KGML format. 
         Alternatively, an organism in KEGG three letter code, 
-        e.g. \sQuote{hsa} for \sQuote{homo sapiens}.
+        e.g. \sQuote{hsa} for \sQuote{Homo sapiens}.
     }
     \item{gmt.file}{
         Gene set file in GMT format. See details.
@@ -41,10 +42,10 @@
 }
 \references{
     GMT file format
-    http://www.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats
+    \url{http://www.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats}
 
     KEGG Organism code
-    http://www.genome.jp/kegg/catalog/org_list.html
+    \url{http://www.genome.jp/kegg/catalog/org_list.html}
 }
 \author{
     Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>

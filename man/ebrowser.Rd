@@ -16,10 +16,10 @@
     investigated in detail in the default browser. 
 }
 \usage{
-    ebrowser( meth, exprs, pdat, fdat, org, data.type=c(NA, "ma", "rseq"), 
-            norm.method="quantile", de.method="limma",
-            gs, grn=NULL, perm=1000, alpha=0.05, beta=1,
-            comb=FALSE, browse=TRUE, nr.show=-1)
+    ebrowser( meth, exprs, pdat, fdat, org, data.type = c(NA, "ma", "rseq"), 
+            norm.method = "quantile", de.method = "limma",
+            gs, grn = NULL, perm = 1000, alpha = 0.05, beta = 1,
+            comb = FALSE, browse = TRUE, nr.show = -1 )
 }
 \arguments{
     \item{meth}{
@@ -27,7 +27,7 @@
         Currently, the following enrichment analysis methods are supported:
         \sQuote{ora}, \sQuote{safe}, \sQuote{gsea}, \sQuote{samgs}, 
         \sQuote{ggea}, \sQuote{spia}, and \sQuote{nea}.
-        See \sQuote{sbea} and \sQuote{nbea} for details.
+        See \code{\link{sbea}} and \code{\link{nbea}} for details.
     }
     \item{exprs}{
       Expression matrix.
@@ -38,9 +38,8 @@
         Supported data types are log2 counts (microarray single-channel),
         log2 ratios (microarray two-color), and log2-counts per million 
         (RNA-seq logCPMs).
-        See the limma's user guide 
-        http://www.bioconductor.org/packages/release/bioc/vignettes/limma/inst/doc/usersguide.pdf
-        for definition and normalization of the different data types.       
+        See limma's user guide for definition and normalization of the 
+        different data types.       
         Alternatively, this can be an object of 
         \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}},
         assuming the expression matrix in the 'exprs' slot.
@@ -52,7 +51,7 @@
         NO headers, row or column names.
         The number of rows/samples in this file should match the number of 
         columns/samples of the expression matrix.
-        The 1st colum is reserved for the sample IDs; 
+        The 1st column is reserved for the sample IDs; 
         The 2nd column is reserved for a *BINARY* group assignment. 
         Use '0' and '1' for unaffected (controls) and affected (cases) sample 
         class, respectively. 
@@ -82,7 +81,7 @@
     }
     \item{org}{
         Organism under investigation in KEGG three letter code, 
-        e.g. \sQuote{hsa} for \sQuote{homo sapiens}.
+        e.g. \sQuote{hsa} for \sQuote{Homo sapiens}.
         See also \code{\link{kegg.species.code}} to convert your 
         organism of choice to KEGG three letter code.
     }
@@ -108,7 +107,7 @@
         See the man page of \code{\link{normalize}} for details.
     }
     \item{de.method}{
-        Determines which methdod is used for per-gene differential expression 
+        Determines which method is used for per-gene differential expression 
         analysis. See the man page of \code{\link{de.ana}} for details.
         Defaults to 'limma', i.e. differential expression is calculated based 
         on the typical limma \code{\link{lmFit}} procedure.    
@@ -133,7 +132,7 @@
         Statistical significance level. Defaults to 0.05.
     }
     \item{beta}{
-        Log2 fold change signifcance level. Defaults to 1 (2-fold).
+        Log2 fold change significance level. Defaults to 1 (2-fold).
     } 
     \item{comb}{
         Logical. Should results be combined if more then one enrichment method 
@@ -161,6 +160,10 @@
     \code{\link{nbea}} to perform network-based enrichment analysis;
     \code{\link{comb.ea.results}} to combine results from different methods;
     \code{\link{ea.browse}} for exploration of resulting gene sets    
+}
+\references{
+Limma User's guide:
+\url{http://www.bioconductor.org/packages/limma}
 }
 \author{
     Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>

@@ -10,9 +10,9 @@
     heatmap, p-value histogram and volcano plot (fold change vs. p-value).
 }
 \usage{
-    pdistr(p)
-    volcano(fc, p)
-    exprs.heatmap(expr, grp)
+    pdistr( p )
+    volcano( fc, p )
+    exprs.heatmap( expr, grp )
 }
 \arguments{
     \item{p}{

@@ -22,7 +22,7 @@
         Network-based enrichment analysis method.
         Currently, the following network-based enrichment analysis methods 
         are supported:
-        \sQuote{ggea}, \sQuote{nea}, \sQuote{spia}.
+        \sQuote{ggea}, \sQuote{nea}, \sQuote{spia}, \sQuote{pathnet}.
         See Details. Default is 'ggea'.
         This can also be the name of a user-defined function implementing 
         network-based enrichment. See Details. 
@@ -107,6 +107,9 @@
     'spia': signaling pathway impact analysis, implemented in Bioconductor's 
     SPIA package.
 
+    'pathnet': pathway analysis using network information, implemented in 
+    Bioconductor's PathNet package.
+
     It is also possible to use additional network-based enrichment methods.
     This requires to implement a function that takes 'eset', 'gs', 'grn', 
     'alpha', and 'perm' as arguments and returns a numeric matrix 'res.tbl' 
@@ -136,6 +139,7 @@
     \code{\link{comb.ea.results}} to combine results from different methods.
     \code{\link{spia}} for more information on signaling pathway impact analysis.
     \code{\link{nea}} for more information on network enrichment analysis.    
+    \code{\link{PathNet}} for more information on pathway analysis using network information.
 }
 \author{
     Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>

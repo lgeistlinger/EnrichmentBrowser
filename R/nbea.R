@@ -10,7 +10,7 @@
 #
 ############################################################
 
-nbea.methods <- function() c("ggea", "nea",  "spia")
+nbea.methods <- function() c("ggea", "nea",  "spia", "pathnet")
 
 nbea <- function(
     method=nbea.methods(), 
@@ -44,14 +44,11 @@ nbea <- function(
         #    stop(paste("\'method\' must be one out of {", 
         #        paste(nbea.methods(), collapse=", "), "}"))
         #else 
-        if(method == "nea") 
-            res.tbl <- nea.wrapper(eset=eset, 
-                gs=gs, grn=grn, alpha=alpha, perm=perm, ...)
-        else if(method == "spia") 
-            res.tbl <- spia.wrapper(eset=eset, 
-                gs=gs, alpha=alpha, perm=perm, ...) 
-        else res.tbl <- ggea(eset=eset, gs=gs, 
-                grn=grn, alpha=alpha, perm=perm, ...)      
+        if(method == "nea") res.tbl <- nea.wrapper(eset, gs, grn, alpha, perm)
+        else if(method == "spia") res.tbl <- spia.wrapper(eset, gs, alpha, perm)
+        else if(method == "pathnet") 
+            res.tbl <- pathnet.wrapper(eset, gs, grn, alpha, perm)
+        else res.tbl <- ggea(eset, gs, grn, alpha, perm, ...)      
     }
     else if(class(method) == "function") 
         res.tbl <- method(eset=eset, gs=gs, grn=grn, alpha=alpha, perm=perm, ...)
@@ -134,9 +131,84 @@ spia.wrapper <- function(eset, gs, alpha=0.05, perm=1000)
     return(res)
 }
 
+pathnet.wrapper <- function(eset, gs, grn, alpha=0.05, perm=1000)
+{
+    ADJP.COL <- config.ebrowser("ADJP.COL")
+    GSP.COL <- config.ebrowser("GSP.COL")
 
+    dir.evid <- -log(fData(eset)[,ADJP.COL], base=10)
+    dir.evid <- cbind(as.integer(featureNames(eset)), dir.evid)
+    colnames(dir.evid) <- c("Gene.ID", "Obs")
+    adjm <- grn2adjm(grn)
+    pwy.dat <- extr.pwy.dat(gs, grn)
+    
+    res <- PathNet::PathNet(
+            #Enrichment_Analysis = TRUE, 
+            #Contextual_Analysis = FALSE, 
+            DirectEvidence_info = dir.evid, 
+            Column_DirectEvidence = 2,
+            Adjacency = adjm, 
+            pathway = pwy.dat, 
+            n_perm = perm, 
+            threshold = alpha)#,
+            #use_sig_pathways  = FALSE)
 
+    res <- res$enrichment_results[, 
+        c("Name", "No_of_Genes", "Sig_Direct", "Sig_Combi", "p_PathNet")]
+    rownames(res) <- res[,1]
+    res <- res[-1]    
+    colnames(res) <- c("NR.GENES", "NR.SIG.GENES", "NR.SIG.COMB.GENES", GSP.COL)
+    res <- as.matrix(res)
+    return(res)
+}
 
+# pathnet helper: extract pathway data from gs and grn
+extr.pwy.dat <- function(gs, grn)
+{
+    pwy.dat <- sapply(names(gs), 
+        function(n)
+        {
+            genes <- gs[[n]] 
+            sgrn <- query.grn(gs=genes, grn=grn, index=FALSE)
+            if(nrow(sgrn))
+                dat <- cbind(sgrn[,1:2, drop=FALSE], rep(n, nrow(sgrn)))
+            else dat <- NULL
+        }
+    )
+    pwy.dat <- pwy.dat[!sapply(pwy.dat, is.null)]
+    pwy.datm <- matrix("", nrow=sum(sapply(pwy.dat, nrow)), ncol=3)
+    colnames(pwy.datm) <- c("id1", "id2", "title")
+    start <- 1
+    for(i in seq_len(length(pwy.dat)))
+    {
+        end <- start + nrow(pwy.dat[[i]]) - 1
+        pwy.datm[start:end,] <- pwy.dat[[i]]
+        start <- end + 1
+    }
+    pwy.dat <- data.frame(id1=as.integer(pwy.datm[,1]), 
+        id2=as.integer(pwy.datm[,2]), title=pwy.datm[,3])
+    return(pwy.dat)
+}
+
+# pathnet helper: converts 3-col grn to adjacency matrix
+grn2adjm <- function(grn)
+{
+    nodes <- sort(unique(as.vector(grn[,1:2])))
+    adjm <- sapply(nodes, 
+        function(n)
+        {
+            tgs <- grep(n, grn[,1])
+            if(length(tgs))
+            {
+                tgs <- grn[tgs,2]
+                adjv <- as.integer(nodes %in% tgs)
+            }
+            else adjv <- rep(0, length(nodes))
+            return(adjv) 
+        }) 
+    rownames(adjm) <- nodes
+    return(adjm)
+}
 
 
 

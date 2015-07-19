@@ -26,7 +26,7 @@
         Enrichment analysis method.
         Currently, the following enrichment analysis methods are supported:
         \sQuote{ora}, \sQuote{safe}, \sQuote{gsea}, \sQuote{samgs}, 
-        \sQuote{ggea}, \sQuote{spia}, and \sQuote{nea}.
+        \sQuote{ggea}, \sQuote{spia}, \sQuote{nea}, and \sQuote{pathnet}.
         See \code{\link{sbea}} and \code{\link{nbea}} for details.
     }
     \item{exprs}{

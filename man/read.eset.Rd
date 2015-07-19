@@ -100,7 +100,7 @@ properly defined with a 2-column fdat.file.
     Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
 }
 \seealso{
-    \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}}, 
+    \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}}
 }
 \examples{
     # reading the expression data from file

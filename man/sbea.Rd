@@ -14,7 +14,7 @@
 }
 \usage{
     sbea( method = sbea.methods(), eset, gs, alpha = 0.05, 
-            perm = 1000, padj.method = "BH", out.file = NULL, browse = FALSE )
+            perm = 1000, padj.method = "none", out.file = NULL, browse = FALSE )
 
     sbea.methods()
 }
@@ -51,8 +51,7 @@
         Method for adjusting nominal gene set p-values to multiple testing.
         For available methods see the man page of the 
         stats function \code{\link{p.adjust}}.
-        Use 'none' to leave the nominal gene set p-values uncorrected.
-        Defaults to 'BH'.     
+        Defaults to'none', i.e. leaves the nominal gene set p-values unadjusted.
     }
     \item{out.file}{
         Optional output file the gene set ranking will be written to.

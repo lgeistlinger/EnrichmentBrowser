@@ -16,12 +16,13 @@ sbea <- function(
     gs, 
     alpha=0.05, 
     perm=1000, 
-    padj.method="BH",
+    padj.method="none",
     out.file=NULL,
     browse=FALSE)
 {   
     GS.MIN.SIZE <- config.ebrowser("GS.MIN.SIZE")
     GS.MAX.SIZE <- config.ebrowser("GS.MAX.SIZE")
+    GSP.COL <- config.ebrowser("GSP.COL")
 
     # restrict eset and gs to intersecting genes
     igenes <- intersect(featureNames(eset), unique(unlist(gs)))
@@ -75,13 +76,18 @@ sbea <- function(
         gs.ps <- method(eset=eset, gs=gs, alpha=alpha, perm=perm)
     else stop(paste(method, "is not a valid method for sbea"))
 
-    gs.ps <- sort(gs.ps)
-    gs.ps <- p.adjust(gs.ps, method=padj.method)
-    gs.ps <- signif(gs.ps, digits=3)
-    res.tbl <- DataFrame(names(gs.ps), gs.ps)
-    colnames(res.tbl) <- sapply(c("GS.COL", "GSP.COL"), config.ebrowser)
-    rownames(res.tbl) <- NULL
+    res.tbl <- data.frame(signif(gs.ps, digits=3))
+    sorting.df <- res.tbl[,ncol(res.tbl)]
+    if(ncol(res.tbl) > 1) 
+        sorting.df <- cbind(sorting.df, -res.tbl[,rev(seq_len(ncol(res.tbl)-1))])
+    else colnames(res.tbl)[1] <- GSP.COL 
+    res.tbl <- res.tbl[do.call(order, as.data.frame(sorting.df)), , drop=FALSE]
 
+    res.tbl[,GSP.COL] <- p.adjust(res.tbl[,GSP.COL], method=padj.method)
+
+    res.tbl <- DataFrame(rownames(res.tbl), res.tbl)
+    colnames(res.tbl)[1] <- config.ebrowser("GS.COL")
+    rownames(res.tbl) <- NULL
        
     if(!is.null(out.file))
     {
@@ -93,7 +99,7 @@ sbea <- function(
     { 
         res <- list(
             method=method, res.tbl=res.tbl,
-            nr.sigs=sum(gs.ps < alpha),
+            nr.sigs=sum(res.tbl[,GSP.COL] < alpha),
             eset=eset, gs=gs, alpha=alpha)
         if(browse) ea.browse(res)
         else return(res)
@@ -161,9 +167,12 @@ ora.hyperg <- function(ps, cmat, alpha=0.05)
     # determine significance of overlap 
     # based on hypergeom. distribution
     gs.ps <- 1 - phyper(ovlp.sizes, gs.sizes, uni.sizes, nr.sigs)
-    names(gs.ps) <- colnames(cmat)
+    
+    res.tbl <- cbind(gs.sizes, ovlp.sizes, gs.ps)
+    colnames(res.tbl) <- c("NR.GENES", "NR.SIG.GENES", config.ebrowser("GSP.COL"))
+    rownames(res.tbl) <- colnames(cmat)
 
-    return(gs.ps)
+    return(res.tbl)
 }
 
 # 2 RESAMPL ORA
@@ -189,7 +198,7 @@ ora <- function(mode=2, eset, cmat, perm=1000, alpha=0.05)
 
     # execute hypergeom ORA if no permutations
     ps <- fData(eset)[, ADJP.COL]
-    if(perm == 0) gs.ps <- ora.hyperg(ps=ps, cmat=cmat, alpha=alpha)
+    if(perm == 0) res.tbl <- ora.hyperg(ps=ps, cmat=cmat, alpha=alpha)
     # else do resampling using functionality of SAFE
     else{
         # resampl ORA
@@ -203,9 +212,13 @@ ora <- function(mode=2, eset, cmat, perm=1000, alpha=0.05)
         # SAFE default                  
         else gs.ps <- safe::safe(X.mat=x, y.vec=y, 
             C.mat=cmat, Pi.mat=perm, alpha=alpha, error="none")
-        gs.ps <- gs.ps@global.pval
+        res.tbl <- cbind(
+            gs.ps@global.stat, 
+            gs.ps@global.stat / colSums(cmat), 
+            gs.ps@global.pval)
+        colnames(res.tbl) <- c("GLOB.STAT", "NGLOB.STAT", config.ebrowser("GSP.COL"))
     }
-    return(gs.ps)
+    return(res.tbl)
 }
 
 # 4 GSEA
@@ -241,8 +254,8 @@ gsea <- function(
     res <- GSEA(input.ds=as.data.frame(exprs(eset)), 
         input.cls=cls, gs.db=gs.gmt, output.directory=out.dir, nperm=perm)
       
-    gs.ps <- res[,5]
-    names(gs.ps) <- res[,1]
+    gs.ps <- as.matrix(res[,3:5])
+    rownames(gs.ps) <- res[,1]
 
     return(gs.ps)
 }

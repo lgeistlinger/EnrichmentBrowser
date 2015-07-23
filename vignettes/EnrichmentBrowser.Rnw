@@ -205,7 +205,7 @@ length and GC content effect requires to retrieve this information first,
 e.g.~from BioMart or specific \Bioconductor annotation packages.
 Both modes are implemented in the \Biocpkg{EDASeq} function \Rfunction{getGeneLengthAndGCContent}.
 
-<<lgc>>=
+<<lgc, eval=FALSE>>=
 ids <- head(featureNames(air.eset))
 lgc <- EDASeq::getGeneLengthAndGCContent(ids, org="hsa", mode="biomart") 
 lgc
@@ -468,10 +468,12 @@ nbea.methods()
 \item{GGEA: Gene Graph Enrichment Analysis 
     (evaluates consistency of known regulatory interactions with the observed
     expression data \cite{Geistlinger11})}
-\item{NEA: Network Enrichment Analysis 
-    (implemented in the \Biocpkg{neaGUI} package)}
 \item{SPIA: Signaling Pathway Impact Analysis 
     (implemented in the \Biocpkg{SPIA} package)}
+\item{NEA: Network Enrichment Analysis 
+    (implemented in the \Biocpkg{neaGUI} package)}
+\item{PathNet: Pathway Analysis using Network Information
+    (implemented in the \Biocpkg{PathNet} package)}
 \end{itemize}
 
 For demonstration we perform here GGEA using the gene regulatory network 

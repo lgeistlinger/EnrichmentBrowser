@@ -17,7 +17,7 @@
 #
 ###         
 ggea <- function(eset, gs, grn, 
-    alpha=0.05, beta=1, perm=1000, gs.edges=c("&", "|"), cons.thresh=-1)
+    alpha=0.05, beta=1, perm=1000, gs.edges=c("&", "|"), cons.thresh=0.2)
 {
     # restrict to relevant genes 
     # in the intersection of eset, gs, and grn
@@ -289,7 +289,7 @@ perm.edges.pval <- function(res.tbl, grn.cons, perm)
         {
             nr.rels <- as.integer(x["NR.RELS"])
             random.scores <- replicate(perm, sum(sample(grn.cons, nr.rels)))
-            p <- sum(random.scores > x["RAW.SCORE"]) / perm
+            p <- (sum(random.scores > x["RAW.SCORE"]) + 1) / (perm + 1)
             return(p)
         })
     return(ps)

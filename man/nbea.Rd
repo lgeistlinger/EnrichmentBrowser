@@ -13,7 +13,7 @@
 }
 \usage{
     nbea( method = nbea.methods(), eset, gs, grn, alpha = 0.05, 
-          perm = 1000, padj.method = "BH", out.file = NULL, browse = FALSE, ... )
+          perm = 1000, padj.method = "none", out.file = NULL, browse = FALSE, ... )
 
     nbea.methods()
 }
@@ -55,11 +55,10 @@
         gene set significance to avoid permutation testing. See Details.
     } 
     \item{padj.method}{
-        Method for adjusting nominal gene set p-valuesp-values to multiple testing.
+        Method for adjusting nominal gene set p-values to multiple testing.
         For available methods see the man of page the of the 
         stats function \code{\link{p.adjust}}.
-        Use 'none' to leave the nominal gene set p-values uncorrected.
-        Defaults to 'BH'. 
+        Defaults to 'none', i.e. leaves the nominal gene set p-values unadjusted.
     } 
     \item{out.file}{
         Optional output file the gene set ranking will be written to.
@@ -73,7 +72,11 @@
         This includes currently for GGEA:
         \itemize{
         \item beta: Log2 fold change significance level. Defaults to 1 (2-fold).
-        \item cons.thresh: consistency threshold. Defaults to -1.
+        \item cons.thresh: edge consistency threshold between -1 and 1. #
+            Defaults to 0.3, i.e. only edges of the GRN with consistency >= 0.3 
+            are included in the analysis. Evaluation on real datasets has shown
+            that this works best to distinguish relevant gene sets. 
+            Use consistency of -1 to include all edges.
         \item gs.edges: Decides which edges of the grn are considered for a
                 gene set under investigation. Should be one out of c('&', '|'), 
                 denoting logical AND and OR. respectively. Accordingly, this 

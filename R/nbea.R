@@ -19,7 +19,7 @@ nbea <- function(
     grn,
     alpha=0.05, 
     perm=1000, 
-    padj.method="BH",
+    padj.method="none",
     out.file=NULL,
     browse=FALSE, ...)
 {
@@ -48,16 +48,18 @@ nbea <- function(
         else if(method == "spia") res.tbl <- spia.wrapper(eset, gs, alpha, perm)
         else if(method == "pathnet") 
             res.tbl <- pathnet.wrapper(eset, gs, grn, alpha, perm)
-        else res.tbl <- ggea(eset, gs, grn, alpha, perm, ...)      
+        else res.tbl <- ggea(eset, gs, grn, alpha, perm=perm, ...)      
     }
     else if(class(method) == "function") 
         res.tbl <- method(eset=eset, gs=gs, grn=grn, alpha=alpha, perm=perm, ...)
     else stop(paste(method, "is not a valid method for nbea"))
 
     res.tbl <- data.frame(signif(res.tbl, digits=3))
-    sorting.df <- cbind(res.tbl[,ncol(res.tbl)], 
-        -res.tbl[,rev(seq_len(ncol(res.tbl)-1))])
-    res.tbl <- res.tbl[do.call(order, as.data.frame(sorting.df)),]
+    sorting.df <- res.tbl[,ncol(res.tbl)]
+    if(ncol(res.tbl) > 1)
+        sorting.df <- cbind(sorting.df, -res.tbl[,rev(seq_len(ncol(res.tbl)-1))])
+    else colnames(res.tbl)[1] <- GSP.COL
+    res.tbl <- res.tbl[do.call(order, as.data.frame(sorting.df)), , drop=FALSE]
     
     res.tbl[,GSP.COL] <- p.adjust(res.tbl[,GSP.COL], method=padj.method)
 
@@ -74,7 +76,7 @@ nbea <- function(
     else
     {
         res <- list(
-            res.tbl=res.tbl, method=method,
+            method=method, res.tbl=res.tbl, 
             nr.sigs=sum(res.tbl[,GSP.COL] < alpha),
             eset=eset, gs=gs, alpha=alpha)
 
@@ -88,7 +90,7 @@ nea.wrapper <- function(eset, gs, grn, alpha=0.05, perm=100)
     ADJP.COL <- config.ebrowser("ADJP.COL")
     GSP.COL <- config.ebrowser("GSP.COL")
 
-    if(perm > 100) perm <- 100
+    #if(perm > 100) perm <- 100
     ags <- featureNames(eset)[fData(eset)[,ADJP.COL] < alpha]
     grn <- unique(grn[,1:2])
     gs.genes <- unique(unlist(gs))
@@ -110,7 +112,7 @@ nea.wrapper <- function(eset, gs, grn, alpha=0.05, perm=100)
     return(res) 
 }
 
-spia.wrapper <- function(eset, gs, alpha=0.05, perm=1000)
+spia.wrapper <- function(eset, gs, alpha=0.05, perm=1000, beta=1)
 {
     FC.COL <- config.ebrowser("FC.COL")
     ADJP.COL <- config.ebrowser("ADJP.COL")

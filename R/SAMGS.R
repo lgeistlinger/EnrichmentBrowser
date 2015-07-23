@@ -168,7 +168,11 @@ SAMGS <- function(GS,
         t(sam.sumsquareT.permut) >= sam.sumsquareT.ok, 1, sum) / nbPermutations
     #GeneSets.qval <- qvalue::qvalue(GeneSets.pval)$qvalues
     #GeneSets.pval <- GeneSets.qval
-    names(GeneSets.pval) <- names(GS)
-    return(GeneSets.pval)
+    norm.stat <- sam.sumsquareT.ok / sapply(GS, length)
+    res.tbl <- cbind(sam.sumsquareT.ok, norm.stat, GeneSets.pval)
+    colnames(res.tbl) <- c("SUMSQ.STAT", "NSUMSQ.STAT", config.ebrowser("GSP.COL")) 
+    rownames(res.tbl) <- names(GS)
+    
+    return(res.tbl)
 }
 

@@ -1,6 +1,6 @@
 # perform de analysis
 de.ana <- function(expr, grp=NULL, blk=NULL, 
-    padj.method="BH", de.method=c("limma", "edgeR", "DESeq"))
+    de.method=c("limma", "edgeR", "DESeq"), padj.method="BH", stat.only=FALSE)
 {
     is.eset <- is(expr, "eSet")
     if(is.eset) 
@@ -52,7 +52,9 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
         y <- edgeR::estimateGLMTagwiseDisp(y,design)
         fit <- edgeR::glmFit(y,design)
         lrt <- edgeR::glmLRT(fit)
-        de.tbl <- lrt$table[, c("logFC", "PValue")] 
+        if(stat.only) return(lrt$table[,"LR"])
+        de.tbl <- lrt$table[, c("logFC", "PValue", "LR")] 
+        colnames(de.tbl)[3] <- "edgeR.STAT"
     }
     # DESEQ
     else if(de.method == "DESeq")
@@ -61,9 +63,11 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
         if(paired) colData$block <- block
         dds <- DESeq2::DESeqDataSetFromMatrix(
             countData=expr, colData=colData, design=f)
-        dds <- DESeq2::DESeq(dds)
-        res <- DESeq2::results(dds)
-        de.tbl <- cbind(res[,"log2FoldChange"], res[,"pvalue"])
+        dds <- suppressMessages(DESeq2::DESeq(dds))
+        res <- DESeq2::results(dds, pAdjustMethod="none")
+        if(stat.only) return(res[,"stat"])
+        de.tbl <- data.frame(res[,c("log2FoldChange","pvalue","stat")])
+        colnames(de.tbl)[3] <- "DESeq.STAT"
     }
     # LIMMA  
     else if(de.method == "limma")
@@ -80,12 +84,14 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
         fit <- limma::eBayes(fit)
         aT1 <- limma::topTable(fit, number=nrow(expr), coef="group1", 
             sort.by="none", adjust.method="none")
-        de.tbl <- aT1[, c("logFC", "P.Value")]
+        if(stat.only) return(aT1[,"t"])
+        de.tbl <- aT1[, c("logFC", "P.Value", "t")]
+        colnames(de.tbl)[3] <- "limma.STAT"
     }
     else stop(paste(de.method, "is not supported. See man page for supported de.method."))
 
     de.tbl[,2] <- p.adjust(de.tbl[,2], method=padj.method)
-    colnames(de.tbl) <- sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)
+    colnames(de.tbl)[1:2] <- sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)
 
     if(is.eset)
     {

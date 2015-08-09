@@ -13,6 +13,8 @@
 }
 \usage{
     comb.ea.results( res.list, 
+        rank.col=config.ebrowser("GSP.COL"),
+        decreasing=FALSE,
         rank.fun = c("comp.ranks", "rel.ranks", "abs.ranks"), 
         comb.fun = c("mean", "median", "min", "max", "sum") )
 }
@@ -20,6 +22,20 @@
     \item{res.list}{
         A list of enrichment analysis result lists (as returned 
         by the functions \code{\link{sbea}} and \code{\link{nbea}}).
+    }
+    \item{rank.col}{
+        Rank column.
+        Column name of the enrichment analysis result table that should 
+        be used to rank the gene sets.
+        Defaults to the gene set p-value column, i.e. gene sets are ranked
+        according to gene set significance. 
+    }
+    \item{decreasing}{
+        Logical.
+        Should smaller (decreasing=FALSE, default) or larger (decreasing=TRUE) 
+        values in rank.col be ranked better?
+        In case of gene set p-values the smaller the better, in case of gene set
+        scores the larger the better.
     }
     \item{rank.fun}{
         Ranking function.
@@ -50,7 +66,7 @@
         Used to combine gene set ranks across methods.
         Can be either one of the predefined functions (mean, median,
         max, min, sum) or a user-defined function.
-        Defaults to 'mean', i.e. the average rank across methods is
+        Defaults to 'sum', i.e. the rank sum across methods is
         computed.  
     } 
 }

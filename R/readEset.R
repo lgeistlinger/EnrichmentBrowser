@@ -56,8 +56,8 @@ read.eset <- function(exprs.file, pdat.file, fdat.file,
     # create the eset
     eset <- new("ExpressionSet", exprs=expr)
     if(!is.na(anno)) annotation(eset) <- anno
-    pData(eset) <- data.frame(pDat, stringsAsFactors=FALSE)
-    fData(eset) <- data.frame(fDat, stringsAsFactors=FALSE)
+    pData(eset) <- data.frame(pDat, stringsAsFactors=FALSE, row.names=sampleNames(eset))
+    fData(eset) <- data.frame(fDat, stringsAsFactors=FALSE, row.names=featureNames(eset))
     
     colnames(pData(eset))[1:2] <- sapply(c("SMPL.COL", "GRP.COL"), config.ebrowser)
     if(ncol.pdat > 2) colnames(pData(eset))[3] <- config.ebrowser("BLK.COL")

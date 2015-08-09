@@ -366,6 +366,8 @@ gs.ranking(sbea.res)
 % x <- mapIds(org.Hs.eg.db, keys=featureNames(air.eset), keytype="ENSEMBL", column="ENTREZID")
 % x <- x[!is.na(x)]
 % x <- x[!duplicated(x)]
+% air.eset <- air.eset[featureNames(air.eset) %in% names(x), ]
+% names(x) <- NULL
 % featureNames(air.eset) <- x
 % sbea.res <- sbea(method="ora", eset=all.eset, gs=hsa.gs, perm=0, alpha=0.05)
 

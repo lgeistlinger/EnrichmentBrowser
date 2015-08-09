@@ -286,7 +286,7 @@ make.hmap.html <- function(eset, img.file)
     p <- -log(fData(eset)[,config.ebrowser("ADJP.COL")], base=10)
     ind <- (fc >= 1) | (p >= 1)
     eset <- eset[ind,]
-    if(nrow(eset))
+    if(nrow(eset) > 1)
     {
         if(nrow(eset) > max.row)
         {

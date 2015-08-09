@@ -1,7 +1,81 @@
 # SAMGS : original method from Dinu et al - BMC Bioinformatics - 2007
+#
 # EDIT 17 Sep 2014, Ludwig Geistlinger: 
 #   adapting for use in EnrichmentBrowser package
+#
+# EDIT 02 Aug 2015, Ludwig Geistlinger
+#   adapting for use in SAFE framework (local and global stat)
 
+# SAMGS stat as global.stat for safe
+global.SAMGS <-
+function(C.mat, u, ...)
+{
+    return(function(u, C.mat2 = C.mat) return(as.numeric(t(C.mat2) %*% u^2)))
+}
+
+# SAM t-like stat as local.stat for safe
+local.t.SAM <- function (X.mat, y.vec, ...)
+{
+    rMV <- function(data)
+    {
+        m <- rowMeans(data)
+        dif <- data - m 
+        ssd <- rowSums(dif^2)
+        l <- list("means"=m,
+        "sumsquaredif" =ssd,
+        "vars" =ssd/(ncol(data)-1),
+        "centered rows"=dif)
+        return(l)
+    }
+
+    nb.Groups <- 100
+    mad.Const <- .64
+
+    stopifnot(length(unique(y.vec)) == 2)    
+    if (!all(sort(unique(y.vec)) == c(0,1))) {
+        warning("y.vec is not (0,1), thus Group 1 == ", y.vec[1])
+        y.vec <- (y.vec == y.vec[1]) * 1
+    }
+    return(function(data, vec = y.vec, ...) 
+    {
+        C1 <- which(vec==0)
+        C2 <- which(vec==1)
+        nb.Genes    <- nrow(data)
+        nb.Samples  <- ncol(data)
+        C1.size     <- length(C1)
+        C2.size     <- length(C2)
+
+        stat.C1            <- rMV(data[,C1])
+        stat.C2            <- rMV(data[,C2])
+        diffmean.C1C2      <- stat.C1$means - stat.C2$means
+        pooledSqrtVar.C1C2 <- sqrt( (1/C1.size+1/C2.size) * 
+            (stat.C1$sumsquaredif + stat.C2$sumsquaredif) / (nb.Samples-2) )
+    
+        tmp <- as.data.frame(cbind(pooledSqrtVar.C1C2,diffmean.C1C2))
+        tmp <- tmp[order(tmp[,1]),]
+        group.Size     <- as.integer(nb.Genes/nb.Groups)
+        percentiles    <- seq(0,1,.05)
+        nb.Percentiles <- length(percentiles)
+        s0.quantiles   <- quantile(pooledSqrtVar.C1C2,percentiles)
+
+        tt <- matrix(NA,nb.Groups,nb.Percentiles)
+        coeffvar <- as.data.frame(cbind(s0.quantiles,rep(NA,nb.Percentiles)))
+        group.grid <- seq_len(group.Size*nb.Groups)
+        denom <- tmp[group.grid,1]
+        for(j in seq_len(nb.Percentiles))
+        {
+            nom <- tmp[group.grid,2] + s0.quantiles[j]
+            x <- matrix(denom/nom, group.Size, nb.Groups)
+            tt[,j] <- apply(x, 2, mad, constant=mad.Const)
+            coeffvar[j,2] <- sd(tt[,j]) / mean(tt[,j])
+        }
+        s0 <-  min(s0.quantiles[coeffvar[,2] == min(coeffvar[,2])])
+        TlikeStat <-  diffmean.C1C2 / (pooledSqrtVar.C1C2+s0)            
+        return(TlikeStat)
+    })
+}
+
+## START: original code
 rowMeansVars <- function(DATA,margin=1)
 {
  if(margin==2) DATA <- t(DATA)

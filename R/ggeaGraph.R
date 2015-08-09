@@ -220,11 +220,11 @@ ggea.graph.legend <- function()
 
     ## consistent edges
     i = 6
-    text(0.8, i, "consistent (black)", pos=2, cex=1.2)
-    segments(1,i,1.45,i, lty=1)
-    text(1.4, i, ">", pos=4)
-    segments(1.5,i,1.95,i,lty=1)
-    text(1.915, i, "|", pos=4)
+    text(0.8, i, "consistent (red)", pos=2, cex=1.2)
+    segments(1,i,1.45,i, col="red", lty=1)
+    text(1.4, i, ">", pos=4, col="red")
+    segments(1.5,i,1.95,i, col="red", lty=1)
+    text(1.915, i, "|", pos=4, col="red")
 
     text(0.8, 7, "EDGE COLORS", pos=2, cex=1.5)
 

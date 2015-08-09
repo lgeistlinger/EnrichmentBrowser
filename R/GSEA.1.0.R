@@ -10,6 +10,81 @@
 
 # EDIT, 17 Sep 2014, Ludwig Geistlinger
 #   adapting for use in the EnrichmentBrowser package
+#
+# EDIT, 03 Aug 2015, Ludwig Geistlinger
+#   adapting for use in SAFE framework (local and global stat)
+
+# gsea signal2noise ratio as local.stat for safe
+local.s2n <- function (X.mat, y.vec, ...)
+{
+
+    stopifnot(length(unique(y.vec)) == 2)    
+    if (!all(sort(unique(y.vec)) == c(0,1))) {
+        warning("y.vec is not (0,1), thus Group 1 == ", y.vec[1])
+        y.vec <- (y.vec == y.vec[1]) * 1
+    }
+    return(function(data, vec = y.vec, ...) 
+    {
+
+        A <- data + 0.00000001
+
+        ind1 <- which(vec==0)
+        n1 <- length(ind1)    
+        M1 <- rowMeans(A[,ind1])
+        A2 <- A*A    
+        S1 <- rowMeans(A2[,ind1])   
+        S1 <- S1 - M1*M1    
+        S1 <- sqrt(abs((n1/(n1-1)) * S1))   
+            
+        ind2 <- which(vec==1)
+        n2 <- length(ind2)
+        M2 <- rowMeans(A[,ind2])
+        S2 <- rowMeans(A2[,ind2])   
+        S2 <- S2 - M2*M2    
+        S2 <- sqrt(abs((n2/(n2-1)) * S2))   
+        
+        # small sigma "fix" as used in GeneCluster
+        S2 <- ifelse(0.2*abs(M2) < S2, S2, 0.2*abs(M2))
+        S2 <- ifelse(S2 == 0, 0.2, S2) 
+        S1 <- ifelse(0.2*abs(M1) < S1, S1, 0.2*abs(M1))
+        S1 <- ifelse(S1 == 0, 0.2, S1) 
+        M1 <- M1 - M2
+        S1 <- S1 + S2
+        s2n <- M1/S1
+
+        return(s2n)
+    })
+}
+
+# TODO: gsea KS stat as global.stat for safe
+global.GSEA <-
+function (C.mat, u, args.global)
+{
+    m2 <- length(u)
+    size2 <- (rep(1, m2) %*% C.mat)[1, ]
+    if (!args.global$one.sided) {
+        return(function(u, C.mat2 = as.matrix(C.mat), m = m2,
+            g.vec = size2) {
+            G <- rep(1, m) %*% t(g.vec)
+            ranked.Cmatrix <- C.mat2[order(-abs(u)), ] * sqrt((m -
+                G)/G) - (1 - C.mat2[order(-abs(u)), ]) * sqrt(G/(m -
+                G))
+            return(apply(apply(ranked.Cmatrix, 2, cumsum), 2,
+                max))
+        })
+    }
+    else {
+        return(function(u, C.mat2 = as.matrix(C.mat), m = m2,
+            g.vec = size2) {
+            G <- rep(1, m) %*% t(g.vec)
+            ranked.Cmatrix <- C.mat2[order(-u), ] * sqrt((m -
+                G)/G) - (1 - C.mat2[order(-u), ]) * sqrt(G/(m -
+                G))
+            return(apply(apply(ranked.Cmatrix, 2, cumsum), 2,
+                max))
+        })
+    }
+}
 
 # G S E A -- Gene Set Enrichment Analysis
 # This is a methodology for the analysis of global molecular profiles called 

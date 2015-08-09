@@ -10,7 +10,7 @@
 }
 \usage{
     de.ana( expr, grp = NULL, blk = NULL, 
-        padj.method = "BH", de.method = c("limma", "edgeR", "DESeq") )
+        de.method = c("limma", "edgeR", "DESeq"), padj.method = "BH", stat.only=FALSE )
 }
 \arguments{
     \item{expr}{
@@ -35,18 +35,24 @@
         This can also be defined via a column named 'BLOCK' 
         in the pData slot if 'expr' is a (Seq)ExpressionSet.
     }
-    \item{padj.method}{
-        Method for adjusting p-values to multiple testing.
-        For available methods see the man of page the of the 
-        stats function \code{\link{p.adjust}}.
-        Defaults to 'BH'.
-    }
     \item{de.method}{
         Differential expression method.
         Use 'limma' for microarray and RNA-seq data. 
         Alternatively, differential expression for RNA-seq data can be also
         calculated using edgeR ('edgeR') or DESeq2 ('DESeq').
         Defaults to 'limma'.
+    }
+    \item{padj.method}{
+        Method for adjusting p-values to multiple testing.
+        For available methods see the man of page the of the 
+        stats function \code{\link{p.adjust}}.
+        Defaults to 'BH'.
+    }
+    \item{stat.only}{
+        Logical. Should only the test statistic be returned?
+        This is mainly for internal use, in order to carry out
+        permutation tests on the DE statistic for each gene.
+        Defaults to FALSE.
     }
 }
 \value{ 

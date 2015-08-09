@@ -34,6 +34,9 @@ sbea <- function(
     if(is.character(method))
     { 
         method <- match.arg(method)
+        data.type <- experimentData(eset)@other$dataType
+        if(is.null(data.type)) data.type <- auto.detect.data.type(exprs(eset))
+ 
         #if(length(find(method))) gs.ps <- do.call(method, 
         #    list(eset=eset, gs=gs, alpha=alpha, perm=perm))
         #else 
@@ -42,21 +45,20 @@ sbea <- function(
         #        paste(sbea.methods(), collapse=", "), "}"))
         # else 
         # gsea
-        if(method == "gsea") 
-            gs.ps <- gsea(eset, gs, perm=perm) 
+        if(data.type != "rseq" & method == "gsea") gs.ps <- gsea(eset, gs, perm)
         else
         {
-            cmat <- gmt.2.cmat(gs, featureNames(eset), 
-                        min.size=GS.MIN.SIZE, max.size=GS.MAX.SIZE)
+            cmat <- gmt.2.cmat(gs, featureNames(eset), GS.MIN.SIZE, GS.MAX.SIZE)
             if(nrow(cmat) < nrow(eset)) eset <- eset[rownames(cmat),] 
-            
-            # ora
-            if(method == "ora") 
-                gs.ps <- ora(mode=1, eset=eset, 
-                    cmat=cmat, perm=perm, alpha=alpha)
-            # safe
-            else if(method == "safe") 
-                gs.ps <- ora(eset=eset, cmat=cmat, perm=perm, alpha=alpha) 
+           
+            # hypergeom. ora
+            if(method == "ora" & perm==0) gs.ps <- ora(1, eset, cmat, perm, alpha)
+            # rseq 
+            else if(data.type == "rseq") gs.ps <- rseq.sbea(method, eset, cmat, perm, alpha)
+            # resampl ora
+            else if(method == "ora") gs.ps <- ora(1, eset, cmat, perm, alpha)
+            #safe
+            else if(method == "safe") gs.ps <- ora(2, eset, cmat, perm, alpha)
             # samgs
             else if(method == "samgs")
             {
@@ -144,6 +146,62 @@ gmt.2.cmat <- function(gs, features, min.size=0, max.size=Inf)
 # ENRICHMENT METHODS
 #
 ###
+# de.ana as local.stat for safe
+local.de.ana <- function (X.mat, y.vec, args.local)
+{
+    return(function(data, ...) 
+    {
+        stat <- de.ana(expr=data, grp=y.vec,
+            blk=args.local$blk,
+            de.method=args.local$de.method, 
+            stat.only=TRUE)
+        return(stat)
+    })
+}
+
+
+rseq.sbea <- function(method, eset, cmat, perm, alpha)
+{
+    assign("local.de.ana", local.de.ana, envir=.GlobalEnv)
+    de.method <- grep(".STAT$", colnames(fData(eset)), value=TRUE)
+    de.method <- sub(".STAT$",  "", de.method)
+    
+    blk <- NULL
+    blk.col <- config.ebrowser("BLK.COL") 
+    if(blk.col %in% colnames(pData(eset))) blk <- pData(eset)[,blk.col]
+
+    args.local <- list(de.method=de.method, blk=blk)
+
+    args.global <- list(one.sided=FALSE)
+    if(method == "ora")
+    {
+        global <- "Fisher"
+        nr.sigs <- sum(fData(eset)[, config.ebrowser("ADJP.COL")] < alpha)
+        args.global <- list(one.sided=FALSE, genelist.length=nr.sigs)
+    }
+    else if(method == "safe") global <- "Wilcoxon" 
+    else if(method == "gsea") global <- "Kolmogorov"
+    else if(method == "samgs")
+    {
+        global <- "SAMGS"
+        assign("global.SAMGS", global.SAMGS, envir=.GlobalEnv)
+    }
+
+    y <- pData(eset)[,config.ebrowser("GRP.COL")]
+    gs.ps <- safe::safe(X.mat=exprs(eset), y.vec=y, C.mat=cmat,         
+        local="de.ana", args.local=args.local,
+        global=global, args.global=args.global, 
+        Pi.mat=perm, alpha=alpha, error="none")
+ 
+    res.tbl <- cbind(
+            gs.ps@global.stat, 
+            gs.ps@global.stat / colSums(cmat), 
+            gs.ps@global.pval)
+    
+    colnames(res.tbl) <- c("GLOB.STAT", "NGLOB.STAT", config.ebrowser("GSP.COL"))
+    
+    return(res.tbl)
+}
 
 # 1 HYPERGEOM ORA
 ora.hyperg <- function(ps, cmat, alpha=0.05)
@@ -194,7 +252,7 @@ ora <- function(mode=2, eset, cmat, perm=1000, alpha=0.05)
     ADJP.COL <- config.ebrowser("ADJP.COL")
 
     x <- exprs(eset)
-    y <- as.integer(pData(eset)[, GRP.COL]) 
+    y <- pData(eset)[, GRP.COL]
 
     # execute hypergeom ORA if no permutations
     ps <- fData(eset)[, ADJP.COL]
@@ -259,4 +317,6 @@ gsea <- function(
 
     return(gs.ps)
 }
+
+
 

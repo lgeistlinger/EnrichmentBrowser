@@ -45,7 +45,7 @@ create.index <- function(meth, comb)
             publish(Link("Full Ranking", paste0(m, ".txt")), indexPage) 
         })
     index <- finish(indexPage)
-    browseURL(index)
+    if (interactive()) browseURL(index)
 }
 
 
@@ -157,7 +157,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
         #colClasses = c(rep("sort-string-robust", 3),
         #    rep("sort-num-robust", ncol(gt)-3 )))
     rep <- finish(htmlRep)
-    if(!html.only) browseURL(rep)
+    if(!html.only) if (interactive()) browseURL(rep)
 }
 
 make.view <- function(html1, html2, gene.html.pos=c("bottom", "topright"))

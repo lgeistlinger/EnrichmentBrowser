@@ -1,3 +1,8 @@
+2015-08-28:
+EnrichmentBrowser 1.99.5:
+    - adaption of specific local statistics for RNA-seq data 
+        for sample-permutation methods GSEA, SAFE, and SAMGS
+
 2015-07-19:
 EnrichmentBrowser 1.99.5:
     - Including PathNet among nbea methods

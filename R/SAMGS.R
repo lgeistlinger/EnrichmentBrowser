@@ -10,7 +10,12 @@
 global.SAMGS <-
 function(C.mat, u, ...)
 {
-    return(function(u, C.mat2 = C.mat) return(as.numeric(t(C.mat2) %*% u^2)))
+    return(
+        function(u, C.mat2 = C.mat) 
+        {
+            return(as.numeric(t(SparseM::as.matrix(C.mat2)) %*% u^2))
+        }
+    )
 }
 
 # SAM t-like stat as local.stat for safe

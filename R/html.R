@@ -79,9 +79,17 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     gs.title <- sapply(gsc, description)
     nr.genes <- sapply(gsc, function(g) length(geneIds(g)))
 
-    cnames <- c(colnames(res)[1], "TITLE", "NR.GENES", colnames(res)[2:ncol(res)])
-    res <- DataFrame(res[,1], gs.title, nr.genes, res[,2:ncol(res)])
-    colnames(res) <- cnames
+    cnames <- c(colnames(res)[1], "TITLE")
+    resn <- DataFrame(res[,1], gs.title)
+    if(!("NR.GENES" %in% colnames(res)))
+    {
+        cnames <- c(cnames, "NR.GENES")
+        resn <- DataFrame(resn, nr.genes)
+    }
+    cnames <- c(cnames, colnames(res)[2:ncol(res)])
+    resn <- DataFrame(resn, res[,2:ncol(res)]) 
+    colnames(resn) <- cnames
+    res <- resn
 
     # make gene pages
     # TODO: ensure in sbea and nbea that we are running only
@@ -95,7 +103,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     message("Creating gene report ...")
     eset <- eset[colnames(im),]
     fDat <- fData(eset)[,sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)]
-    gt <- suppressMessages(gene.table(im, org, fcs=fDat[,1]))
+    gt <- suppressMessages(gene.table(im, org, fcs=fDat))
     gn.cols <- sapply(c("SYM.COL", "GN.COL"), config.ebrowser)
     fData(eset)[,gn.cols] <- gt[,gn.cols] 
     gt.reps <- sapply(gsc, function(s) gene.report(s, gt, out.dir)) 
@@ -508,8 +516,8 @@ gene.report <- function(s, gt, out.dir)
 {
     htmlRep <- HTMLReport(basePath=out.dir, reportDirectory="reports",
         shortName=setName(s), title=paste(setName(s), "Gene Report", sep=": "))
-    publish(gt[geneIds(s),], htmlRep, .modifyDF=list(ncbi.gene.link, pubmed.link),
-        colClasses = c(rep("sort-string-robust", 3), rep("sort-num-robust", ncol(gt)-3 )))
+    publish(gt[geneIds(s),], htmlRep, .modifyDF=list(ncbi.gene.link))#, pubmed.link),
+        #colClasses = c(rep("sort-string-robust", 3), rep("sort-num-robust", ncol(gt)-3 )))
     rep <- finish(htmlRep)
     return(rep)
 }
@@ -544,8 +552,9 @@ gene.table <- function(im, org, fcs=NULL, grn=NULL)#, context="")
     # (2) fold change
     if(!is.null(fcs))
     {
+        fcs[,1] <- round(fcs[,1], digits=2)
+        fcs[,2] <- signif(fcs[,2], digits=2)
         gt <- cbind(gt, fcs) 
-        colnames(gt)[ncol(gt)] <- "FC"
     }
 
     # (3) interactions
@@ -559,24 +568,24 @@ gene.table <- function(im, org, fcs=NULL, grn=NULL)#, context="")
     }
 
     # (4) nr.sets
-    gene.occ.freq <- colSums(im)
-    gt <- cbind(gt, gene.occ.freq)
-    colnames(gt)[ncol(gt)] <- "SETS"
-
-    # (5) pubmed
-    pmids <- mapIds(org.pkg, keys=colnames(im), 
-        column="PMID", keytype=EZ.COL, multiVals="list")
-
-    # context search ?
-    # if(context != "") pmids <- search.abstracts(pmids, context=context)
-  
-    nr.articles <- sapply(pmids, length)
-    pubmed.urls <- sapply(pmids, function(p) paste0(
-        config.ebrowser("PUBMED.URL"), paste(p, collapse=",")), USE.NAMES=FALSE)
-    articles <- paste(nr.articles, pubmed.urls)
-
-    gt <- cbind(gt, articles)
-    colnames(gt)[ncol(gt)] <- config.ebrowser("PMID.COL")
+#    gene.occ.freq <- colSums(im)
+#    gt <- cbind(gt, gene.occ.freq)
+#    colnames(gt)[ncol(gt)] <- "SETS"
+#
+#    # (5) pubmed
+#    pmids <- mapIds(org.pkg, keys=colnames(im), 
+#        column="PMID", keytype=EZ.COL, multiVals="list")
+#
+#    # context search ?
+#    # if(context != "") pmids <- search.abstracts(pmids, context=context)
+#  
+#    nr.articles <- sapply(pmids, length)
+#    pubmed.urls <- sapply(pmids, function(p) paste0(
+#        config.ebrowser("PUBMED.URL"), paste(p, collapse=",")), USE.NAMES=FALSE)
+#    articles <- paste(nr.articles, pubmed.urls)
+#
+#    gt <- cbind(gt, articles)
+#    colnames(gt)[ncol(gt)] <- config.ebrowser("PMID.COL")
     return(gt)
 }
 

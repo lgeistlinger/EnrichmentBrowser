@@ -97,16 +97,16 @@ anno.p2g <- function(eset)
         kegg.uses.entrez <- sub(org.start, "", first.keggid) == first.nna
 
         # otherwise convert from EntrezID to KEGGID
-        if(!kegg.uses.entrez)
-        {
-            message("KEGG does not use EntrezIDs for your organism")
-            message("Downloading mapping Entrez -> KEGG & converting accordingly")
-            map.e2k <- keggConv(org, "ncbi-geneid")
-            names(map.e2k) <- sub("^ncbi-geneid:", "", names(map.e2k))
-            map.e2k <- sub(org.start, "", map.e2k)
-            p2g.map <- map.e2k[p2g.map]
-            names(p2g.map) <- probes
-        }     
+#        if(!kegg.uses.entrez)
+#        {
+#            message("KEGG does not use EntrezIDs for your organism")
+#            message("Downloading mapping Entrez -> KEGG & converting accordingly")
+#            map.e2k <- keggConv(org, "ncbi-geneid")
+#            names(map.e2k) <- sub("^ncbi-geneid:", "", names(map.e2k))
+#            map.e2k <- sub(org.start, "", map.e2k)
+#            p2g.map <- map.e2k[p2g.map]
+#            names(p2g.map) <- probes
+#        }     
     }
     else
     {

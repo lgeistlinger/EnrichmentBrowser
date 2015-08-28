@@ -3,7 +3,7 @@
 # author: Ludwig Geistlinger
 # date: 8 Feb 2011
 #
-# visualization utility for GRNs and Expression Data
+# visualization utility for GRNs and expression data
 #
 ############################################################
 
@@ -208,7 +208,7 @@ ggea.graph.legend <- function()
     text(0.8, 3, "EDGE TYPES", pos=2, cex=1.5)  
 
     ## EDGE COLORS
-    text(1.5, 4, "(the thicker an edge appears, the more significant it is)")
+    text(1.5, 4, "(the clearer the color appears, the more significant it is)")
 
     ## inconsistent edges
     i = 5

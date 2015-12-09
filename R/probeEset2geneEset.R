@@ -50,7 +50,7 @@ probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
                         stop(paste("use.mean=FALSE, but did not find differential", 
                             "expression in fData. Run de.ana first."))
                     curr.exprs <- curr.exprs[
-                        which.max(fData(eset)[curr.probes, FC.COL]),]
+                        which.max(abs(fData(eset)[curr.probes, FC.COL])),]
                 }
             }
             return(curr.exprs)

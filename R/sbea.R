@@ -312,7 +312,7 @@ gsea <- function(
     res <- GSEA(input.ds=as.data.frame(exprs(eset)), 
         input.cls=cls, gs.db=gs.gmt, output.directory=out.dir, nperm=perm)
       
-    gs.ps <- as.matrix(res[,3:5])
+    gs.ps <- S4Vectors::as.matrix(res[,3:5])
     rownames(gs.ps) <- res[,1]
 
     return(gs.ps)

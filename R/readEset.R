@@ -52,6 +52,7 @@ read.eset <- function(exprs.file, pdat.file, fdat.file,
 
     # deal with NAs
     expr <- na.treat(expr, NA.method) 
+    if(NA.method=="rm") fDat <- fDat[fDat[,1] %in% rownames(expr),]
    
     # create the eset
     eset <- new("ExpressionSet", exprs=expr)
@@ -82,17 +83,21 @@ na.treat <- function(expr, NA.method=c("mean", "rm", "keep"))
     if(length(na.indr) == 0) return(expr)
     if(NA.method == "rm") return(expr[-na.indr,])
 
+    data.type <- auto.detect.data.type(expr)
+
     for(i in seq_along(na.indr))
     {
         cexpr <- expr[na.indr[i],]
         na.indc <- is.na(cexpr)
-        cexpr[na.indc] <- mean(cexpr[!na.indc])
+        m <- mean(cexpr[!na.indc])
+        if(data.type == "rseq") m <- round(m)
+        cexpr[na.indc] <- m         
         expr[na.indr[i],] <- cexpr
     }    
     return(expr)
 }
 
 auto.detect.data.type <- function(expr) 
-    ifelse(all(is.wholenumber(expr)), "rseq", "ma")
+    ifelse(all(is.wholenumber(expr), na.rm=TRUE), "rseq", "ma")
     
 is.wholenumber <- function(x, tol=.Machine$double.eps^0.5) abs(x-round(x)) < tol

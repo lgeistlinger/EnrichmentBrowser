@@ -1,4 +1,3 @@
-# perform de analysis
 de.ana <- function(expr, grp=NULL, blk=NULL, 
     de.method=c("limma", "edgeR", "DESeq"), padj.method="BH", stat.only=FALSE)
 {

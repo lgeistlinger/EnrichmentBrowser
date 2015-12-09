@@ -33,8 +33,11 @@ normalize <- function(eset,
     if(data.type == "rseq")
     {
         # remove genes with low read count
-        message("Removing genes with low read count ...")
-        eset <- eset[rowMeans(exprs(eset)) > 10,]
+	is.too.low <- rowSums(exprs(eset)) < ncol(eset)
+	nr.too.low <- sum(is.too.low)
+        if(nr.too.low > 0) message(paste("Removing",
+        	nr.too.low, "genes with low read count ..."))
+	eset <- eset[!is.too.low,]
  
         if(norm.method == "quantile") norm.method <- "full"
         
@@ -53,7 +56,7 @@ normalize <- function(eset,
             if(length(gc.col) == 0)
             {
                 org <- annotation(eset)
-                if(is.na(org)) stop(paste("Please provide organism under", 
+                if(!length(org)) stop(paste("Please provide organism under", 
                     "investigation in the annotation slot. See man page for details."))
                 MODEL.ORGS <- c("cel", "dme", "hsa", "mmu", "rno",  "sce")
                 mode <- ifelse(org %in% MODEL.ORGS, "org.db", "biomart") 

@@ -157,9 +157,8 @@ pathnet.wrapper <- function(eset, gs, grn, alpha=0.05, perm=1000)
 
     res <- res$enrichment_results[, 
         c("Name", "No_of_Genes", "Sig_Direct", "Sig_Combi", "p_PathNet")]
-    res[,1] <- sapply(res[,1], 
+    rownames(res) <- sapply(as.vector(res[,1]), 
         function(s) grep(unlist(strsplit(s,"_"))[1], names(gs), value=TRUE))
-    rownames(res) <- res[,1]
     res <- res[-1]    
     colnames(res) <- c("NR.GENES", "NR.SIG.GENES", "NR.SIG.COMB.GENES", GSP.COL)
     res <- as.matrix(res)

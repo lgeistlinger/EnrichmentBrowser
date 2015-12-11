@@ -25,7 +25,7 @@ BiocStyle::latex()
 The \Biocpkg{EnrichmentBrowser} package implements essential functionality for
 the enrichment analysis of gene expression data.
 The analysis combines the advantages of set-based and network-based enrichment 
-analysis in order to derive high-confidence gene sets and biological pathways 
+analysis to derive high-confidence gene sets and biological pathways 
 that are differentially regulated in the expression data under investigation.
 Besides, the package facilitates the visualization and exploration of such sets 
 and pathways.\\
@@ -34,7 +34,7 @@ analysis workflow including:
 
 \begin{enumerate}
 \item Preparing the data
-\item Preprocess the data
+\item Preprocessing of the data
 \item Differential expression (DE) analysis
 \item Defining gene sets of interest
 \item Executing individual enrichment methods
@@ -43,12 +43,11 @@ analysis workflow including:
 \end{enumerate}
 
 All of these steps are modular, i.e.~each step can be executed individually and 
-fine-tuned with several parameters. In case you are interested only in a 
-particular step, you are advised to directly jump to the respective section 
-(Let's say, for example, you are at the point where you have differential 
-expression calculated for each gene. Now you are interested whether certain 
-gene functions are enriched for differential regulation. Section 
-\emph{Set-based enrichment analysis} would then be the one you should go for). 
+fine-tuned with several parameters. In case you are interested in a 
+particular step, you can directly move on to the respective section.
+For example, if you have differential expression already calculated for each gene, 
+and your are now interested whether certain gene functions are enriched for differential expression, 
+section \emph{Set-based enrichment analysis} would be the one you should go for. 
 The last section \emph{Putting it all together} also demonstrates how to wrap 
 the whole workflow into a single function, making use of suitably chosen 
 defaults.
@@ -119,10 +118,10 @@ as the average of the corresponding probe values.
 all.eset <- probe.2.gene.eset(all.eset)
 head(featureNames(all.eset))
 @
-(Note, that the mapping from probe to gene is done automatically as long as 
+Note, that the mapping from probe to gene is done automatically as long as 
 as you have the corresponding annotation package, here the 
 \Biocpkg{hgu95av2.db} package, installed. Otherwise, the mapping can be 
-defined in the \Rfunction{fData} slot.)
+defined in the \Rfunction{fData} slot.
 <<show-probe2gene>>=
 head(fData(eset))
 @
@@ -138,8 +137,9 @@ library(airway)
 data(airway)
 @
 
-and create the ExpressionSet (for further analysis, we remove genes with very 
-low read counts and measurements that are not mapped to an ENSEMBL gene ID).
+and create the  \Rclass{ExpressionSet}. 
+For further analysis, we remove genes with very low read counts and 
+measurements that are not mapped to an ENSEMBL gene ID.
 
 <<preproc-airway>>=
 expr <- assays(airway)[[1]]
@@ -158,13 +158,13 @@ Normalization of high-throughput expression data is essential to make results
 within and between experiments comparable.
 Microarray (intensity measurements) and RNA-seq (read counts) data
 exhibit typically distinct features that need to be normalized for.
-The function \Rfunction{normalize} wraps commonly used funtionality from 
+The function \Rfunction{normalize} wraps commonly used functionality from 
 \Biocpkg{limma} for microarray normalization and from \Biocpkg{EDASeq} for 
 RNA-seq normalization.
 For specific needs that deviate from these standard normalizations, the user
 should always refer to more specific functions/packages.\\
 Microarray data is expected to be single-channel. For two-color arrays, it is 
-expected here that normalization within arrays has been already carried out, 
+expected that normalization within arrays has been already carried out, 
 e.g.~using \Rfunction{normalizeWithinArrays} from \Biocpkg{limma}.
 
 A default quantile normalization based on
@@ -184,24 +184,24 @@ boxplot(after.norm)
 @
 \end{center}
 
-Note that this is done here for demonstration purpose only, as the ALL data has 
-been already rma-normalized from the authors of the ALL dataset.\\  
+Note that this is only done for demonstration, as the ALL data has 
+been already RMA-normalized by the authors of the ALL dataset.\\  
 RNA-seq data is expected to be raw read counts. 
-Please note that normalization for downstream DE analyis, e.g.~with 
+Note that normalization for downstream DE analysis, e.g.~with 
 \Biocpkg{edgeR} and \Biocpkg{DESeq2}, is not ultimately necessary 
 (and in some cases even discouraged) as many of these tools implement specific 
 normalization approaches themselves.
 See the vignette of \Biocpkg{EDASeq}, \Biocpkg{edgeR}, and \Biocpkg{DESeq2} for
 details.
 In case normalization is desired, between-lane normalization to adjust for 
-sequencing depth, can be carried out as demonstrated above for microarray data.
+sequencing depth can be carried out as demonstrated for microarray data.
 
 <<norm-rseq>>=
 norm.air <- normalize(air.eset, norm.method="quantile")
 @
 
-Within-lane normalization to adjust for gene specific effects such as gene 
-length and GC content effect requires to retrieve this information first, 
+Within-lane normalization to adjust for gene-specific effects such as gene 
+length and GC-content requires to retrieve this information first, 
 e.g.~from BioMart or specific \Bioconductor annotation packages.
 Both modes are implemented in the \Biocpkg{EDASeq} function \Rfunction{getGeneLengthAndGCContent}.
 
@@ -211,8 +211,7 @@ lgc <- EDASeq::getGeneLengthAndGCContent(ids, org="hsa", mode="biomart")
 lgc
 @
 
-Using precomputed information for all genes, normalization within and between 
-lanes can then be carried out via
+Using precomputed information, normalization within and between lanes can be carried out via
 
 <<norm2-rseq>>=
 lgc.file <- file.path(data.dir, "air_lgc.tab")
@@ -228,7 +227,7 @@ Differential expression analysis between sample groups can be performed using
 the function \Rfunction{de.ana}.
 As a prerequisite, the phenotype data should contain for each patient a binary 
 group assignment.
-For the ALL dataset this indicates whether the BCR-ABL gene fusion is 
+For the ALL dataset, this indicates whether the BCR-ABL gene fusion is 
 present (1) or not (0). 
 
 <<sample-groups-ALL>>=
@@ -236,7 +235,7 @@ pData(all.eset)$GROUP <- ifelse(all.eset$mol.biol == "BCR/ABL", 1, 0)
 table(pData(all.eset)$GROUP)
 @
 
-For the airway dataset this indicates whether the cell lines have been treated 
+For the airway dataset, this indicates whether the cell lines have been treated 
 with dexamethasone (1) or not (0).
 
 <<sample-groups-airway>>=
@@ -246,7 +245,7 @@ table(pData(air.eset)$GROUP)
 
 Paired samples, or in general sample batches/blocks, can be defined via a 
 \Robject{BLOCK} column in the \Rfunction{pData} slot.
-For the airway dataset the sample blocks correspond to the four different cell 
+For the airway dataset, the sample blocks correspond to the four different cell 
 lines.
 
 <<sample-blocks>>=
@@ -291,7 +290,7 @@ For RNA-seq data, the \Rfunction{de.ana} function carries out a differential
 expression analysis between the two groups either based on functionality from
 \Biocpkg{limma} (that includes the \Rfunction{voom} transformation), or 
 alternatively, from the popular \Biocpkg{edgeR} or \Biocpkg{DESeq2} package. 
-We use here the analysis based on \Biocpkg{edgeR} for demonstration.
+Here, we use the analysis based on \Biocpkg{edgeR} for demonstration.
 
 <<DE-ana-airway>>=
 air.eset <- de.ana(air.eset, de.method="edgeR")
@@ -340,10 +339,10 @@ sbea.methods()
 
 \begin{itemize}
 \item{ORA: Overrepresentation Analysis (simple and frequently used test based 
-        on the hypergeometric distribution \cite{Goeman07} for a critical 
+        on the hypergeometric distribution, see \cite{Goeman07} for a critical 
         review)}
 \item{SAFE: Significance Analysis of Function and Expression 
-        (generalization of ORA, includes other test statistics, e.g.~Wilcoxon's
+        (resampling version of ORA, implements additional test statistics, e.g.~Wilcoxon's
         rank sum, and allows to estimate the significance of gene sets by 
         sample permutation; implemented in the \Biocpkg{safe} package)} 
 \item{GSEA: Gene Set Enrichment Analysis (frequently used and widely accepted, 
@@ -355,7 +354,7 @@ sbea.methods()
         \cite{Dinu07})}
 \end{itemize}
 
-For demonstration we perform here a basic ORA choosing a significance level 
+For demonstration, we perform a basic ORA choosing a significance level 
 $\alpha$ of 0.05.
 <<sbea>>=
 sbea.res <- sbea(method="ora", eset=all.eset, gs=hsa.gs, perm=0, alpha=0.05)
@@ -369,19 +368,18 @@ gs.ranking(sbea.res)
 % air.eset <- air.eset[featureNames(air.eset) %in% names(x), ]
 % names(x) <- NULL
 % featureNames(air.eset) <- x
-% sbea.res <- sbea(method="ora", eset=all.eset, gs=hsa.gs, perm=0, alpha=0.05)
+% sbea.res <- sbea(method="ora", eset=air.eset, gs=hsa.gs, perm=0, alpha=0.05)
 
 The result of every enrichment analysis is a ranking of gene sets by the 
 corresponding $p$-value. The \Rfunction{gs.ranking} function displays only those
 gene sets satisfying the chosen significance level $\alpha$.\\
 While such a ranked list is the standard output of existing enrichment tools, 
-the functionality of the \Biocpkg{EnrichmentBrowser} package allows visualization 
+the \Biocpkg{EnrichmentBrowser} package provides visualization 
 and interactive exploration of resulting gene sets far beyond that point.
 Using the \Rfunction{ea.browse} function creates a HTML summary from which each
-gene set can be inspected in more detail (this builds on functionality from the
+gene set can be inspected in detail (this builds on functionality from the
 \Biocpkg{ReportingTools} package). 
-The various options are described in
-Figure \ref{fig:oraRes}. 
+The various options are described in Figure \ref{fig:oraRes}. 
 
 <<ea-browse, eval=FALSE>>=
 ea.browse(sbea.res)
@@ -392,22 +390,22 @@ ea.browse(sbea.res)
 \includegraphics[width=14cm, height=8.75cm]{ora_ebrowse.png}
 \caption{ORA result view. For each significant gene set in the ranking, the user
     can select to view (1) a gene report, that lists all genes of a set along
-    with fold change and $t$-test derived p-value, (2) interactive overview plots, 
+    with fold change and DE $p$-value, (2) interactive overview plots
     such as heatmap, $p$-value distribution, and volcano plot, (3) the pathway 
     in KEGG with differentially expressed genes highlighted in red.}\label{fig:oraRes}
 \end{figure}
 
-The goal of the \Biocpkg{EnrichmentBrowser} package is to provide the most
+The goal of the \Biocpkg{EnrichmentBrowser} package is to provide
 frequently used enrichment methods. However, it is also possible to exploit
-its visualization capabilities while using one's own set-based enrichment method.
-This requires to implement a function that takes the characteristical arguments
+its visualization capabilities with user-defined set-based enrichment methods.
+This requires to implement a function that takes the characteristic arguments
 \Robject{eset} (expression data), \Robject{gs} (gene sets), \Robject{alpha}
 (significance level), and \Robject{perm} (number of permutations). 
 In addition, it must return a numeric vector \Robject{ps} storing the resulting
-$p$-value for each gene set in \Robject{gs}. The $p$-value vector must be also 
+$p$-value for each gene set in \Robject{gs}. The $p$-value vector must also be
 named accordingly (i.e.~\Rcode{names(ps) == names(gs)}).\\
 Let us consider the following dummy enrichment method, which randomly renders 
-five gene sets significant and all others insignificant.
+five gene sets significant and the remaining insignificant.
 
 <<dummy-sbea>>=
 dummy.sbea <- function(eset, gs, alpha, perm)
@@ -440,7 +438,7 @@ from the literature (\cite{Geistlinger13} for an example).
 There are well-studied processes and organisms for which comprehensive and 
 well-annotated regulatory networks are available, e.g.~the \verb=RegulonDB= for
 \emph{E.~coli} and \verb=Yeastract= for \emph{S.~cerevisiae}. 
-However, in many cases such a network is missing. 
+However, there are also cases where such a network is missing. 
 A first simple workaround is to compile a network from regulations in the KEGG
 database.\\
 We can download all KEGG pathways of a specified organism via the 
@@ -451,7 +449,7 @@ from the \Biocpkg{KEGGREST} package.
 pwys <- download.kegg.pathways("hsa")
 @
 
-In this case, we have already downloaded all human KEGG pathways.
+In this case, we have already downloaded a selection of human KEGG pathways.
 We parse them making use of the \Biocpkg{KEGGgraph} package and compile the 
 resulting gene regulatory network.   
 <<compile-grn>>=
@@ -460,8 +458,8 @@ hsa.grn <- compile.grn.from.kegg(pwys)
 head(hsa.grn)
 @
 
-Now we are able to perform enrichment analysis based on the compiled network.
-Currently the following network-based enrichment analysis methods are supported
+Now, we are able to perform enrichment analysis using the compiled network.
+Currently, the following network-based enrichment analysis methods are supported
 <<nbea-methods>>=
 nbea.methods()
 @
@@ -478,26 +476,25 @@ nbea.methods()
     (implemented in the \Biocpkg{PathNet} package)}
 \end{itemize}
 
-For demonstration we perform here GGEA using the gene regulatory network 
-compiled above.
+For demonstration, we perform GGEA using the compiled KEGG regulatory network.
 
 <<nbea>>=
 nbea.res <- nbea(method="ggea", eset=all.eset, gs=hsa.gs, grn=hsa.grn)
 gs.ranking(nbea.res)
 @
 
-The resulting ranking lists for each statistically significant gene set the 
-number of relations (NR.RELS) of the given gene regulatory network that involve
-a gene set member, the sum of consistencies over all relations (RAW.SCORE), the 
-score normalized by induced network size (NORM.SCORE = RAW.SCORE / NR.RELS), 
+The resulting ranking lists, for each statistically significant gene set, the 
+number of relations of the network involving a member of the gene set under study 
+(\texttt{NR.RELS}), the sum of consistencies over the relations of the set (\texttt{RAW.SCORE}), 
+the score normalized by induced network size 
+(\texttt{NORM.SCORE} = \texttt{RAW.SCORE} / \texttt{NR.RELS}), 
 and the statistical significance of each gene set based on a permutation 
 approach.\\
-A GGEA graph for a gene set of interest depicts the consistency of each 
-interaction in the network that involves a gene set member. Nodes (genes) are 
-colored according to expression (up-/down-regulated) and edges (interactions) 
-are colored according to consistency, i.e.~how well the interaction type 
-(activation/inhibition) is reflected in the correlation of the observed 
-expression of both interaction partners.
+A GGEA graph for a gene set depicts the consistency of each interaction in the set. 
+Nodes (genes) are colored according to expression (up-/down-regulated) and 
+edges (interactions) are colored according to consistency, i.e.~how well the 
+interaction type (activation/inhibition) is reflected in the correlation of the 
+observed expression of both interaction partners.
 
 \begin{center}
 <<ggea-graph, fig=TRUE, width=12, height=6>>=
@@ -509,8 +506,8 @@ ggea.graph.legend()
 @
 \end{center}
 
-As described in the previous section it is also possible to plug in one's own
-network-based enrichment method.
+As described in the previous section, it is also possible to plug in user-defined
+network-based enrichment methods.
 
 \newpage
 \section{Combining results}
@@ -520,8 +517,8 @@ To compare results and detect gene sets that are supported by different methods,
 the \Biocpkg{EnrichmentBrowser} package allows to combine results from the 
 different set-based and network-based enrichment analysis methods.
 The combination of results yields a new ranking of the gene sets under 
-investigation either by the average rank across methods or a combined $p$-value
-using Fisher's method or Stouffer's method \cite{Kim13}.\\
+investigation by specified ranking criteria, e.g.~the average rank across methods.
+% or a combined $p$-value using Fisher's method or Stouffer's method \cite{Kim13}.\\
 We consider the ORA result and the GGEA result from the previous sections and 
 use the function \Rfunction{comb.ea.results}.
 
@@ -547,13 +544,12 @@ ea.browse(comb.res, graph.view=hsa.grn, nr.show=5)
 
 \newpage
 \section{Putting it all together}
-There are cases where it is necessary to perform some steps of the demonstrated
+There are cases where it is necessary to perform certain steps of the demonstrated
 enrichment analysis pipeline individually.
-However, often it is more convenient to run the complete standardized pipeline.
+However, it is often more convenient to run the complete standardized pipeline.
 This can be done using the all-in-one wrapper function \Rfunction{ebrowser}.
-Thus, in order to produce the result page displayed in Figure \ref{fig:combRes}
-from scratch, without going through the individual steps listed above, the 
-following call would do the job. 
+For example, the result page displayed in Figure \ref{fig:combRes} can also by 
+produced from scratch via 
 
 <<all-in-one, eval=FALSE>>=
 ebrowser(   meth=c("ora", "ggea"), 
@@ -561,8 +557,8 @@ ebrowser(   meth=c("ora", "ggea"),
         org="hsa", gs=hsa.gs, grn=hsa.grn, comb=TRUE, nr.show=5)
 @
 
-\newpage
-\section{Advanced: Configuring the EnrichmentBrowser}
+%\newpage
+%\section{Advanced: Configuring the EnrichmentBrowser}
 %TODO
 
 %\bibliographystyle{unsrturl}

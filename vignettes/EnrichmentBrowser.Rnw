@@ -150,6 +150,8 @@ dim(air.eset)
 exprs(air.eset)[1:4,1:4]
 @
 
+
+
 \newpage
 
 \section{Normalization}
@@ -208,7 +210,6 @@ Both modes are implemented in the \Biocpkg{EDASeq} function \Rfunction{getGeneLe
 <<lgc, eval=FALSE>>=
 ids <- head(featureNames(air.eset))
 lgc <- EDASeq::getGeneLengthAndGCContent(ids, org="hsa", mode="biomart") 
-lgc
 @
 
 Using precomputed information, normalization within and between lanes can be carried out via
@@ -225,8 +226,8 @@ norm.air <- normalize(air.eset, within=TRUE)
 
 Differential expression analysis between sample groups can be performed using 
 the function \Rfunction{de.ana}.
-As a prerequisite, the phenotype data should contain for each patient a binary 
-group assignment.
+As a prerequisite, the phenotype data should contain a binary group assignment 
+for each patient.
 For the ALL dataset, this indicates whether the BCR-ABL gene fusion is 
 present (1) or not (0). 
 
@@ -289,12 +290,39 @@ This turns out to be the YES proto-oncogene 1
 For RNA-seq data, the \Rfunction{de.ana} function carries out a differential 
 expression analysis between the two groups either based on functionality from
 \Biocpkg{limma} (that includes the \Rfunction{voom} transformation), or 
-alternatively, from the popular \Biocpkg{edgeR} or \Biocpkg{DESeq2} package. 
+alternatively, the popular \Biocpkg{edgeR} or \Biocpkg{DESeq2} package. 
 Here, we use the analysis based on \Biocpkg{edgeR} for demonstration.
 
 <<DE-ana-airway>>=
 air.eset <- de.ana(air.eset, de.method="edgeR")
 head(fData(air.eset), n=4)
+@
+
+\newpage
+
+\section{ID mapping}
+
+Using genomic information from different resources often requires mapping 
+between different types of gene identifiers.
+Although primary analysis steps such as normalization and differential expression 
+analysis can be carried out independent of the gene ID type, downstream exploration 
+functionality of the \Biocpkg{EnrichmentBrowser} is consistently based on NCBI Entrez Gene IDs.
+It is thus, in this regard, beneficial to initially map gene IDs of a different type 
+to NCBI Entrez IDs.\\
+The function \Rfunction{id.types} lists the available ID types for the mapping 
+depending on the organism under investigation.
+
+<<idmap-idtypes>>=
+id.types("hsa")
+@
+
+ID mapping for the airway dataset (from ENSEMBL to ENTREZ gene ids) can then be
+carried out using the function \Rfunction{map.ids}.
+
+<<idmap-airway>>=
+head(featureNames(air.eset))
+air.eset <- map.ids(air.eset, from="ENSEMBL", to="ENTREZID")
+head(featureNames(air.eset))
 @
 
 Now, we subject the ALL and the airway gene expression data to the enrichment 
@@ -360,15 +388,6 @@ $\alpha$ of 0.05.
 sbea.res <- sbea(method="ora", eset=all.eset, gs=hsa.gs, perm=0, alpha=0.05)
 gs.ranking(sbea.res)
 @
-
-% To make that work for the air.eset: map ensembl -> entrez
-% x <- mapIds(org.Hs.eg.db, keys=featureNames(air.eset), keytype="ENSEMBL", column="ENTREZID")
-% x <- x[!is.na(x)]
-% x <- x[!duplicated(x)]
-% air.eset <- air.eset[featureNames(air.eset) %in% names(x), ]
-% names(x) <- NULL
-% featureNames(air.eset) <- x
-% sbea.res <- sbea(method="ora", eset=air.eset, gs=hsa.gs, perm=0, alpha=0.05)
 
 The result of every enrichment analysis is a ranking of gene sets by the 
 corresponding $p$-value. The \Rfunction{gs.ranking} function displays only those
@@ -548,7 +567,7 @@ There are cases where it is necessary to perform certain steps of the demonstrat
 enrichment analysis pipeline individually.
 However, it is often more convenient to run the complete standardized pipeline.
 This can be done using the all-in-one wrapper function \Rfunction{ebrowser}.
-For example, the result page displayed in Figure \ref{fig:combRes} can also by 
+For example, the result page displayed in Figure \ref{fig:combRes} can also be 
 produced from scratch via 
 
 <<all-in-one, eval=FALSE>>=

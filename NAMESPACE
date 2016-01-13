@@ -13,6 +13,8 @@ importFrom("hwriter", hmakeTag, hwrite, hwriteImage)
 
 export( 
     read.eset, 
+    id.types,
+    map.ids,
     normalize,
     de.ana,
     pdistr,

@@ -7,8 +7,7 @@
 # 
 ############################################################
 
-normalize <- function(eset, 
-    norm.method="quantile", within=FALSE, data.type=c(NA, "ma", "rseq"))
+normalize <- function(eset, norm.method="quantile", within=FALSE, data.type=c(NA, "ma", "rseq"))
 {
     # dealing with an eset?
     if(class(eset) != "ExpressionSet") 

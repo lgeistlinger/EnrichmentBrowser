@@ -40,5 +40,6 @@ map.ids <- function(eset, org=NA, from="ENSEMBL", to="ENTREZID")
     eset <- eset[featureNames(eset) %in% names(x), ]
     names(x) <- NULL
     featureNames(eset) <- x
+    if(!length(annotation(eset))) annotation(eset) <- org
     return(eset)
 }

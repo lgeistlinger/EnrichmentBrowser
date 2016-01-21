@@ -140,20 +140,23 @@ ebrowser <- function(
         if(browse) ea.browse( res, nr.show, graph.view=grn, html.only=TRUE )
         
         # link gene statistics
-        if(m == "samgs")
+        if(m == "samgs" && file.exists("samt.RData"))
             fData(gene.eset)$SAM.T <- 
                 round(get(load("samt.RData")), digits=2)
+       
 
-        if(m == "gsea")
+        if(m == "gsea" && file.exists("gsea_s2n.RData"))
             fData(gene.eset)$GSEA.S2N <- 
                 round(get(load("gsea_s2n.RData")), digits=2)
-
+        
         if(comb) res.list[[i]] <- res
     }
 
     # write genewise differential expression
     gene.diffexp.file <- "de.txt"
-    gene.diffexp <- apply(as.matrix(fData(gene.eset)), 2, as.numeric) 
+    ind <- which(colnames(fData(gene.eset)) == FC.COL)
+    ind <- ind:ncol(fData(gene.eset))
+    gene.diffexp <- apply(as.matrix(fData(gene.eset)[,ind]), 2, as.numeric) 
     ord <- order(gene.diffexp[,ADJP.COL])
     gene.diffexp <- signif(gene.diffexp[ord,], digits=2)
     gene.diffexp <- cbind(featureNames(gene.eset)[ord], gene.diffexp)
@@ -191,10 +194,15 @@ ebrowser <- function(
     if(browse)
     { 
         # plot DE
+        if(length(featureNames(gene.eset)) > 1000)
+        {
+            message("Restricting global view to the 1000 most significant genes ...")
+            gene.eset <- gene.eset[order(fData(gene.eset)[,ADJP.COL])[1:1000],]
+        }
         gt <- get.gene.symbol.and.name(featureNames(gene.eset), org)
         fData(gene.eset)[,colnames(gt)[2:3]] <- gt[,2:3]
         vs <- view.set(gene.eset, out.prefix=file.path(out.dir,"global"))
-
+        
         message("Produce html report ...")
         create.index(meth, comb)
     }

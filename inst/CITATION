@@ -1,5 +1,5 @@
 citEntry(entry="article",
-         title = "Bioconductor’s EnrichmentBrowser: seamless navigation through combined results of set- & network-based enrichment analysis",
+         title = "Bioconductor\'s EnrichmentBrowser: seamless navigation through combined results of set- & network-based enrichment analysis",
          author = personList( as.person("Ludwig Geistlinger"),
                               as.person("Gergely Csaba"),
                               as.person("Ralf Zimmer")),
@@ -10,5 +10,5 @@ citEntry(entry="article",
          pages = 45,
          textVersion = 
          paste("Ludwig Geistlinger, Gergely Csaba and Ralf Zimmer (2016)", 
-               "Bioconductor’s EnrichmentBrowser: seamless navigation through combined results of set- & network-based enrichment analysis",
-                ""BMC Bioinformatics, 17:45." ) )
+               "Bioconductor\'s EnrichmentBrowser: seamless navigation through combined results of set- & network-based enrichment analysis.",
+                "BMC Bioinformatics, 17:45." ) )

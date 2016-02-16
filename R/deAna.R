@@ -43,13 +43,22 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
     de.method <- match.arg(de.method)
     if(de.method == "edgeR")
     {
-        design <- model.matrix(f)
         y <- edgeR::DGEList(counts=expr,group=group)
-        y <- edgeR::calcNormFactors(y)
-        y <- edgeR::estimateGLMCommonDisp(y,design)
-        y <- edgeR::estimateGLMTrendedDisp(y,design)
-        y <- edgeR::estimateGLMTagwiseDisp(y,design)
-        fit <- edgeR::glmFit(y,design)
+        design <- model.matrix(f)
+        if(length(group) == 2)
+        { 
+            message("Calling edgeR without replicates")
+            message("Using default BCV (square-root-dispersion) of 0.4")
+            fit <- edgeR::glmFit(y, design, dispersion=0.4)
+        }
+        else
+        { 
+            y <- edgeR::calcNormFactors(y)
+            y <- edgeR::estimateGLMCommonDisp(y, design)
+            y <- edgeR::estimateGLMTrendedDisp(y, design)
+            y <- edgeR::estimateGLMTagwiseDisp(y, design)
+            fit <- edgeR::glmFit(y, design)
+        }
         lrt <- edgeR::glmLRT(fit)
         if(stat.only) return(lrt$table[,"LR"])
         de.tbl <- lrt$table[, c("logFC", "PValue", "LR")] 

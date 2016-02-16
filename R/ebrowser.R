@@ -114,7 +114,7 @@ ebrowser <- function(
     else gene.eset <- eset
 
     message("DE analysis ...")    
-    gene.eset <- de.ana(gene.eset)
+    gene.eset <- de.ana(gene.eset, de.method=de.method)
     if(missing(org)) org <- annotation(gene.eset) 
     else annotation(gene.eset) <- org
         

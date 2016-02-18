@@ -16,6 +16,8 @@ volcano <- function(fc, p)
 # Heatmap: based on ComplexHeatmap
 exprs.heatmap <- function(expr, grp)
 {
+    #message("Transforming expression data to log2 scale for heatmap visualization")
+    if(max(expr, na.rm=TRUE) - min(expr, na.rm=TRUE) > 100) expr <- log(expr + 1, base=2)
     df <- data.frame(Group = as.factor(grp))
     ha <- ComplexHeatmap::HeatmapAnnotation(df = df)
     print(ComplexHeatmap::Heatmap(expr, name="Expression", top_annotation = ha, 

@@ -44,6 +44,7 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
     if(de.method == "edgeR")
     {
         y <- edgeR::DGEList(counts=expr,group=group)
+        y <- edgeR::calcNormFactors(y)
         design <- model.matrix(f)
         if(length(group) == 2)
         { 
@@ -53,7 +54,6 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
         }
         else
         { 
-            y <- edgeR::calcNormFactors(y)
             y <- edgeR::estimateGLMCommonDisp(y, design)
             y <- edgeR::estimateGLMTrendedDisp(y, design)
             y <- edgeR::estimateGLMTagwiseDisp(y, design)
@@ -69,8 +69,8 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
     {
         colData <- data.frame(group=group)
         if(paired) colData$block <- block
-        dds <- DESeq2::DESeqDataSetFromMatrix(
-            countData=expr, colData=colData, design=f)
+        dds <- suppressMessages(DESeq2::DESeqDataSetFromMatrix(
+            countData=expr, colData=colData, design=f))
         dds <- suppressMessages(DESeq2::DESeq(dds))
         res <- DESeq2::results(dds, pAdjustMethod="none")
         if(stat.only) return(res[,"stat"])
@@ -103,6 +103,8 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
 
     if(is.eset)
     {
+        i <- grep("STAT$", colnames(fData(eset)))
+        if(length(i)) fData(eset) <- fData(eset)[,-i]
         fData(eset)[,colnames(de.tbl)] <- de.tbl
         return(eset)
     }

@@ -113,7 +113,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     link <- paste0(names(gsc), ".html")
     res[,"NR.GENES"] <- hwrite(res[,"NR.GENES"], link=link, table = FALSE)
    
-    # set view: volcano, heatmap, ggf ggea 
+    # set view: volcano, heatmap 
     message("Creating set view ...")
     out.prefix <- file.path(rep.dir, names(gsc))
     names(out.prefix) <- names(gsc)
@@ -136,7 +136,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
         colnames(res)[ncol(res)] <- "PATH.VIEW"
     }
 
-    # graph view:
+    # graph view: ggea graphs
     if(!is.null(graph.view)) 
     {
         message("Creating graph view ...")
@@ -239,7 +239,7 @@ view.path <- function(s, eset, out.prefix)
     out.files <- paste(out.prefix, 
         c("kview.html", "kpath.png", "kgraph.png"), sep="_")
     
-    if(!file.exists(out.files[1]))
+    if(!file.exists(out.files[1]) && pwy.id != "01100")
     {
         ##
         # 1 PLOT: kegg.native & kegg.graph

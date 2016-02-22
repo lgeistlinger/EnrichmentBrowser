@@ -26,6 +26,11 @@ nbea <- function(
     GS.MIN.SIZE <- config.ebrowser("GS.MIN.SIZE")
     GS.MAX.SIZE <- config.ebrowser("GS.MAX.SIZE")
     GSP.COL <- config.ebrowser("GSP.COL")
+    FC.COL <-  config.ebrowser("FC.COL")
+    ADJP.COL <-  config.ebrowser("ADJP.COL")
+    
+    eset <- eset[!is.na(fData(eset)[,FC.COL]), ]
+    eset <- eset[!is.na(fData(eset)[,ADJP.COL]), ]
 
     # restrict eset and gs to intersecting genes
     igenes <- intersect(featureNames(eset), unique(unlist(gs)))

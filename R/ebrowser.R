@@ -100,7 +100,7 @@ ebrowser <- function(
     }
     
     # probe 2 gene if data.type = ma
-    # ... and it's not already a gene level eset 
+    # ... and it's not already a gene level eset
     if(experimentData(eset)@other$dataType == "ma")
     {
         has.pcol <- config.ebrowser("PRB.COL") %in% colnames(fData(eset))
@@ -110,6 +110,7 @@ ebrowser <- function(
             message("Transform probe expression to gene expression ...")    
             gene.eset <- probe.2.gene.eset(eset)
         }
+        else gene.eset <- eset
     }
     else gene.eset <- eset
 

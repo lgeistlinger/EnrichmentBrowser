@@ -8,7 +8,7 @@
 ############################################################
 
 # A INPUT FASSADE - wrapping & delegation
-sbea.methods <- function() c("ora", "safe", "gsea", "samgs")
+sbea.methods <- function() c("ora", "safe", "gsea", "samgs", "ebm")
 
 sbea <- function(   
     method=sbea.methods(), 
@@ -44,13 +44,6 @@ sbea <- function(
         data.type <- experimentData(eset)@other$dataType
         if(is.null(data.type)) data.type <- auto.detect.data.type(exprs(eset))
  
-        #if(length(find(method))) gs.ps <- do.call(method, 
-        #    list(eset=eset, gs=gs, alpha=alpha, perm=perm))
-        #else 
-        #if(!(method %in% sbea.methods())) 
-        #    stop(paste("\'method\' must be one out of {", 
-        #        paste(sbea.methods(), collapse=", "), "}"))
-        # else 
         # gsea
         if(data.type != "rseq" & method == "gsea") gs.ps <- gsea(eset, gs, perm)
         else
@@ -60,6 +53,8 @@ sbea <- function(
            
             # hypergeom. ora
             if(method == "ora" & perm==0) gs.ps <- ora(1, eset, cmat, perm, alpha)
+            # ebm
+            else if(method == "ebm") gs.ps <- ebm(eset, cmat)
             # rseq 
             else if(data.type == "rseq") gs.ps <- rseq.sbea(method, eset, cmat, perm, alpha)
             # resampl ora
@@ -153,6 +148,17 @@ gmt.2.cmat <- function(gs, features, min.size=0, max.size=Inf)
 # ENRICHMENT METHODS
 #
 ###
+
+# ebm: _e_mpirical _b_rowns _m_ethod
+ebm <- function(eset, cmat)
+{
+    pcol <-  fData(eset)[, config.ebrowser("ADJP.COL")]
+    e <- exprs(eset)
+    gs.ps <- apply(cmat, 2, function(s) 
+        EmpiricalBrownsMethod::empiricalBrownsMethod(e[s,], pcol[s]))
+    return(gs.ps)
+}
+
 # de.ana as local.stat for safe
 local.de.ana <- function (X.mat, y.vec, args.local)
 {

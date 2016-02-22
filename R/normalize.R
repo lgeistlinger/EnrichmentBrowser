@@ -32,11 +32,11 @@ normalize <- function(eset, norm.method="quantile", within=FALSE, data.type=c(NA
     if(data.type == "rseq")
     {
         # remove genes with low read count
-	is.too.low <- rowSums(exprs(eset)) < ncol(eset)
-	nr.too.low <- sum(is.too.low)
+	    is.too.low <- rowSums(exprs(eset)) < ncol(eset)
+	    nr.too.low <- sum(is.too.low)
         if(nr.too.low > 0) message(paste("Removing",
         	nr.too.low, "genes with low read count ..."))
-	eset <- eset[!is.too.low,]
+	    eset <- eset[!is.too.low,]
  
         if(norm.method == "quantile") norm.method <- "full"
         
@@ -73,6 +73,7 @@ normalize <- function(eset, norm.method="quantile", within=FALSE, data.type=c(NA
             eset <- EDASeq::withinLaneNormalization(eset, "gc", which=norm.method)
         }
         eset <- EDASeq::betweenLaneNormalization(eset, which=norm.method)
+        experimentData(eset)@other$dataType <- data.type
     } 
     # ma normalization with limma
     else exprs(eset) <- limma::normalizeBetweenArrays(exprs(eset), method=norm.method)

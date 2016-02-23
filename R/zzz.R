@@ -38,9 +38,9 @@
         "http://amigo.geneontology.org/amigo/term/"
     
     # (3) file paths
-    .ebrowser_config_cache[["EBROwSER.HOME"]] <- system.file(package="EnrichmentBrowser")
+    .ebrowser_config_cache[["EBROWSER.HOME"]] <- system.file(package="EnrichmentBrowser")
     .ebrowser_config_cache[["OUTDIR.DEFAULT"]] <- 
-        file.path(.ebrowser_config_cache[["EBROwSER.HOME"]], "results")
+        file.path(.ebrowser_config_cache[["EBROWSER.HOME"]], "results")
     
     # (4) methodological defaults 
     .ebrowser_config_cache[["GS.MIN.SIZE"]] <- 5

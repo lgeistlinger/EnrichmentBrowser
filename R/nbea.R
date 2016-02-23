@@ -50,7 +50,7 @@ nbea <- function(
         #        paste(nbea.methods(), collapse=", "), "}"))
         #else 
         if(method == "nea") res.tbl <- nea.wrapper(eset, gs, grn, alpha, perm)
-        else if(method == "spia") res.tbl <- spia.wrapper(eset, gs, alpha, perm)
+        else if(method == "spia") res.tbl <- spia.wrapper(eset, gs, grn, alpha, perm)
         else if(method == "pathnet") 
             res.tbl <- pathnet.wrapper(eset, gs, grn, alpha, perm)
         else res.tbl <- ggea(eset, gs, grn, alpha, perm=perm, ...)      
@@ -117,7 +117,7 @@ nea.wrapper <- function(eset, gs, grn, alpha=0.05, perm=100)
     return(res) 
 }
 
-spia.wrapper <- function(eset, gs, alpha=0.05, perm=1000, beta=1)
+spia.wrapper <- function(eset, gs, grn, alpha=0.05, perm=1000, beta=1)
 {
     FC.COL <- config.ebrowser("FC.COL")
     ADJP.COL <- config.ebrowser("ADJP.COL")
@@ -127,14 +127,26 @@ spia.wrapper <- function(eset, gs, alpha=0.05, perm=1000, beta=1)
     de <- fData(eset)[de.genes, FC.COL]
     names(de) <- featureNames(eset)[de.genes]
     all <- featureNames(eset)
-    organism <- substring(names(gs)[1],1,3) 
-    res <- SPIA::spia(de=de, all=all, organism=organism, nB=perm)
+
+    is.kegg <- auto.detect.gs.type(names(gs)[1]) == "KEGG"
+    organism <- ""
+    data.dir <- NULL
+    if(is.kegg) organism <- substring(names(gs)[1],1,3)
+    else
+    {     
+        message("making SPIA data ...")
+        path.info <- make.spia.data(gs, grn)
+        data.dir <- system.file("extdata/", package="SPIA")
+        save(path.info, file=file.path(data.dir, "SPIA.RData"))
+    }
+    res <- SPIA::spia(de=de, all=all, organism=organism, data.dir=data.dir, nB=perm)
     res[,"Name"] <- gsub(" ", "_", res[,"Name"])
     rownames(res) <- paste(paste0(organism, res[,"ID"]), res[,"Name"], sep="_")
     res <- res[, c("pSize", "NDE", "tA", "Status", "pG")]
     colnames(res) <- c("SIZE", "NDE", "T.ACT", "STATUS", GSP.COL)
     res[,"STATUS"] <- ifelse(res[,"STATUS"] == "Activated", 1, -1)
     res <- as.matrix(res)
+    message("Finished SPIA analysis")
     return(res)
 }
 
@@ -169,6 +181,64 @@ pathnet.wrapper <- function(eset, gs, grn, alpha=0.05, perm=1000)
     res <- as.matrix(res)
     return(res)
 }
+
+# spia helper: create pathway data from gs and grn
+make.spia.data <- function(gs, grn)
+{
+    rel <- c("activation", "compound", "binding/association", 
+            "expression", "inhibition", "activation_phosphorylation", 
+            "phosphorylation", "inhibition_phosphorylation", 
+            "inhibition_dephosphorylation", "dissociation", "dephosphorylation", 
+            "activation_dephosphorylation", "state change", "activation_indirect effect", 
+            "inhibition_ubiquination", "ubiquination", "expression_indirect effect", 
+            "inhibition_indirect effect", "repression", "dissociation_phosphorylation", 
+            "indirect effect_phosphorylation", "activation_binding/association", 
+            "indirect effect", "activation_compound", "activation_ubiquination")
+
+    spia.data <- sapply(names(gs), 
+        function(s)
+        {   
+            x <- gs[[s]]
+            len <- length(x) 
+            nam <- list(x, x)
+            m <- matrix(0, nrow=len, ncol=len, dimnames=nam)
+            sgrn <- query.grn(gs=x, grn=grn, index=FALSE)
+            if(nrow(sgrn) < config.ebrowser("GS.MIN.SIZE")) return(NULL)
+            act.grn <- sgrn[sgrn[,3] == "+",,drop=FALSE]
+            actm2 <- m
+            if(nrow(act.grn))
+            {
+                if(nrow(act.grn) > 1) actm <- grn2adjm(act.grn)
+                else actm <- matrix(1, nrow=1, ncol=1, dimnames=list(act.grn[1,1], act.grn[1,2]))
+                actm2[rownames(actm), colnames(actm)] <- actm
+            }
+            inh.grn <- sgrn[sgrn[,3] == "-",,drop=FALSE]
+            inhm2 <- m
+            if(nrow(inh.grn))
+            {
+                if(nrow(inh.grn) > 1) inhm <- grn2adjm(inh.grn)
+                else inhm <-  matrix(1, nrow=1, ncol=1, dimnames=list(inh.grn[1,1], inh.grn[1,2]))
+                inhm2[rownames(inhm), colnames(inhm)] <- inhm
+            }
+            l <- lapply(rel, 
+                function(r)
+                {
+                    if(r == "activation") return(actm2)
+                    else if(r == "inhibition") return(inhm2)
+                    else return(m)                    
+                } 
+            )
+            names(l) <- rel    
+            l$nodes <- x
+            l$title <- s
+            l$NumberOfReactions <- 0
+            return(l)
+        }
+    )
+    spia.data <- spia.data[!sapply(spia.data, is.null)]
+    return(spia.data)
+}
+
 
 # pathnet helper: extract pathway data from gs and grn
 extr.pwy.dat <- function(gs, grn)
@@ -217,22 +287,5 @@ grn2adjm <- function(grn)
     rownames(adjm) <- nodes
     return(adjm)
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

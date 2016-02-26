@@ -12,7 +12,7 @@ BiocStyle::latex()
 \usepackage{graphicx, subfig}
 \usepackage[utf8]{inputenc} 
 
-\title{EnrichmentBrowser: Seamless navigation through combined \\
+\title{EnrichmentBrowser: seamless navigation through combined \\
         results of set-based and network-based enrichment analysis}
 \author{Ludwig Geistlinger} 
 
@@ -580,6 +580,29 @@ ebrowser(   meth=c("ora", "ggea"),
 %\section{Advanced: Configuring the EnrichmentBrowser}
 %TODO
 
+\newpage
+\section{Frequently asked questions}
+\begin{enumerate}
+\item \textbf{How to cite the \Biocpkg{EnrichmentBrowser}?}\\[0.25cm]
+Geistlinger L, Csaba G and Zimmer R. Bioconductor's EnrichmentBrowser: 
+seamless navigation through combined results of set- \& network-based enrichment
+analysis. \textit{BMC Bioinformatics}, \textbf{17}:45, 2016.\\[0.25cm]
+\item \textbf{Is it possible to apply the \Biocpkg{EnrichmentBrowser} to simple gene lists?}\\[0.25cm]
+Enrichment methods implemented in the \Biocpkg{EnrichmentBrowser} are, except for ORA, 
+expression-based (and also draw their strength from that).
+The set-based methods GSEA, SAFE, and SAMGS use sample permutation,
+involving recomputation of differential expression, for gene set
+significance estimation, i.e.~they require the complete expression
+matrix.
+The network-based methods require measures of differential expression 
+such as fold change and $p$-value to score interactions of the network.
+In addition, visualization of enriched gene sets is explicitly designed for 
+expression data.
+Thus, for simple gene list enrichment, tools like \software{DAVID}
+(\href{https://david.ncifcrf.gov}{https://david.ncifcrf.gov}) and
+\software{GeneAnalytics} (\href{http://geneanalytics.genecards.org}{http://geneanalytics.genecards.org})
+are more suitable, and it is recommended to use them for this purpose.
+\end{enumerate}
 %\bibliographystyle{unsrturl}
 \bibliography{refs}
 \end{document}

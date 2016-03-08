@@ -380,6 +380,9 @@ sbea.methods()
 \item{SAMGS: Significance Analysis of Microarrays on Gene Sets 
         (extending the SAM method for single genes to gene set analysis 
         \cite{Dinu07})}
+\item{EBM: Empirical Brown's Method (combines $p$-values of genes in a 
+gene set using Brown's method to combine $p$-values from dependent tests;
+implemented in \Biocpkg{EmpiricalBrownsMethod})}
 \end{itemize}
 
 For demonstration, we perform a basic ORA choosing a significance level 

@@ -23,7 +23,8 @@
         Set-based enrichment analysis method.
         Currently, the following set-based enrichment analysis methods 
         are supported:
-        \sQuote{ora}, \sQuote{safe}, \sQuote{gsea}, and \sQuote{samgs}.
+        \sQuote{ora}, \sQuote{safe}, \sQuote{gsea}, \sQuote{samgs}, and 
+        \sQuote{ebm}.
         See Details. For basic ora also set 'perm=0'. Default is \sQuote{ora}.
         This can also be the name of a user-defined function implementing 
         set-based enrichment. See Details. 
@@ -44,7 +45,7 @@
     \item{perm}{
         Number of permutations of the expression matrix to estimate the null 
         distribution. Defaults to 1000. For basic ora set 'perm=0'. 
-        *New*: using method="gsea" and 'perm=0' invokes the permutation
+        Using method="gsea" and 'perm=0' invokes the permutation
         approximation from the npGSEA package.
     }  
     \item{padj.method}{
@@ -87,6 +88,10 @@
     'samgs': significance analysis of microarrays 
     on gene sets, extends the SAM method for single genes to gene set analysis
     (Dinu et al., 2007).
+
+    'ebm': empirical Brown's method, combines $p$-values of genes in a 
+    gene set using Brown's method to combine $p$-values from dependent tests; 
+    implemented in the EmpiricalBrownsMethod package. 
 
     It is also possible to use additional set-based enrichment methods.
     This requires to implement a function that takes 'eset', 'gs', 'alpha', and

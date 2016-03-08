@@ -1,41 +1,60 @@
-2015-08-28:
-EnrichmentBrowser 1.99.5:
-    - adaption of specific local statistics for RNA-seq data 
+CHANGES IN VERSION 2.1.14
+-------------------------
+
+    o Adapting GGEA to also deal with 2-column GRNs
+
+CHANGES IN VERSION 2.1.12
+-------------------------
+
+    o Adapting SPIA to deal with non-kegg gene sets
+
+CHANGES IN VERSION 2.1.10
+-------------------------
+
+    o Including EmpiricalBrownsMethod (ebm) among sbea methods
+
+CHANGES IN VERSION 1.99.6
+-------------------------
+
+    o adaption of specific local statistics for RNA-seq data 
         for sample-permutation methods GSEA, SAFE, and SAMGS
 
-2015-07-19:
-EnrichmentBrowser 1.99.5:
-    - Including PathNet among nbea methods
+CHANGES IN VERSION 1.99.5
+-------------------------
 
-2015-07-14:
-EnrichmentBrowser 1.99.3:
-    - GSEA permutation approximation based on npGSEA
-    - extended combination functionality
+    o Including PathNet among nbea methods
 
-2015-07-10
-EnrichmentBrowser 1.99.1:
-    - major overhaul of the look'n'feel based on ReportingTools
-    - interactive graphics using imageMap
-    - reworked set and graph view
-    - new kegg view based on pathview
+CHANGES IN VERSION 1.99.3
+-------------------------
 
-2015-03-10
-EnrichmentBrowser 1.1.3:
-    - de.ana: extensions for RNA-seq now includes DESeq and edgeR
-    - get.go.genesets: new getter for GO genesets
+    o GSEA permutation approximation based on npGSEA
+    o extended combination functionality
 
-2014-11-04
-EnrichmentBrowser 1.1.1: 
-    - de.ana: now based on limma functionality 
-    - ggea.graph: extended control of layout
-    - ggea: 
+CHANGES IN VERSION 1.99.1
+-------------------------
+
+    o major overhaul of the look'n'feel based on ReportingTools
+    o interactive graphics using imageMap
+    o reworked set and graph view
+    o new kegg view based on pathview
+
+CHANGES IN VERSION 1.1.3
+------------------------
+
+    o de.ana: extensions for RNA-seq now includes DESeq and edgeR
+    o get.go.genesets: new getter for GO genesets
+
+CHANGES IN VERSION 1.1.1
+------------------------
+
+    o de.ana: now based on limma functionality 
+    o ggea.graph: extended control of layout
+    o ggea: 
         * permutation p-value now based on fast edge resampling
         * p-value approximation now based on gaussian mixture
         * extended control for edge selection (consistency threshold, edge type, ...)
     
 CHANGES IN VERSION 1.0.0
 ------------------------
-
-NEW FEATURES
 
     o EnrichmentBrowser 1.0.0: Initial release of the 'EnrichmentBrowser' package

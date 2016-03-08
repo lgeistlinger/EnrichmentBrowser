@@ -23,14 +23,20 @@ nbea <- function(
     out.file=NULL,
     browse=FALSE, ...)
 {
+    # get configuration
     GS.MIN.SIZE <- config.ebrowser("GS.MIN.SIZE")
     GS.MAX.SIZE <- config.ebrowser("GS.MAX.SIZE")
     GSP.COL <- config.ebrowser("GSP.COL")
     FC.COL <-  config.ebrowser("FC.COL")
     ADJP.COL <-  config.ebrowser("ADJP.COL")
     
+    # dealing with NA's
     eset <- eset[!is.na(fData(eset)[,FC.COL]), ]
     eset <- eset[!is.na(fData(eset)[,ADJP.COL]), ]
+
+    # getting gene sets & grn
+    if(!is.list(gs)) gs <- parse.genesets.from.GMT(gs)
+    if(!is.matrix(grn)) grn <- read.grn(grn)
 
     # restrict eset and gs to intersecting genes
     igenes <- intersect(featureNames(eset), unique(unlist(gs)))

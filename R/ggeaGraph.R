@@ -65,7 +65,8 @@ construct.ggea.graph <- function(grn, eset,
     fDat <- as.matrix(fData(eset)[nodes, 
         sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)])
     de <- comp.de(fDat, alpha=alpha, beta=beta)
-    grn.de <- cbind(de[grn[,1]], de[grn[,2]], grn[,3])
+    grn.de <- cbind(de[grn[,1]], de[grn[,2]])
+    if(ncol(grn) > 2) grn.de <- cbind(grn.de, grn[,3])
     edge.cons <- apply(grn.de, MARGIN=1, FUN=is.consistent)
     
     ord <- order(abs(edge.cons), decreasing=TRUE)
@@ -125,15 +126,20 @@ construct.ggea.graph <- function(grn, eset,
     names(eCol) <- edges
     eLabel <- round(edge.cons, digits=1)
     names(eLabel) <- edges
-    eArrowhead <- ifelse(grn[,3] == 1, "open", "tee")
-    names(eArrowhead) <- edges
     eLwd <- sapply(edge.cons, function(e) 
         determine.edge.lwd(e, cons.thresh=cons.thresh))
     names(eLwd) <- edges
 
     edgeRenderInfo(gr) <-
-        list(lty=eLty, col=eCol, textCol=eCol,
-            label=eLabel , arrowhead=eArrowhead, lwd=eLwd)
+        list(lty=eLty, col=eCol, textCol=eCol, label=eLabel, lwd=eLwd)
+
+    if(ncol(grn) > 2) 
+    {
+        eArrowhead <- ifelse(grn[,3] == 1, "open", "tee")
+        names(eArrowhead) <- edges
+        edgeRenderInfo(gr)$arrowhead=eArrowhead
+    }
+
     return(gr)
 }
 

@@ -22,14 +22,6 @@
 ggea <- function(eset, gs, grn, 
     alpha=0.05, beta=1, perm=1000, gs.edges=c("&", "|"), cons.thresh=0.2)
 {
-    # restrict to relevant genes 
-    # in the intersection of eset, gs, and grn
-    gs.genes <- unique(unlist(gs))
-    grn.genes <- unique(c(grn[,1], grn[,2]))
-    eset.genes <- featureNames(eset)
-    rel.genes <- intersect(intersect(gs.genes, grn.genes), eset.genes)
-    eset <- eset[rel.genes,]
-
     # map gs & grn to indices implied by fDat
     # due to performance issues, transforms character2integer
     # map gene.id -> index, e.g. "b0031" -> 10

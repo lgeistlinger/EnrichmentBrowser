@@ -242,7 +242,7 @@ ora.hyperg <- function(ps, cmat, alpha=0.05)
 
     # determine significance of overlap 
     # based on hypergeom. distribution
-    gs.ps <- 1 - phyper(ovlp.sizes, gs.sizes, uni.sizes, nr.sigs)
+    gs.ps <- phyper(ovlp.sizes-1, gs.sizes, uni.sizes, nr.sigs, lower.tail=FALSE) 
     
     res.tbl <- cbind(gs.sizes, ovlp.sizes, gs.ps)
     colnames(res.tbl) <- c("NR.GENES", "NR.SIG.GENES", config.ebrowser("GSP.COL"))

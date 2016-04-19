@@ -72,8 +72,8 @@
         This includes currently for GGEA:
         \itemize{
         \item beta: Log2 fold change significance level. Defaults to 1 (2-fold).
-        \item cons.thresh: edge consistency threshold between -1 and 1. #
-            Defaults to 0.3, i.e. only edges of the GRN with consistency >= 0.3 
+        \item cons.thresh: edge consistency threshold between -1 and 1.
+            Defaults to 0.2, i.e. only edges of the GRN with consistency >= 0.2 
             are included in the analysis. Evaluation on real datasets has shown
             that this works best to distinguish relevant gene sets. 
             Use consistency of -1 to include all edges.

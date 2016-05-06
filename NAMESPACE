@@ -11,6 +11,15 @@ importMethodsFrom("ReportingTools", publish, finish)
 importFrom("ReportingTools", HTMLReport, Link)
 importFrom("hwriter", hmakeTag, hwrite, hwriteImage)
 
+importFrom("grDevices", "col2rgb", "dev.off", "png", "rgb")
+importFrom("graphics", "par", "segments", "symbols", "text")
+importFrom("stats", "formula", "mad", "median", "model.matrix",
+             "p.adjust", "pchisq", "phyper", "pnorm", "qnorm",
+             "quantile", "rnorm", "runif", "sd")
+importFrom("utils", "available.packages", "browseURL",
+             "capture.output", "data", "head", "memory.limit",
+             "read.delim", "unzip", "write.table")
+
 export( 
     read.eset, 
     id.types,

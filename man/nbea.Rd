@@ -12,7 +12,7 @@
     resulting gene set rankings. 
 }
 \usage{
-    nbea( method = nbea.methods(), eset, gs, grn, alpha = 0.05, 
+    nbea( method = EnrichmentBrowser::nbea.methods(), eset, gs, grn, alpha = 0.05, 
           perm = 1000, padj.method = "none", out.file = NULL, browse = FALSE, ... )
 
     nbea.methods()
@@ -69,19 +69,34 @@
     }
     \item{...}{
         Additional arguments passed to individual nbea methods.
-        This includes currently for GGEA:
+        This includes currently:
         \itemize{
-        \item beta: Log2 fold change significance level. Defaults to 1 (2-fold).
+            \item beta: Log2 fold change significance level. Defaults to 1 (2-fold).
+        }
+        For SPIA and NEA:
+        \itemize{
+            \item sig.stat: decides which statistic is used for determining 
+                significant DE genes. 
+                Options are:
+                    \itemize{
+                        \item 'p' (Default): genes with p-value below alpha.
+                        \item 'fc': genes with abs(log2(fold change)) above beta
+                        \item '&': p & fc (logical AND)
+                        \item '|': p | fc (logical OR)
+                    } 
+        }
+        For GGEA:
+        \itemize{
         \item cons.thresh: edge consistency threshold between -1 and 1.
             Defaults to 0.2, i.e. only edges of the GRN with consistency >= 0.2 
             are included in the analysis. Evaluation on real datasets has shown
             that this works best to distinguish relevant gene sets. 
             Use consistency of -1 to include all edges.
-        \item gs.edges: Decides which edges of the grn are considered for a
-                gene set under investigation. Should be one out of c('&', '|'), 
-                denoting logical AND and OR. respectively. Accordingly, this 
-                either includes edges for which regulator AND / OR target gene
-                are members of the investigated gene set.            
+        \item gs.edges: decides which edges of the grn are considered for a
+            gene set under investigation. Should be one out of c('&', '|'), 
+            denoting logical AND and OR. respectively. Accordingly, this 
+            either includes edges for which regulator AND / OR target gene
+            are members of the investigated gene set.            
         }
     }
 }
@@ -140,9 +155,9 @@
     Other:
     \code{\link{sbea}} to perform set-based enrichment analysis.
     \code{\link{comb.ea.results}} to combine results from different methods.
-    \code{\link{spia}} for more information on signaling pathway impact analysis.
-    \code{\link{nea}} for more information on network enrichment analysis.    
-    \code{\link{PathNet}} for more information on pathway analysis using network information.
+    the SPIA package for more information on signaling pathway impact analysis.
+    the neaGUI package for more information on network enrichment analysis.    
+    the PathNet package for more information on pathway analysis using network information.
 }
 \author{
     Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>

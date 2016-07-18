@@ -44,7 +44,7 @@
 }
 \seealso{  
     \code{\link{annFUN}} for general GO2gene mapping used in the 'GO.db' mode,
-    \code{\link{getBM}} for general queries to BioMart.
+    the biomaRt package for general queries to BioMart,
     \code{\link{get.kegg.genesets}} for defining gene sets according to KEGG, 
     \code{\link{parse.genesets.from.GMT}} to parse user-def. gene sets from file.
 }

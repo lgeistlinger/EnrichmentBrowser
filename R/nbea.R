@@ -10,10 +10,12 @@
 #
 ############################################################
 
-nbea.methods <- function() c("ggea", "spia", "nea", "pathnet")
+nbea.methods <- function() 
+    c("ggea", "spia", "nea", "pathnet", 
+        "netgsa", "degraph", "topologygsa", "ganpa", "cepa", "lego")
 
 nbea <- function(
-    method=nbea.methods(), 
+    method=EnrichmentBrowser::nbea.methods(), 
     eset, 
     gs, 
     grn,
@@ -38,6 +40,10 @@ nbea <- function(
     if(!is.list(gs)) gs <- parse.genesets.from.GMT(gs)
     if(!is.matrix(grn)) grn <- read.grn(grn)
 
+    # prune grn
+    grn <- .rm.self.edges(grn)
+    grn <- .rm.rev.edges(grn)
+
     # restrict to relevant genes 
     # in the intersection of eset, gs, and grn
     gs.genes <- unique(unlist(gs))
@@ -50,25 +56,18 @@ nbea <- function(
     gs <- gs[lens >= GS.MIN.SIZE & lens <= GS.MAX.SIZE]
     grn <- grn[grn[,1] %in% rel.genes & grn[,2] %in% rel.genes,] 
     
-    # prune grn
-    grn <- rm.self.edges(grn)
-    grn <- rm.rev.edges(grn)
-
     # execute ea
     if(class(method) == "character")
     {
         method <- match.arg(method)
-        #if(length(find(method))) res.tbl <- do.call(method, 
-        #        list(eset=eset, gs=gs, grn=grn, alpha=alpha, perm=perm, ...))
-        #else 
-        #if(!(method %in% nbea.methods())) 
-        #    stop(paste("\'method\' must be one out of {", 
-        #        paste(nbea.methods(), collapse=", "), "}"))
-        #else 
-        if(method == "nea") res.tbl <- nea.wrapper(eset, gs, grn, alpha, perm)
-        else if(method == "spia") res.tbl <- spia.wrapper(eset, gs, grn, alpha, perm)
-        else if(method == "pathnet") 
-            res.tbl <- pathnet.wrapper(eset, gs, grn, alpha, perm)
+        if(method == "spia") res.tbl <- .spia(eset, gs, grn, alpha, perm, ...)
+        else if(method == "nea") res.tbl <- .nea(eset, gs, grn, alpha, perm, ...)
+        else if(method == "pathnet") res.tbl <- .pathnet(eset, gs, grn, alpha, perm)
+        else if(method == "netgsa") res.tbl <- .netgsa(eset, gs, grn)
+        else if(method == "ganpa") res.tbl <- .ganpa(eset, gs, grn, perm)
+        else if(method == "cepa") res.tbl <- .cepa(eset, gs, grn)
+        else if(method == "degraph") res.tbl <- .degraph(eset, gs, grn)
+        else if(method == "topologygsa") res.tbl <- .topogsa(eset, gs, grn, alpha, perm, ...)
         else res.tbl <- ggea(eset, gs, grn, alpha, perm=perm, ...)      
     }
     else if(class(method) == "function") 
@@ -109,9 +108,9 @@ nbea <- function(
 #
 # general helpers
 #
-rm.self.edges <- function(grn) grn[grn[,1] != grn[,2],]
+.rm.self.edges <- function(grn) grn[grn[,1] != grn[,2],]
 
-rm.rev.edges <- function(grn)
+.rm.rev.edges <- function(grn)
 {
     n <- nrow(grn) 
     ind <- rep(FALSE, n) 
@@ -131,45 +130,16 @@ rm.rev.edges <- function(grn)
 }
     
 #
-# NEA
+# 1 SPIA
 #
-nea.wrapper <- function(eset, gs, grn, alpha=0.05, perm=100)
-{
-    ADJP.COL <- config.ebrowser("ADJP.COL")
-    GSP.COL <- config.ebrowser("GSP.COL")
-
-    #if(perm > 100) perm <- 100
-    ags <- featureNames(eset)[fData(eset)[,ADJP.COL] < alpha]
-    grn <- unique(grn[,1:2])
-    gs.genes <- unique(unlist(gs))
-    grn <- grn[(grn[,1] %in% gs.genes) & (grn[,2] %in% gs.genes),]
-    network <- apply(grn, 1, function(x) paste(x, collapse=" "))
-    message("Computing NEA permutations, this may take a few minutes ...")
-    res <- neaGUI::nea(ags=ags, fgs=gs, network=network, nperm=perm)
-    res <- res$MainResult
-    res <- res[, c("Number_of_Genes", 
-        "Number_of_AGS_genes", "Number_links", "Z_score", "P_value")]
-    res <- res[order(res[,"Z_score"], decreasing=TRUE), ]
-    colnames(res) <- sub("AGS", "de", colnames(res))
-    colnames(res) <- sub("Number", "Nr", colnames(res))
-    colnames(res) <- sub("_of", "", colnames(res))
-    colnames(res) <- gsub("_", ".", colnames(res))
-    colnames(res) <- toupper(colnames(res))
-    res <- as.matrix(res)
-    res <- res[order(res[,GSP.COL]),]
-    return(res) 
-}
-
-#
-# SPIA
-#
-spia.wrapper <- function(eset, gs, grn, alpha=0.05, perm=1000, beta=1)
+.spia <- function(eset, gs, grn, 
+    alpha=0.05, perm=1000, beta=1, sig.stat=c("p", "fc", "|", "&")) 
 {
     FC.COL <- config.ebrowser("FC.COL")
     ADJP.COL <- config.ebrowser("ADJP.COL")
     GSP.COL <- config.ebrowser("GSP.COL")
 
-    de.genes <- fData(eset)[,ADJP.COL] < alpha
+    de.genes <- is.sig(fData(eset), alpha, beta, sig.stat)
     de <- fData(eset)[de.genes, FC.COL]
     names(de) <- featureNames(eset)[de.genes]
     all <- featureNames(eset)
@@ -181,7 +151,7 @@ spia.wrapper <- function(eset, gs, grn, alpha=0.05, perm=1000, beta=1)
     else
     {     
         message("making SPIA data ...")
-        path.info <- make.spia.data(gs, grn)
+        path.info <- .make.spia.data(gs, grn)
         data.dir <- system.file("extdata/", package="SPIA")
         save(path.info, file=file.path(data.dir, "SPIA.RData"))
     }
@@ -197,7 +167,7 @@ spia.wrapper <- function(eset, gs, grn, alpha=0.05, perm=1000, beta=1)
 }
 
 # spia helper: create pathway data from gs and grn
-make.spia.data <- function(gs, grn)
+.make.spia.data <- function(gs, grn)
 {
     rel <- c("activation", "compound", "binding/association", 
             "expression", "inhibition", "activation_phosphorylation", 
@@ -222,7 +192,7 @@ make.spia.data <- function(gs, grn)
             actm2 <- m
             if(nrow(act.grn))
             {
-                if(nrow(act.grn) > 1) actm <- grn2adjm(act.grn)
+                if(nrow(act.grn) > 1) actm <- .grn2adjm(act.grn)
                 else actm <- matrix(1, nrow=1, ncol=1, dimnames=list(act.grn[1,1], act.grn[1,2]))
                 actm2[rownames(actm), colnames(actm)] <- actm
             }
@@ -230,7 +200,7 @@ make.spia.data <- function(gs, grn)
             inhm2 <- m
             if(nrow(inh.grn))
             {
-                if(nrow(inh.grn) > 1) inhm <- grn2adjm(inh.grn)
+                if(nrow(inh.grn) > 1) inhm <- .grn2adjm(inh.grn)
                 else inhm <-  matrix(1, nrow=1, ncol=1, dimnames=list(inh.grn[1,1], inh.grn[1,2]))
                 inhm2[rownames(inhm), colnames(inhm)] <- inhm
             }
@@ -254,20 +224,56 @@ make.spia.data <- function(gs, grn)
 }
 
 #
-# Pathnet
+# 2 NEA
 #
-pathnet.wrapper <- function(eset, gs, grn, alpha=0.05, perm=1000)
+.nea <- function(eset, gs, grn, 
+    alpha=0.05, perm=100, beta=1, sig.stat=c("p", "fc", "|", "&"))
 {
+    nea <- NULL
+    .isAvailable("neaGUI", type="software")
+
+    #if(perm > 100) perm <- 100
+    isig <- is.sig(fData(eset), alpha, beta, sig.stat)
+    ags <- featureNames(eset)[isig]
+    grn <- unique(grn[,1:2])
+    gs.genes <- unique(unlist(gs))
+    grn <- grn[(grn[,1] %in% gs.genes) & (grn[,2] %in% gs.genes),]
+    network <- apply(grn, 1, function(x) paste(x, collapse=" "))
+    message("Computing NEA permutations, this may take a few minutes ...")
+    res <- nea(ags=ags, fgs=gs, network=network, nperm=perm)
+    res <- res$MainResult
+    res <- res[, c("Number_of_Genes", 
+        "Number_of_AGS_genes", "Number_links", "Z_score", "P_value")]
+    res <- res[order(res[,"Z_score"], decreasing=TRUE), ]
+    colnames(res) <- sub("AGS", "de", colnames(res))
+    colnames(res) <- sub("Number", "Nr", colnames(res))
+    colnames(res) <- sub("_of", "", colnames(res))
+    colnames(res) <- gsub("_", ".", colnames(res))
+    colnames(res) <- toupper(colnames(res))
+    res <- as.matrix(res)
+    GSP.COL <- config.ebrowser("GSP.COL")
+    res <- res[order(res[,GSP.COL]),]
+    return(res) 
+}
+
+#
+# 3 Pathnet
+#
+.pathnet <- function(eset, gs, grn, alpha=0.05, perm=1000)
+{
+    PathNet <- NULL
+    .isAvailable("PathNet", type="software")
+    
     ADJP.COL <- config.ebrowser("ADJP.COL")
     GSP.COL <- config.ebrowser("GSP.COL")
 
     dir.evid <- -log(fData(eset)[,ADJP.COL], base=10)
     dir.evid <- cbind(as.integer(featureNames(eset)), dir.evid)
     colnames(dir.evid) <- c("Gene.ID", "Obs")
-    adjm <- grn2adjm(grn)
-    pwy.dat <- extr.pwy.dat(gs, grn)
+    adjm <- .grn2adjm(grn, directed=FALSE)
+    pwy.dat <- .extr.pwy.dat(gs, grn)
     
-    res <- PathNet::PathNet(
+    res <- PathNet(
             #Enrichment_Analysis = TRUE, 
             #Contextual_Analysis = FALSE, 
             DirectEvidence_info = dir.evid, 
@@ -289,7 +295,7 @@ pathnet.wrapper <- function(eset, gs, grn, alpha=0.05, perm=1000)
 }
 
 # pathnet helper: extract pathway data from gs and grn
-extr.pwy.dat <- function(gs, grn)
+.extr.pwy.dat <- function(gs, grn)
 {
     pwy.dat <- sapply(names(gs), 
         function(n)
@@ -317,7 +323,7 @@ extr.pwy.dat <- function(gs, grn)
 }
 
 # pathnet helper: converts 3-col grn to adjacency matrix
-grn2adjm <- function(grn)
+.grn2adjm <- function(grn, directed=TRUE)
 {
     nodes <- sort(unique(as.vector(grn[,1:2])))
     adjm <- sapply(nodes, 
@@ -333,5 +339,274 @@ grn2adjm <- function(grn)
             return(adjv) 
         }) 
     rownames(adjm) <- nodes
+    adjm <- t(adjm)
+  
+    if(!directed)
+        for(i in seq_along(nodes)) 
+            for(j in seq_along(nodes)) 
+                if(adjm[i,j]) adjm[j,i] <- 1
+
     return(adjm)
 }
+
+#
+# 4 NetGSA
+#
+.netgsa <- function(eset, gs, grn)
+{
+     NetGSA <- covsel <- edgelist2adj <- NULL
+    .isAvailable("netgsa", type="software")
+
+    x <- exprs(eset)
+    y <- pData(eset)[,config.ebrowser("GRP.COL")] + 1
+
+    # prepare gene sets
+    #cmat <- .gmt2cmat(gs, rownames(x)) 
+    #if(nrow(cmat) < nrow(x)) x <- x[rownames(cmat),]
+    f <- file()
+    sink(file=f)
+    cmat <- safe::getCmatrix(gs, as.matrix=TRUE)
+    sink()
+    close(f)
+    x <- x[rownames(cmat),]
+
+    # prepare network
+    out.dir <- config.ebrowser("OUTDIR.DEFAULT")
+    if(!file.exists(out.dir)) dir.create(out.dir)
+    out.file <- file.path(out.dir, "grn.txt")
+    write.table(grn[,1:2], file=out.file, row.names=FALSE)
+    adjm <- edgelist2adj(out.file, vertex.names=unique(as.vector(grn[,1:2])))
+    file.remove(out.file)
+    ind <- intersect(rownames(x), rownames(adjm))
+    adjm <- adjm[ind, ind]
+    x <- x[rownames(adjm),]
+    cmat <- cmat[,rownames(adjm)]
+    cmat <- cmat[rowSums(cmat) > 2,]
+    
+    message("Estimating weighted adjacency matrix for GRN (group 0)")
+    A1 <- covsel(t(x[,y==1]), one=adjm, lambda=0.2)
+    message("Estimating weighted adjacency matrix for GRN (group 1)")
+    A2 <- covsel(t(x[,y==2]), one=adjm, lambda=0.2)
+
+    # execute
+    message("Executing NetGSA ...")
+    message("This may take a while ...")
+    res <- NetGSA(A1$wAdj, A2$wAdj, x, y, B=cmat, directed=TRUE)
+
+    res <- cbind(res$teststat, res$p.value)
+    colnames(res) <- c("STAT", config.ebrowser("GSP.COL"))
+    rownames(res) <- rownames(cmat)
+    return(res)
+}
+
+#
+# 5 GANPA
+#
+.ganpa <- function(eset, gs, grn, perm=1000)
+{
+    GSE.Test.Main <- NULL
+    .isAvailable("GANPA", type="software")
+
+    # configure
+    GRP.COL <- config.ebrowser("GRP.COL")
+    SMPL.COL <- config.ebrowser("SMPL.COL")
+    OUT.DIR <- config.ebrowser("OUTDIR.DEFAULT")
+    GS.MIN.SIZE <- config.ebrowser("GS.MIN.SIZE")
+    GS.MAX.SIZE <- config.ebrowser("GS.MAX.SIZE")
+    GSP.COL <- config.ebrowser("GSP.COL")
+    
+    if(!file.exists(OUT.DIR)) dir.create(OUT.DIR)
+    out.prefix <- file.path(OUT.DIR, "ganpa")
+
+    # expression data
+    has.scol <- SMPL.COL %in% colnames(pData(eset))
+    if(!has.scol) pData(eset)[,SMPL.COL] <- sampleNames(eset)
+    sinfo <- pData(eset)[,c(SMPL.COL, GRP.COL)]
+    colnames(sinfo) <- c("sampleid", "status")
+    expr.obj <- list(gExprs=exprs(eset), sampleinfo=sinfo)
+    
+    # gene regulatory network
+    gnet <- .grn2gnet(grn)    
+
+    # execute
+    GSE.Test.Main(gExprs.obj=expr.obj, gsets=gs, gNET=gnet, 
+        permN=perm, size.min=GS.MIN.SIZE, size.max=GS.MAX.SIZE,
+        msp.correction=FALSE, output.label=out.prefix, permFDR.cutoff=1)
+
+    # read results from output csv
+    res <- read.csv(paste(out.prefix, "MeanAbs.OrigW.csv", sep=".")) 
+    n <- res[,1]
+    res <- as.matrix(res[,c("Size", "S", "NS", "permP")])
+    colnames(res)[c(1,4)] <- c("SIZE", GSP.COL)
+    rownames(res) <- n
+    return(res)
+}
+
+.grn2gnet <- function(grn)
+{
+    ureg <- unique(grn[,1])
+    gnet <- sapply(ureg, function(r) grn[grn[,1] == r,2])
+    return(gnet)
+}
+
+#
+# 6 CePa
+#
+.cepa <- function(eset, gs, grn, perm=1000)
+{
+    cepa.all <- set.pathway.catalogue <- sampleLabel <- NULL
+    .isAvailable("CePa", type="software")
+
+    # define sample groups
+    GRP.COL <- config.ebrowser("GRP.COL")
+    sl <- sampleLabel(pData(eset)[, GRP.COL], treatment=1, control=0)
+
+    # create pathway catalogue from gs and grn
+    # (1) pathway list
+    pl <- sapply(gs, function(s) as.character(query.grn(s, grn)))
+    pl <- pl[sapply(pl, length) >= config.ebrowser("GS.MIN.SIZE")]
+
+    # (2) interaction list
+    il <- data.frame(as.character(seq_len(nrow(grn))), grn[,1:2], stringsAsFactors=FALSE)
+    colnames(il) <- c("interaction.id", "input", "output")
+
+    # (3) mapping
+    m <- data.frame(node.id=featureNames(eset), symbol=featureNames(eset), stringsAsFactors=FALSE)
+    pwy.cat <- set.pathway.catalogue(pathList=pl, interactionList=il, mapping=m)
+    
+    # executing
+    res <- cepa.all(mat=exprs(eset), label=sl, pc=pwy.cat, iter=perm)
+    res.mat <- matrix(0.0, nrow=length(res), ncol=7)
+    for(i in seq_along(res))
+    {
+        res.mat[i,1:6] <- sapply(res[[i]], function(x) x$p.value)
+        res.mat[i,7] <- min(6 * min(res.mat[i,1:6]), 1) 
+
+    }
+    rownames(res.mat) <- names(res)
+    n <- paste(toupper(names(res[[1]])), "PVAL" , sep=".")
+    colnames(res.mat) <- c(n, config.ebrowser("GSP.COL"))
+    return(res.mat)
+}
+
+#
+# 7 DEGraph
+#
+.degraph <- function(eset, gs, grn)
+{    
+    testOneGraph <- NULL
+    .isAvailable("DEGraph", type="software")
+
+    grp <- pData(eset)[,config.ebrowser("GRP.COL")]
+            
+    options(show.error.messages=FALSE) 
+    res <- sapply(names(gs),
+        function(s)
+        {
+            gs.grn <- query.grn(gs[[s]], grn, index=FALSE)
+            if(nrow(gs.grn) < config.ebrowser("GS.MIN.SIZE")) return(NA)
+            am <- .grn2adjm(gs.grn)
+            gr <- graphAM(am, "directed")           
+            gr <- as(gr, "graphNEL")                 
+            r <- try( testOneGraph(graph=gr, data=exprs(eset), 
+                       classes=grp, useInteractionSigns=FALSE), silent=TRUE )
+            if(is(r, "try-error")) return(NA) else return(r[[1]]$p.value[1])
+        })
+    options(show.error.messages=TRUE)
+    names(res) <- names(gs)
+    res <- res[!is.na(res)]
+    return(res)
+}
+
+#
+# 8 topologyGSA 
+#
+.topogsa <- function(eset, gs, grn, alpha=0.05, perm=1000, test.mean=TRUE)
+{    
+    # call topologyGSA via clipper's pathQ function
+    return(.clipper(eset, gs, grn, alpha, perm))
+
+    # original topologyGSA: deprecated
+    # does not terminate on particular gs, eg. hsa04060_Cytokine-cytokine_receptor_interaction
+    pathway.mean.test <- pathway.var.test <- NULL
+    .isAvailable("topologyGSA", type="software")
+  
+    is.DAG <- NULL
+    .isAvailable("gRbase", type="software")
+    
+    graph_from_graphnel <- mst <- NULL
+     .isAvailable("igraph", type="software")
+ 
+    grp <- pData(eset)[,config.ebrowser("GRP.COL")]
+    y1 <- t(exprs(eset)[, grp == 0])
+    y2 <- t(exprs(eset)[, grp == 1])
+
+    res <- sapply(names(gs),
+        function(s)
+        {
+            message(s)
+            gs.grn <- query.grn(gs[[s]], grn, index=FALSE)
+            if(nrow(gs.grn) < config.ebrowser("GS.MIN.SIZE")) return(NA)
+            am <- .grn2adjm(gs.grn)
+            gr <- graphAM(am, "directed")           
+            gr <- as(gr, "graphNEL")                 
+            
+            if(!is.DAG(gr))
+            {
+                gr2 <- graph_from_graphnel(gr)
+                gr2 <- mst(gr2)
+                gr <- as(gr2, "graphNEL")
+            }
+            if(test.mean) r <- pathway.mean.test(y1, y2, gr, alpha, perm)
+            else r <- pathway.var.test(y1, y2, gr, alpha)
+            return(r$p.value)
+        }
+    )
+    names(res) <- names(gs)
+    res <- res[!is.na(res)]
+    return(res)
+}
+
+#
+# 9 clipper
+#
+.clipper <- function(eset, gs, grn, alpha=0.05, perm=1000)
+{    
+    pathQ <- NULL
+    .isAvailable("clipper", type="software")
+  
+    is.DAG <- NULL
+    .isAvailable("gRbase", type="software")
+    
+    graph_from_graphnel <- mst <- NULL
+     .isAvailable("igraph", type="software")
+ 
+    grp <- pData(eset)[,config.ebrowser("GRP.COL")] + 1
+
+    a <- Sys.time()
+    res <- sapply(names(gs),
+        function(s)
+        {
+            message(s)
+            gs.grn <- query.grn(gs[[s]], grn, index=FALSE)
+            if(nrow(gs.grn) < config.ebrowser("GS.MIN.SIZE")) return(NA)
+            am <- .grn2adjm(gs.grn)
+            gr <- graphAM(am, "directed")           
+            gr <- as(gr, "graphNEL")                 
+            
+            if(!is.DAG(gr))
+            {
+                gr2 <- graph_from_graphnel(gr)
+                gr2 <- mst(gr2)
+                gr <- as(gr2, "graphNEL")
+            }
+            r <- try(pathQ(exprs(eset), grp, gr, perm, alpha), silent=TRUE)
+            if(is(r, "try-error")) return(NA) else return(r$alphaMean)
+        }
+    )
+    names(res) <- names(gs)
+    res <- res[!is.na(res)]
+    b <- Sys.time()
+    return(res)
+}
+

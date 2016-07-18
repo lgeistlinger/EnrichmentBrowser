@@ -81,13 +81,14 @@ anno.p2g <- function(eset)
  
     # determine mapping
     org <- AnnotationDbi::species(anno.pkg) 
+    data(korg, package="pathview")
     org <- pathview::kegg.species.code(org)
     org.start <- paste0("^", org, ":")
     # check whether there is a mapping to Entrez (= NCBI gene-ID)
     if(EZ.COL %in% keytypes(anno.pkg))
     {
-        p2g.map <- mapIds(anno.pkg, 
-            keys=keys(anno.pkg), keytype=PRB.COL, column=EZ.COL)
+        p2g.map <- suppressMessages(mapIds(anno.pkg, 
+            keys=keys(anno.pkg), keytype=PRB.COL, column=EZ.COL))
         probes <- names(p2g.map)
 
         # check whether EntrezID is used by KEGG

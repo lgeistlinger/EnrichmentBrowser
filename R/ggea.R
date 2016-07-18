@@ -299,7 +299,9 @@ perm.edges.pval <- function(res.tbl, grn.cons, perm)
 # approx by analytical edge consistency distribution (mixture of 2 gaussians)
 approx.pval <- function(res.tbl, grn.cons)
 {
-    mixmdl <- mixtools::normalmixEM(grn.cons)
+    normalmixEM <- NULL
+    .isAvailable("mixtools", type="software")
+    mixmdl <- normalmixEM(grn.cons)
     l <- mixmdl$lambda
     m <- mixmdl$mu
     s <- mixmdl$sigma

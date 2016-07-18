@@ -33,17 +33,19 @@ get.go.genesets <- function(org,
     }
     else
     {
+        useMart <- listDatasets <- useDataset <- getBM <- NULL
+        .isAvailable("biomaRt", type="software")
         # setting mart
-        ensembl <- biomaRt::useMart("ensembl")
-        ds <- biomaRt::listDatasets(ensembl)[,"dataset"]
+        ensembl <- useMart("ensembl")
+        ds <- listDatasets(ensembl)[,"dataset"]
         ds <- grep(paste0("^", org), ds, value=TRUE)
-        ensembl <- biomaRt::useDataset(ds, mart=ensembl)
+        ensembl <- useDataset(ds, mart=ensembl)
 
         message("Downloading mapping from BioMart ...")
         message("This may take a few minutes ...")
         
-        GO2descr <- biomaRt::getBM(attributes=
-            c("go_id", "name_1006", "namespace_1003"), mart=ensembl)
+        GO2descr <- getBM(mart=ensembl,
+            attributes=c("go_id", "name_1006", "namespace_1003"))
         GO2descr <- GO2descr[GO2descr$go_id != "", ]
         GO2descr <- GO2descr[order(GO2descr[,"go_id"]),]
         ontos <- sapply(GO2descr[,3], 
@@ -55,7 +57,7 @@ get.go.genesets <- function(org,
             }) 
         GO2descr <- GO2descr[ontos==onto,1:2]
         
-        gene2GO <- biomaRt::getBM(attributes = c("entrezgene", "go_id"), mart=ensembl)
+        gene2GO <- getBM(attributes = c("entrezgene", "go_id"), mart=ensembl)
         gene2GO <- gene2GO[apply(gene2GO, 1 , function(r) all(r != "")), ]
         gene2GO <- gene2GO[order(gene2GO[,"go_id"]),]
         gene2GO <- gene2GO[gene2GO[,"go_id"] %in% GO2descr[,"go_id"],]
@@ -179,7 +181,8 @@ make.gs.names <- function(ids, titles)
 {
     ids <- sub("path:", "", ids)
     titles <- sapply(titles, function(title) unlist(strsplit(title, " - "))[1])
-    titles <- stringr::str_trim(titles)
+    titles <- sub("^ +", "", titles)
+    titles <- sub(" +$", "", titles)
     titles <- gsub(" ", "_", titles)
     ids <- paste(ids, titles, sep="_")
     return(ids)

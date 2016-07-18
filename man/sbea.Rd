@@ -13,8 +13,8 @@
     resulting gene set rankings. 
 }
 \usage{
-    sbea( method = sbea.methods(), eset, gs, alpha = 0.05, 
-            perm = 1000, padj.method = "none", out.file = NULL, browse = FALSE )
+    sbea( method = EnrichmentBrowser::sbea.methods(), eset, gs, alpha = 0.05, 
+        perm = 1000, padj.method = "none", out.file = NULL, browse = FALSE, ... )
 
     sbea.methods()
 }
@@ -60,6 +60,22 @@
     \item{browse}{
         Logical. Should results be displayed in the browser for interactive 
         exploration? Defaults to FALSE.
+    }
+    \item{...}{
+        Additional arguments passed to individual sbea methods.
+        This includes currently for ORA and MGSA:
+        \itemize{
+            \item beta: Log2 fold change significance level. Defaults to 1 (2-fold).
+            \item sig.stat: decides which statistic is used for determining 
+                significant DE genes. 
+                Options are:
+                    \itemize{
+                        \item 'p' (Default): genes with p-value below alpha.
+                        \item 'fc': genes with abs(log2(fold change)) above beta
+                        \item '&': p & fc (logical AND)
+                        \item '|': p | fc (logical OR)
+                    } 
+        }
     }
 }
 \value{

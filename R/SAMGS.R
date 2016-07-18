@@ -7,15 +7,15 @@
 #   adapting for use in SAFE framework (local and global stat)
 
 # SAMGS stat as global.stat for safe
-global.SAMGS <-
-function(C.mat, u, ...)
+global.SAMGS <- function(cmat, u, ...)
 {
-    return(
-        function(u, C.mat2 = C.mat) 
-        {
-            return(as.numeric(t(SparseM::as.matrix(C.mat2)) %*% u^2))
-        }
-    )
+    # SparseM::as.matrix
+    .isAvailable("SparseM", type="software")
+    #pos <- grep("SparseM", search())
+    am <- getMethod("as.matrix", signature="matrix.csr")#, where=pos)
+    cmat <- t(am(cmat))
+
+    return(function(u, cmat2=cmat) as.vector(cmat2 %*% u^2))
 }
 
 # SAM t-like stat as local.stat for safe

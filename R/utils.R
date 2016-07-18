@@ -18,7 +18,7 @@
         {   
             biocLite <- NULL
             source("http://bioconductor.org/biocLite.R")
-            biocLite(pkg)
+            biocLite(pkg, suppressUpdates=TRUE, suppressAutoUpdate=TRUE)
         }   
         else stop(paste("Package", pkg, "is not available"))
     }   

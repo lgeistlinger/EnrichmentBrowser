@@ -18,7 +18,7 @@ importFrom("stats", "formula", "mad", "median", "model.matrix",
              "quantile", "rnorm", "runif", "sd")
 importFrom("utils", "available.packages", "browseURL",
              "capture.output", "data", "head", "memory.limit",
-             "read.delim", "unzip", "write.table")
+             "read.csv", "read.delim", "unzip", "write.table")
 
 export( 
     read.eset, 

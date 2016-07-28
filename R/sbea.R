@@ -273,22 +273,52 @@ rseq.sbea <- function(method, eset, cmat, perm, alpha)
     return(res.tbl)
 }
 
-is.sig <- function(fdat, alpha=0.05, beta=1, sig.stat=c("p", "fc", "|", "&"))
+is.sig <- function(fdat, alpha=0.05, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
 {
-    sig.stat <- match.arg(sig.stat)
-    if(sig.stat == "p") sig <- fdat[, config.ebrowser("ADJP.COL")] < alpha
-    else if(sig.stat == "fc") sig <- abs(fdat[, config.ebrowser("FC.COL")]) > beta
+    FC.COL <- config.ebrowser("FC.COL")
+    ADJP.COL <- config.ebrowser("ADJP.COL")
+
+    sig.stat <- sig.stat[1]
+    if(grepl("P$", sig.stat))
+    {
+        if(sig.stat == "xxP") sig <- fdat[, ADJP.COL] < alpha
+        else
+        {
+            perc <- as.integer(substring(sig.stat, 1, 2))
+            p <- fdat[,ADJP.COL]
+            names(p) <- rownames(fdat) 
+            ordp <- sort(p)
+            nr.sig <- round( length(p) * (perc / 100) )
+            sigs <- names(ordp)[seq_len(nr.sig)]
+            sig <- rownames(fdat) %in% sigs
+        }
+    }
+    else if(grepl("FC$", sig.stat))
+    { 
+        if(sig.stat == "xxFC") sig <- abs(fdat[, FC.COL]) > beta
+        else
+        {
+            perc <- as.integer(substring(sig.stat, 1, 2))
+            fc <- fdat[,FC.COL]
+            names(fc) <- rownames(fdat) 
+            ordfc <- fc[order(abs(fc), decreasing=TRUE)]
+            nr.sig <- round( length(fc) * (perc / 100) )
+            sigs <- names(ordfc)[seq_len(nr.sig)]
+            sig <- rownames(fdat) %in% sigs
+        }
+    }
     else 
     {
-        psig <- fdat[, config.ebrowser("ADJP.COL")] < alpha
-        fcsig <- abs(fdat[, config.ebrowser("FC.COL")]) > beta
+        psig <- fdat[, ADJP.COL] < alpha
+        fcsig <- abs(fdat[, FC.COL]) > beta
         sig <- do.call(sig.stat, list(psig, fcsig))
     }
     return(sig)
 }
 
 # 1 HYPERGEOM ORA
-ora.hyperg <- function(fdat, cmat, alpha=0.05, beta=1, sig.stat=c("p", "fc", "|", "&"))
+ora.hyperg <- function(fdat, cmat, 
+    alpha=0.05, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
 {
     # determine sig. diff. exp. genes of eset, 
     # corresponds to sample size from urn
@@ -330,7 +360,8 @@ ora.hyperg <- function(fdat, cmat, alpha=0.05, beta=1, sig.stat=c("p", "fc", "|"
 #   mode=2 ... safe default (wilcoxon)
 #
 #
-.ora <- function(mode=2, eset, cmat, perm=1000, alpha=0.05, beta=1, sig.stat=c("p", "fc", "|", "&"))
+.ora <- function(mode=2, eset, cmat, perm=1000, 
+    alpha=0.05, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
 {
     GRP.COL <- config.ebrowser("GRP.COL")
     ADJP.COL <- config.ebrowser("ADJP.COL")
@@ -547,7 +578,7 @@ global.PADOG <- function(cmat, u, args.global)
 }
 
 # 8a MGSA 
-.mgsa <- function(eset, gs, alpha=0.05, beta=1, sig.stat=c("p", "fc", "|", "&"))
+.mgsa <- function(eset, gs, alpha=0.05, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
 {
     mgsa <- setsResults <- NULL
     .isAvailable("mgsa", type="software")

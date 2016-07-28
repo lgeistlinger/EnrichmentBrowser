@@ -12,8 +12,9 @@
     resulting gene set rankings. 
 }
 \usage{
-    nbea( method = EnrichmentBrowser::nbea.methods(), eset, gs, grn, alpha = 0.05, 
-          perm = 1000, padj.method = "none", out.file = NULL, browse = FALSE, ... )
+    nbea( method = EnrichmentBrowser::nbea.methods(), eset, gs, grn, 
+            prune.grn=TRUE, alpha = 0.05, perm = 1000, padj.method = "none", 
+            out.file = NULL, browse = FALSE, ... )
 
     nbea.methods()
 }
@@ -44,6 +45,11 @@
         with exactly *THREE* cols; 1st col = IDs of regulating genes; 
         2nd col = corresponding regulated genes;
         3rd col = regulation effect; Use '+' and '-' for activation/inhibition.
+    }
+    \item{prune.grn}{
+        Logical. 
+        Should the GRN be pruned? This removes duplicated, self, and
+        reversed edges. Defaults to TRUE.
     }
     \item{alpha}{
         Statistical significance level. Defaults to 0.05.

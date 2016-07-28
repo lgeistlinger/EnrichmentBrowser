@@ -19,6 +19,7 @@ nbea <- function(
     eset, 
     gs, 
     grn,
+    prune.grn=TRUE,
     alpha=0.05, 
     perm=1000, 
     padj.method="none",
@@ -41,8 +42,7 @@ nbea <- function(
     if(!is.matrix(grn)) grn <- read.grn(grn)
 
     # prune grn
-    grn <- .rm.self.edges(grn)
-    grn <- .rm.rev.edges(grn)
+    if(prune.grn) grn <- .pruneGRN(grn)
 
     # restrict to relevant genes 
     # in the intersection of eset, gs, and grn
@@ -108,22 +108,31 @@ nbea <- function(
 #
 # general helpers
 #
-.rm.self.edges <- function(grn) grn[grn[,1] != grn[,2],]
-
-.rm.rev.edges <- function(grn)
+.pruneGRN <- function(grn)
 {
-    n <- nrow(grn) 
-    ind <- rep(FALSE, n) 
-    ind <- sapply(seq_len(n-1),
+    # remove duplicates
+    grn <- unique(grn)
+
+    # rm self edges
+    grn <- grn[grn[,1] != grn[,2],]
+   
+    # rm rev edges 
+    genes <- unique(as.vector(grn[,1:2]))
+    ggrid <- seq_along(genes)
+    names(ggrid) <- genes
+    igrn <- cbind(ggrid[grn[,1]], ggrid[grn[,2]])
+
+    n <- nrow(grn)
+    grid <- seq_len(n-1)
+    ind <- sapply(grid,
         function(i)
         {
-            x <- grn[i,]
+            x <- igrn[i,2:1]
             j <- i + 1
-            grid <- j:n
-            cond1 <- grn[grid,2] == x[1]
-            cond2 <- grn[grid,1] == x[2]
-            is.rev <- any(cond1 & cond2)
-            return(is.rev) 
+            cigrn <- igrn[j:n,,drop=FALSE]
+            cigrn <- cigrn[cigrn[,1] == x[1], , drop=FALSE]
+            is.rev <- any( cigrn[,2] == x[2] )
+            return(is.rev)
         })
     ind <- c(ind, FALSE)
     grn <- grn[!ind,]
@@ -133,7 +142,7 @@ nbea <- function(
 # 1 SPIA
 #
 .spia <- function(eset, gs, grn, 
-    alpha=0.05, perm=1000, beta=1, sig.stat=c("p", "fc", "|", "&")) 
+    alpha=0.05, perm=1000, beta=1, sig.stat=c("xxP", "xxFC", "|", "&")) 
 {
     FC.COL <- config.ebrowser("FC.COL")
     ADJP.COL <- config.ebrowser("ADJP.COL")
@@ -227,7 +236,7 @@ nbea <- function(
 # 2 NEA
 #
 .nea <- function(eset, gs, grn, 
-    alpha=0.05, perm=100, beta=1, sig.stat=c("p", "fc", "|", "&"))
+    alpha=0.05, perm=100, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
 {
     nea <- NULL
     .isAvailable("neaGUI", type="software")

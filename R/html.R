@@ -457,16 +457,6 @@ make.ggraph.html <- function(eset, sgrn, alpha, img.file)
     if(nrow(sgrn) > 0)
         sggea.graph <- construct.ggea.graph(grn=sgrn, eset=eset, alpha=alpha)
     
-    # ggea graph png
-    png(img.file, width=width, height=height)
-    par(mai=rep(0,4))
-    if(!is.null(sggea.graph))
-        sggea.graph <- plot.ggea.graph(sggea.graph,
-            show.scores=(numEdges(sggea.graph) < config.ebrowser("NR.SHOW")))
-    else plot(NA, axes=FALSE, xlim=c(0,1), ylim=c(0,1),
-        ylab="", xlab="", main="No edges in network for this set!")
-    dev.off()
-
     # txt report
     report.file <- sub("png$", "txt", img.file)
     if(!is.null(sggea.graph))
@@ -480,6 +470,16 @@ make.ggraph.html <- function(eset, sgrn, alpha, img.file)
     }
     else cat("No edges in network for this set!", file=report.file)
 
+    # ggea graph png
+    png(img.file, width=width, height=height)
+    par(mai=rep(0,4))
+    if(!is.null(sggea.graph))
+        sggea.graph <- plot.ggea.graph(sggea.graph,
+            show.scores=(numEdges(sggea.graph) < config.ebrowser("NR.SHOW")))
+    else plot(NA, axes=FALSE, xlim=c(0,1), ylim=c(0,1),
+        ylab="", xlab="", main="No edges in network for this set!")
+    dev.off()
+    
     ggraph.html <- sub("view.png$", "graph.html", img.file)
     if(!is.null(sggea.graph))
     {

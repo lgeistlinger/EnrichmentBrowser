@@ -650,8 +650,8 @@ global.PADOG <- function(cmat, u, args.global)
     {
         res <- limma::mroast(y, gs.index, design, 
                                 nrot=perm, adjust.method="none", sort="none")
-        res <- res[,c("NGenes", "Direction", "PValue", "PValue.Mixed")]
-        colnames(res) <- c("NR.GENES", "DIR", "DIR.PVAL", config.ebrowser("GSP.COL"))
+        res <- res[,c("NGenes", "Direction", "PValue")]
+        colnames(res) <- c("NR.GENES", "DIR", config.ebrowser("GSP.COL"))
         res[,"DIR"] <- ifelse(res[,"DIR"] == "Up", 1, -1)
     }
     else
@@ -666,7 +666,7 @@ global.PADOG <- function(cmat, u, args.global)
 
 
 # 11 GSVA
-.gsva <- function(eset, gs, perm=1000, rseq=FALSE)
+.gsva <- function(eset, gs, rseq=FALSE)
 {
      gsva <- NULL
     .isAvailable("GSVA", type="software")

@@ -285,7 +285,7 @@ ENTREZ gene \verb=7525=.
 fData(all.eset)[ which.min(fData(all.eset)$ADJ.PVAL), ]
 @
 This turns out to be the YES proto-oncogene 1 
-(\href{http://www.genome.jp/dbget-bin/www_bget?hsa:7525}{hsa:7525@KEGG}).
+(\href{http://www.genome.jp/dbget-bin/www\_bget?hsa:7525}{hsa:7525@KEGG}).
   
 For RNA-seq data, the \Rfunction{de.ana} function carries out a differential 
 expression analysis between the two groups either based on functionality from

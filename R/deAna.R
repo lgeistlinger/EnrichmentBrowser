@@ -1,5 +1,5 @@
 de.ana <- function(expr, grp=NULL, blk=NULL, 
-    de.method=c("limma", "edgeR", "DESeq"), padj.method="BH", stat.only=FALSE)
+    de.method=c("limma", "edgeR", "DESeq"), padj.method="BH", stat.only=FALSE, min.cpm=2)
 {
     is.eset <- is(expr, "eSet")
     if(is.eset) 
@@ -38,9 +38,31 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
         f <- paste0(f, "block + ") 
     }
     f <- formula(paste0(f, "group"))
- 
+    
+	de.method <- match.arg(de.method)
+	data.type <- auto.detect.data.type(expr)
+	if(data.type == "rseq")
+	{
+		# filter low-expressed genes
+		rs <- rowSums(edgeR::cpm(exprs(eset)) > min.cpm)
+		keep <-  rs >= ncol(expr) / 2
+		nr.low <- sum(!keep)
+		if(nr.low)
+		{ 
+			message(paste("Excluding", nr.low, "genes not satisfying min.cpm threshold")) 
+			expr <- expr[keep,]	
+			if(is.eset) eset <- eset[keep,]
+		}	
+	}
+	else
+	{
+		# check for appropriate choice of DE method
+		if(de.method %in% c("edgeR", "DESeq"))
+			stop(paste(de.method, "only applicable to integer read counts"))
+	} 
+
+
     # EDGER
-    de.method <- match.arg(de.method)
     if(de.method == "edgeR")
     {
         y <- edgeR::DGEList(counts=expr,group=group)
@@ -81,7 +103,6 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
     else if(de.method == "limma")
     {
         design <- model.matrix(f)
-        data.type <- auto.detect.data.type(expr)
         if(data.type == "rseq") 
         {
             dge <- edgeR::DGEList(counts=expr)

@@ -23,8 +23,10 @@
         Network-based enrichment analysis method.
         Currently, the following network-based enrichment analysis methods 
         are supported:
-        \sQuote{ggea}, \sQuote{nea}, \sQuote{spia}, \sQuote{pathnet}.
-        See Details. Default is 'ggea'.
+        \sQuote{ggea}, \sQuote{spia}, \sQuote{pathnet}, \sQuote{degraph},
+		\sQuote{topologygsa}, \sQuote{ganpa}, \sQuote{cepa}, \sQuote{netgsa},
+		and \sQuote{nea}. 
+        Default is 'ggea'.
         This can also be the name of a user-defined function implementing 
         network-based enrichment. See Details. 
     } 
@@ -123,16 +125,41 @@
     the statistical significance of the consistency score of each gene set in 
     two different ways: (1) based on sample permutation as described in the 
     original publication (Geistlinger et al., 2011) or (2) using an 
-    approximation based on Bioconductor's npGSEA package that is much faster.  
+    approximation in the spirit of Bioconductor's npGSEA package that is much faster.  
     
-    'nea': network enrichment analysis, implemented in Bioconductor's neaGUI 
-    package. 
-    
-    'spia': signaling pathway impact analysis, implemented in Bioconductor's 
-    SPIA package.
+    'spia': signaling pathway impact analysis, combines ORA with the probability that 
+	expression changes are propagated across the pathway topology;    
+	implemented in Bioconductor's SPIA package.
 
-    'pathnet': pathway analysis using network information, implemented in 
-    Bioconductor's PathNet package.
+    'pathnet': pathway analysis using network information, applies ORA on combined 
+	evidence for the observed signal for gene nodes and the signal implied by connected 
+	neighbors in the network; implemented in Bioconductor's PathNet package.
+
+	'degraph': differential expression testing for gene graphs,
+    multivariate testing of differences in mean incorporating underlying
+    graph structure; implemented in Bioconductor's DEGraph package
+
+	'topologygsa': topology-based gene set analysis,
+    uses Gaussian graphical models to incorporate the dependence structure
+	among genes as implied by pathway topology;
+    implemented in CRAN's topologyGSA package.
+
+	'ganpa': gene association network-based pathway analysis,
+    incorporates network-derived gene weights in the enrichment analysis;
+    implemented in CRAN's GANPA package.
+
+	'cepa': centrality-based pathway enrichment,
+    incorporates network centralities as node weights mapped from
+    differentially expressed genes in pathways;
+    implemented in CRAN's CePa package.
+
+	'netgsa': network-based gene set analysis,
+    incorporates external information about interactions among genes
+    as well as novel interactions learned from data;
+    implemented in CRAN's NetGSA package.
+
+	'nea': network enrichment analysis, applies ORA on interactions instead of genes; 
+	implemented in Bioconductor's neaGUI package. 
 
     It is also possible to use additional network-based enrichment methods.
     This requires to implement a function that takes 'eset', 'gs', 'grn', 

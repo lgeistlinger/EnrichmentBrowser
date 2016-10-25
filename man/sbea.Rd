@@ -23,9 +23,10 @@
         Set-based enrichment analysis method.
         Currently, the following set-based enrichment analysis methods 
         are supported:
-        \sQuote{ora}, \sQuote{safe}, \sQuote{gsea}, \sQuote{samgs}, and 
-        \sQuote{ebm}.
-        See Details. For basic ora also set 'perm=0'. Default is \sQuote{ora}.
+        \sQuote{ora}, \sQuote{safe}, \sQuote{gsea}, \sQuote{padog},     
+		\sQuote{roast}, \sQuote{camera}, \sQuote{gsa}, \sQuote{gsva},
+		\sQuote{globaltest}, \sQuote{samgs}, \sQuote{ebm}, and \sQuote{mgsa}.
+        For basic ora also set 'perm=0'. Default is \sQuote{ora}.
         This can also be the name of a user-defined function implementing 
         set-based enrichment. See Details. 
     } 
@@ -101,6 +102,31 @@
     p-values of genes in a gene set resemble a uniform distribution 
     (Subramanian et al., 2005). 
 
+	'padog': pathway analysis with down-weighting of overlapping genes, 
+    incorporates gene weights to favor genes appearing in few pathways versus genes 
+    that appear in many pathways; implemented in the PADOG package.
+
+	'roast': rotation gene set test, 
+    uses rotation instead of permutation for assessment of gene set significance; 
+    implemented in the limma and edgeR packages for microarray and RNA-seq data, respectively.
+
+	'camera': correlation adjusted mean rank gene set test,
+    accounts for inter-gene correlations as implemented in the limma 
+    and edgeR packages for microarray and RNA-seq data, respectively.
+
+	'gsa': gene set analysis,
+    differs from GSEA by using the maxmean statistic, i.e. the mean of the positive or  
+    negative part of gene scores in the gene set; implemented in the GSA package.
+
+	'gsva': gene set variation analysis,
+    transforms the data from a gene by sample matrix to a gene set by sample matrix, 
+    thereby allowing the evaluation of gene set enrichment for each sample;
+    implemented in the GSVA package.
+
+	'globaltest': global testing of groups of genes,
+    general test of groups of genes for association with a response variable;
+    implemented in the globaltest package.
+
     'samgs': significance analysis of microarrays 
     on gene sets, extends the SAM method for single genes to gene set analysis
     (Dinu et al., 2007).
@@ -108,6 +134,11 @@
     'ebm': empirical Brown's method, combines $p$-values of genes in a 
     gene set using Brown's method to combine $p$-values from dependent tests; 
     implemented in the EmpiricalBrownsMethod package. 
+
+	'mgsa': model-based gene set analysis,
+    Bayesian modeling approach taking set overlap into account by working on all sets 
+    simultaneously, thereby reducing the number of redundant sets; 
+	implemented in the mgsa package.
 
     It is also possible to use additional set-based enrichment methods.
     This requires to implement a function that takes 'eset', 'gs', 'alpha', and

@@ -16,6 +16,7 @@ importFrom("graphics", "par", "segments", "symbols", "text")
 importFrom("stats", "formula", "mad", "median", "model.matrix",
              "p.adjust", "pchisq", "phyper", "pnorm", "qnorm",
              "quantile", "rnorm", "runif", "sd")
+importFrom("methods", "as", "getMethod", "is", "new")
 importFrom("utils", "available.packages", "browseURL",
              "capture.output", "data", "head", "memory.limit",
              "read.csv", "read.delim", "unzip", "write.table")

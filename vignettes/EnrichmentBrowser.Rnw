@@ -12,7 +12,7 @@ BiocStyle::latex()
 \usepackage{graphicx, subfig}
 \usepackage[utf8]{inputenc} 
 
-\title{EnrichmentBrowser: seamless navigation through combined \\
+\bioctitle[EnrichmentBrowser]{EnrichmentBrowser: seamless navigation through combined \\
         results of set-based and network-based enrichment analysis}
 \author{Ludwig Geistlinger} 
 
@@ -150,8 +150,6 @@ dim(air.eset)
 exprs(air.eset)[1:4,1:4]
 @
 
-
-
 \newpage
 
 \section{Normalization}
@@ -285,7 +283,7 @@ ENTREZ gene \verb=7525=.
 fData(all.eset)[ which.min(fData(all.eset)$ADJ.PVAL), ]
 @
 This turns out to be the YES proto-oncogene 1 
-(\href{http://www.genome.jp/dbget-bin/www\_bget?hsa:7525}{hsa:7525@KEGG}).
+(\href{http://www.genome.jp/dbget-bin/www_bget?hsa:7525}{hsa:7525@KEGG}).
   
 For RNA-seq data, the \Rfunction{de.ana} function carries out a differential 
 expression analysis between the two groups either based on functionality from
@@ -377,14 +375,36 @@ sbea.methods()
         uses a Kolmogorov–Smirnov statistic to test whether the ranks of the 
         $p$-values of genes in a gene set resemble a uniform distribution 
         \cite{Subramanian05})}
+\item{PADOG: Pathway Analysis with Down-weighting of Overlapping Genes 
+	(incorporates gene weights to favor genes appearing in few pathways versus genes 
+	that appear in many pathways; implemented in the \Biocpkg{PADOG} package)}
+\item{ROAST: ROtAtion gene Set Test 
+	(uses rotation instead of permutation for assessment of gene set significance; 
+	implemented in the \Biocpkg{limma} and \Biocpkg{edgeR} packages for microarray 
+	and RNA-seq data, respectively)}
+\item{CAMERA: Correlation Adjusted MEan RAnk gene set test
+	(accounts for inter-gene correlations as implemented in the \Biocpkg{limma} 
+	and \Biocpkg{edgeR} packages for microarray and RNA-seq data, respectively)}
+\item{GSA: Gene Set Analysis
+	(differs from GSEA by using the maxmean statistic, i.e.~the mean of the positive or 
+	negative part of gene scores in the gene set; implemented in the \CRANpkg{GSA} package)}
+\item{GSVA: Gene Set Variation Analysis
+	(transforms the data from a gene by sample matrix to a gene set by sample matrix, 
+	thereby allowing the evaluation of gene set enrichment for each sample;
+	implemented in the \Biocpkg{GSVA} package)}
+\item{GLOBALTEST: Global testing of groups of genes
+	(general test of groups of genes for association with a response variable;
+	implemented in the \Biocpkg{globaltest} package)}
 \item{SAMGS: Significance Analysis of Microarrays on Gene Sets 
         (extending the SAM method for single genes to gene set analysis 
         \cite{Dinu07})}
 \item{EBM: Empirical Brown's Method (combines $p$-values of genes in a 
 gene set using Brown's method to combine $p$-values from dependent tests;
 implemented in \Biocpkg{EmpiricalBrownsMethod})}
+\item{MGSA: Model-based Gene Set Analysis
+	(Bayesian modeling approach taking set overlap into account by working on all sets 
+	simultaneously, thereby reducing the number of redundant sets; implemented in \Biocpkg{mgsa})}
 \end{itemize}
-
 For demonstration, we perform a basic ORA choosing a significance level 
 $\alpha$ of 0.05.
 <<sbea>>=
@@ -440,6 +460,8 @@ dummy.sbea <- function(eset, gs, alpha, perm)
 }
 @
 
+\newpage
+
 We can plug this method into \Rfunction{sbea} as before.
 
 <<sbea2>>=
@@ -491,13 +513,37 @@ nbea.methods()
     (evaluates consistency of known regulatory interactions with the observed
     expression data \cite{Geistlinger11})}
 \item{SPIA: Signaling Pathway Impact Analysis 
-    (implemented in the \Biocpkg{SPIA} package)}
-\item{NEA: Network Enrichment Analysis 
-    (implemented in the \Biocpkg{neaGUI} package)}
+    (combines ORA with the probability that expression changes
+	are propagated across the pathway topology;
+	implemented in the \Biocpkg{SPIA} package)}
 \item{PathNet: Pathway Analysis using Network Information
-    (implemented in the \Biocpkg{PathNet} package)}
+    (applies ORA on combined evidence for the observed signal for gene nodes and the signal 
+	implied by connected neighbors in the network; 
+	implemented in the \Biocpkg{PathNet} package)}
+\item{DEGraph: Differential expression testing for gene graphs
+	(multivariate testing of differences in mean incorporating underlying 
+	graph structure; implemented in the \Biocpkg{DEGraph} package)}
+\item{TopologyGSA: Topology-based Gene Set Analysis
+	 (uses Gaussian graphical models to incorporate the dependence structure 
+	among genes as implied by pathway topology;
+	implemented in the \CRANpkg{topologyGSA} package)}
+\item{GANPA: Gene Association Network-based Pathway Analysis
+	(incorporates network-derived gene weights in the enrichment analysis;
+	implemented in the \CRANpkg{GANPA} package)}
+\item{CePa: Centrality-based Pathway enrichment
+	(incorporates network centralities as node weights mapped from 
+	differentially expressed genes in pathways;
+		implemented in the \CRANpkg{CePa} package)}
+\item{NetGSA: Network-based Gene Set Analysis
+	(incorporates external information about interactions among genes
+	as well as novel interactions learned from data;
+	implemented in the \CRANpkg{NetGSA} package)}
+\item{NEA: Network Enrichment Analysis 
+    (applies ORA on interactions instead of genes; 
+	implemented in the \Biocpkg{neaGUI} package)}
 \end{itemize}
 
+\newpage
 For demonstration, we perform GGEA using the compiled KEGG regulatory network.
 
 <<nbea>>=

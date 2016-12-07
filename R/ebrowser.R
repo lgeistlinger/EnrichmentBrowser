@@ -120,6 +120,7 @@ ebrowser <- function(
     else annotation(gene.eset) <- org
         
     nr.meth <- length(meth)
+	if(length(perm) != nr.meth) perm <- rep(perm[1], nr.meth)
     if(comb) res.list <- vector("list", length=nr.meth)
     for(i in seq_len(nr.meth))
     {
@@ -129,10 +130,10 @@ ebrowser <- function(
 
         if(m %in% nbea.methods()) 
             res <- nbea( method=m, eset=gene.eset, gs=gs, 
-                    grn=grn, alpha=alpha, beta=beta, perm=perm )
+                    grn=grn, alpha=alpha, beta=beta, perm=perm[i] )
 
         else res <- sbea( method=m, eset=gene.eset, 
-                    gs=gs, alpha=alpha, perm=perm )
+                    gs=gs, alpha=alpha, perm=perm[i] )
 
         write.table(res$res.tbl, file=out.file, 
             quote=FALSE, row.names=FALSE, sep="\t")
@@ -155,13 +156,13 @@ ebrowser <- function(
 
     # write genewise differential expression
     gene.diffexp.file <- "de.txt"
-    ind <- which(colnames(fData(gene.eset)) == FC.COL)
-    ind <- ind:ncol(fData(gene.eset))
-    gene.diffexp <- apply(as.matrix(fData(gene.eset)[,ind]), 2, as.numeric) 
-    ord <- order(gene.diffexp[,ADJP.COL])
-    gene.diffexp <- signif(gene.diffexp[ord,], digits=2)
-    gene.diffexp <- cbind(featureNames(gene.eset)[ord], gene.diffexp)
-    colnames(gene.diffexp)[1] <- EZ.COL
+    ord <- order(fData(gene.eset)[,ADJP.COL])
+	message("Annotating genes ...")
+    gt <- get.gene.annotation(featureNames(gene.eset), org)
+    fData(gene.eset) <- cbind(gt, fData(gene.eset))
+	num.cols <- sapply(fData(gene.eset), is.numeric)
+    fData(gene.eset)[,num.cols] <- signif(fData(gene.eset)[,num.cols], digits=2)
+	gene.diffexp <- fData(gene.eset)[ord,]
 
     write.table(gene.diffexp, 
         file=gene.diffexp.file, row.names=FALSE, quote=FALSE, sep="\t")
@@ -200,8 +201,6 @@ ebrowser <- function(
             message("Restricting global view to the 1000 most significant genes ...")
             gene.eset <- gene.eset[order(fData(gene.eset)[,ADJP.COL])[1:1000],]
         }
-        gt <- get.gene.symbol.and.name(featureNames(gene.eset), org)
-        fData(gene.eset)[,colnames(gt)[2:3]] <- gt[,2:3]
         vs <- view.set(gene.eset, out.prefix=file.path(out.dir,"global"))
         
         message("Produce html report ...")

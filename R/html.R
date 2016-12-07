@@ -522,7 +522,7 @@ gene.report <- function(s, gt, out.dir)
     return(rep)
 }
 
-get.gene.symbol.and.name <- function(ids, org)
+get.gene.annotation <- function(ids, org, biotype=TRUE)
 {
     # load org pkg
     org.pkg <- .org2pkg(org)
@@ -534,6 +534,36 @@ get.gene.symbol.and.name <- function(ids, org)
     gn.cols <- sapply(c("SYM.COL", "GN.COL"), config.ebrowser)
     gt <- suppressMessages(select(org.pkg, keys=ids,
             columns=gn.cols, keytype=EZ.COL))
+	
+	if(biotype)
+	{
+		useMart <- listDatasets <- useDataset <- getBM <- NULL
+		.isAvailable("biomaRt", type="software")
+		
+		id.type <- "entrezgene"
+        message("Connecting to BioMart ...")
+        ensembl <- useMart("ENSEMBL_MART_ENSEMBL", host = "www.ensembl.org")
+        ds <- listDatasets(ensembl)[, "dataset"]
+        ds <- grep(paste0("^", org), ds, value = TRUE)
+        if (length(ds) == 0) 
+            stop(paste("Mart not found for:", org))
+        else if (length(ds) > 1) {
+            message("Found several marts")
+            sapply(ds, function(d) message(paste(which(ds == 
+                d), d, sep = ": ")))
+            n <- readline(paste0("Choose mart (1-", length(ds), 
+                ") : "))
+            ds <- ds[as.integer(n)]
+        }
+        ensembl <- useDataset(ds, mart = ensembl)
+        attrs <- c(id.type, "gene_biotype")
+        biot <- getBM(filters = id.type, attributes = attrs, 
+            values = ids, mart = ensembl)
+		ind <- match(ids, biot[,1])
+		biot <- biot[ind,2]
+		gt <- cbind(gt, biot)
+		colnames(gt)[ncol(gt)] <- "BIOTYPE"
+	}
     return(gt)
 }
 

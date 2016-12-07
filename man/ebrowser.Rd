@@ -126,7 +126,9 @@
     }
     \item{perm}{
         Number of permutations of the expression matrix to estimate the null 
-        distribution. Defaults to 1000.
+        distribution. Defaults to 1000. Can also be an integer vector matching the
+		length of 'meth' to assign different numbers of permutations for different
+		methods. 
     } 
     \item{alpha}{
         Statistical significance level. Defaults to 0.05.

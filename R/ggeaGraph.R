@@ -61,6 +61,7 @@ construct.ggea.graph <- function(grn, eset,
     names(node.grid) <- nodes
 
     grn <- transform.grn(grn, node.grid)
+	if(nrow(grn) < 2) return(NULL)
 
     fDat <- as.matrix(fData(eset)[nodes, 
         sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)])

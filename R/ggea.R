@@ -125,9 +125,9 @@ transform.grn <- function(grn, fMap)
         types <- ifelse(grn[,3]=="+", 1, -1)
         grn.mapped <- cbind(grn.mapped, types)
     }
-    grn.mapped <- unique(grn.mapped[not.na,])
+    grn.mapped <- unique(grn.mapped[not.na,,drop=FALSE])
     
-    grn.mapped <- grn.mapped[do.call(order, as.data.frame(grn.mapped)),]
+    grn.mapped <- grn.mapped[do.call(order, as.data.frame(grn.mapped)),,drop=FALSE]
     
     return(grn.mapped)
 }

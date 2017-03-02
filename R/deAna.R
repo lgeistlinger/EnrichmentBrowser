@@ -15,7 +15,8 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
         if(!(GRP.COL %in% colnames(pData(eset))))
             stop(paste("Expression data \'expr\' is an ExpressionSet",
                 "but contains no group assignment in the pData slot"))
-        grp <- pData(eset)[,GRP.COL]
+        pData(eset) <- as.data.frame(pData(eset))
+		grp <- pData(eset)[,GRP.COL]
 
         # check for block annotation
         if(BLK.COL %in% colnames(pData(eset))) blk <- pData(eset)[,BLK.COL] 

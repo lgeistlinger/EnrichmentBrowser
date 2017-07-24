@@ -10,7 +10,8 @@
 }
 \usage{
     de.ana( expr, grp = NULL, blk = NULL, 
-        de.method = c("limma", "edgeR", "DESeq"), padj.method = "BH", stat.only=FALSE, min.cpm=2 )
+        de.method = c("limma", "edgeR", "DESeq"), 
+		padj.method = "BH", stat.only=FALSE, min.cpm=2 )
 }
 \arguments{
     \item{expr}{
@@ -58,7 +59,7 @@
 		In case of RNA-seq data: should genes not satisfying
 		a minimum counts-per-million (cpm) threshold be excluded
 		from the analysis? This is typically recommended. See the
-		edgeR vignette for details. The default filter is to exlcude
+		edgeR vignette for details. The default filter is to exclude
 		genes with cpm < 2 in more than half of the samples.  
 	}
 }

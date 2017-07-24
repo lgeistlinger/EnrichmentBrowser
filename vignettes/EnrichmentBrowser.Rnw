@@ -137,7 +137,7 @@ library(airway)
 data(airway)
 @
 
-and create the  \Rclass{ExpressionSet}. 
+and create the \Rclass{ExpressionSet}. 
 For further analysis, we remove genes with very low read counts and 
 measurements that are not mapped to an ENSEMBL gene ID.
 

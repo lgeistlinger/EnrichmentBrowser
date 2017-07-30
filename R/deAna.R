@@ -50,7 +50,8 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
 		nr.low <- sum(!keep)
 		if(nr.low)
 		{ 
-			message(paste("Excluding", nr.low, "genes not satisfying min.cpm threshold")) 
+			message(paste("Excluding", nr.low, 
+                "genes not satisfying min.cpm threshold")) 
 			expr <- expr[keep,]	
 			if(is.eset) eset <- eset[keep,]
 		}	
@@ -66,6 +67,9 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
     # EDGER
     if(de.method == "edgeR")
     {
+        # TODO: wait for edgeR_3.18.1 to remove this
+        .isAvailable("edgeR", type="software")
+
         y <- edgeR::DGEList(counts=expr,group=group)
         y <- edgeR::calcNormFactors(y)
         design <- model.matrix(f)
@@ -73,18 +77,16 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
         { 
             message("Calling edgeR without replicates")
             message("Using default BCV (square-root-dispersion) of 0.4")
-            fit <- edgeR::glmFit(y, design, dispersion=0.4)
+            fit <- edgeR::glmQLFit(y, design, dispersion=0.4)
         }
         else
         { 
-            y <- edgeR::estimateGLMCommonDisp(y, design)
-            y <- edgeR::estimateGLMTrendedDisp(y, design)
-            y <- edgeR::estimateGLMTagwiseDisp(y, design)
-            fit <- edgeR::glmFit(y, design)
+            y <- edgeR::estimateDisp(y, design, robust=TRUE)
+            fit <- edgeR::glmQLFit(y, design, robust=TRUE)
         }
-        lrt <- edgeR::glmLRT(fit)
-        if(stat.only) return(lrt$table[,"LR"])
-        de.tbl <- lrt$table[, c("logFC", "PValue", "LR")] 
+        qlf <- edgeR::glmQLFTest(fit)
+        if(stat.only) return(qlf$table[,"F"])
+        de.tbl <- qlf$table[, c("logFC", "PValue", "F")] 
         colnames(de.tbl)[3] <- "edgeR.STAT"
     }
     # DESEQ

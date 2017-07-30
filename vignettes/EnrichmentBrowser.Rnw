@@ -406,9 +406,9 @@ implemented in \Biocpkg{EmpiricalBrownsMethod})}
 	simultaneously, thereby reducing the number of redundant sets; implemented in \Biocpkg{mgsa})}
 \end{itemize}
 For demonstration, we perform a basic ORA choosing a significance level 
-$\alpha$ of 0.05.
+$\alpha$ of 0.1
 <<sbea>>=
-sbea.res <- sbea(method="ora", eset=all.eset, gs=hsa.gs, perm=0, alpha=0.05)
+sbea.res <- sbea(method="ora", eset=all.eset, gs=hsa.gs, perm=0, alpha=0.1)
 gs.ranking(sbea.res)
 @
 

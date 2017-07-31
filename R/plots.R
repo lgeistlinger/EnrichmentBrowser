@@ -14,12 +14,15 @@ volcano <- function(fc, p)
 }
 
 # Heatmap: based on ComplexHeatmap
-exprs.heatmap <- function(expr, grp)
+exprs.heatmap <- function(expr, grp, scale.rows=TRUE, log.thresh=100)
 {
 	# log-transform?
 	dd <- diff(range(expr, na.rm=TRUE))
-    if(dd > 100) expr <- log(expr + 1, base=2)
-    
+    if(dd > log.thresh) expr <- log(expr + 1, base=2)
+  
+    # scale?
+    if(scale.rows) expr <- t(scale(t(expr)))
+  
 	# group colors
 	grp <- as.factor(grp)
 	coll <- c("#B62A84", "#2AB68C")

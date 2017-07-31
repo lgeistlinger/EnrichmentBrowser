@@ -92,8 +92,6 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     res <- resn
 
     # make gene pages
-    # TODO: ensure in sbea and nbea that we are running only
-    # on intersecting genes between gs and eset
     im <- incidence(gsc)
     org <- organism(gsc[[1]])
     if(org == "") org <- annotation(eset)
@@ -514,10 +512,27 @@ get.html.of.marked.pathway <- function(pwy, oids)
 
 gene.report <- function(s, gt, out.dir)
 {
+    # (0) extract gene information
+    gt <- gt[geneIds(s),]
+    scols <- sapply(c("ADJP.COL", "FC.COL"), config.ebrowser)
+    sorting.df <- gt[, scols]
+    sorting.df[,2] <- -abs(sorting.df[,2])
+    gt <- gt[do.call(order, sorting.df), , drop=FALSE]
+    
+    # (1) html table
     htmlRep <- HTMLReport(basePath=out.dir, reportDirectory="reports",
         shortName=setName(s), title=paste(setName(s), "Gene Report", sep=": "))
-    publish(gt[geneIds(s),], htmlRep, .modifyDF=list(ncbi.gene.link))#, pubmed.link),
+    publish(gt, htmlRep, .modifyDF=list(ncbi.gene.link))#, pubmed.link),
         #colClasses = c(rep("sort-string-robust", 3), rep("sort-num-robust", ncol(gt)-3 )))
+
+    # (2) flat file
+    fname <- paste0(setName(s), "_genes.txt")
+    rep.dir <- file.path(out.dir, "reports")
+    ofname <- file.path(rep.dir, fname)
+    if(!file.exists(ofname))
+        write.table(gt, file=ofname, sep="\t", quote=FALSE, row.names=FALSE)
+    publish(Link("Download .txt", fname), htmlRep)
+
     rep <- finish(htmlRep)
     return(rep)
 }

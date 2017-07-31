@@ -14,22 +14,26 @@ volcano <- function(fc, p)
 }
 
 # Heatmap: based on ComplexHeatmap
-exprs.heatmap <- function(expr, grp)
+exprs.heatmap <- function(expr, grp, scale.rows=TRUE, log.thresh=100)
 {
-
 	# log-transform?
-	dd <- diff(range(expr, na.rm=TRUE))    
-	if(dd > 100) expr <- log(expr + 1, base=2)
-
+	dd <- diff(range(expr, na.rm=TRUE))
+    if(dd > log.thresh) expr <- log(expr + 1, base=2)
+  
+    # scale?
+    if(scale.rows) expr <- t(scale(t(expr)))
+  
 	# group colors
 	grp <- as.factor(grp)
-    coll <- c("#B62A84", "#2AB68C")
-    names(coll) <- levels(grp)
-    coll <- list(Group=coll)
+	coll <- c("#B62A84", "#2AB68C")
+	names(coll) <- levels(grp)
+	coll <- list(Group=coll)
 
-	# annotation	
-    df <- data.frame(Group = as.factor(grp))
+	# annotation
+	df <- data.frame(Group = grp)
     ha <- ComplexHeatmap::HeatmapAnnotation(df = df, col=coll)
+
+	# plot
     print(ComplexHeatmap::Heatmap(expr, name="Expression", top_annotation = ha, 
         show_row_names=(nrow(expr) < 41), show_column_names=(ncol(expr) < 41),
         column_title="Samples", row_title="Features")) 

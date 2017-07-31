@@ -12,7 +12,7 @@
 \usage{
     pdistr( p )
     volcano( fc, p )
-    exprs.heatmap( expr, grp )
+    exprs.heatmap( expr, grp, scale.rows=TRUE, log.thresh=100 )
 }
 \arguments{
     \item{p}{
@@ -28,6 +28,18 @@
         *BINARY* group assignment for the samples. 
         Use '0' and '1' for unaffected (controls) and affected (cases) 
         samples, respectively.
+    }
+    \item{scale.rows}{
+        Should rows of the expression matrix be scaled for better visibility
+        of expression differences between sample groups? Defaults to TRUE.
+    }
+    \item{log.thresh}{
+        Threshold for log2-transformation of the expression matrix.
+        Particularly useful for heatmap visualization of RNA-seq read count data,
+        where the max and the min of the expression matrix typically differ by 
+        several orders of magnitude.
+        If the difference between min and max of the expression matrix is greater
+        than the indicated threshold, log2-transformation is applied. 
     }
 }
 \value{

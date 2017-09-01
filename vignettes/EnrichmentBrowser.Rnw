@@ -5,7 +5,7 @@
 
 \documentclass[a4paper]{article}
 
-<<style, eval=TRUE, echo=FALSE, results=tex>>=
+<<style-Sweave, eval=TRUE, echo=FALSE, results=tex>>=
 BiocStyle::latex()
 @
 
@@ -15,6 +15,7 @@ BiocStyle::latex()
 \bioctitle[EnrichmentBrowser]{EnrichmentBrowser: seamless navigation through combined \\
         results of set-based and network-based enrichment analysis}
 \author{Ludwig Geistlinger} 
+\affil{School of Public Health, City University of New York}
 
 \begin{document}
 

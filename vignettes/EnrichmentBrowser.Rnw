@@ -1,26 +1,44 @@
 %\VignetteIndexEntry{EnrichmentBrowser Manual}
 %\VignetteDepends{EnrichmentBrowser}
 %\VignettePackage{EnrichmentBrowser}
-%\VignetteEngine{utils::Sweave}
+%\VignetteEngine{knitr::knitr}
 
 \documentclass[a4paper]{article}
 
-<<style-Sweave, eval=TRUE, echo=FALSE, results=tex>>=
+<<style-knitr, eval=TRUE, echo=FALSE, results="asis">>=
 BiocStyle::latex()
 @
 
 \usepackage{graphicx, subfig}
 \usepackage[utf8]{inputenc} 
 
-\bioctitle[EnrichmentBrowser]{EnrichmentBrowser: seamless navigation through combined \\
-        results of set-based and network-based enrichment analysis}
+\bioctitle[EnrichmentBrowser]{Seamless navigation through combined
+        results of set- \& network-based enrichment analysis}
 \author{Ludwig Geistlinger} 
 \affil{School of Public Health, City University of New York}
 
 \begin{document}
 
 \maketitle
+
+\begin{abstract}
+The \Biocpkg{EnrichmentBrowser} package implements an analysis pipeline
+for high-throughput gene expression data as measured with microarrays and 
+RNA-seq. In a workflow-like manner, the package brings together a selection of
+established Bioconductor packages for gene expression data analysis. It
+integrates a wide range of gene set and network enrichment analysis methods 
+and facilitates combination and exploration of results across methods.
+\end{abstract}
+
+\packageVersion{\Sexpr{BiocStyle::pkg_ver("EnrichmentBrowser")}}
+
+Report issues on \url{https://github.com/lgeistlinger/EnrichmentBrowser/issues}
+
+\newpage
+
 \tableofcontents
+
+\newpage
 
 \section{Introduction}
 The \Biocpkg{EnrichmentBrowser} package implements essential functionality for
@@ -52,6 +70,16 @@ section \emph{Set-based enrichment analysis} would be the one you should go for.
 The last section \emph{Putting it all together} also demonstrates how to wrap 
 the whole workflow into a single function, making use of suitably chosen 
 defaults.
+
+<<setup, echo=FALSE>>=
+suppressMessages(suppressWarnings(suppressPackageStartupMessages({
+library(EnrichmentBrowser)
+library(ALL)
+library(airway)
+library(edgeR)
+library(limma)
+})))
+@
 
 \section{Reading expression data from file}
 Typically, the expression data is not already available in \R{} but 
@@ -178,7 +206,7 @@ after.norm <- exprs(all.eset)
 @
 
 \begin{center}
-<<plot-norm, fig=TRUE, width=12, height=6>>=
+<<plot-norm, fig.width=12, fig.height=6>>=
 par(mfrow=c(1,2))
 boxplot(before.norm)
 boxplot(after.norm)
@@ -271,7 +299,7 @@ To get a first overview, we inspect the $p$-value distribution and the volcano
 plot (fold change against $p$-value).
  
 \begin{center}
-<<plot-DE, fig=TRUE, width=12, height=6>>=
+<<plot-DE, fig.width=12, fig.height=6>>=
 par(mfrow=c(1,2))
 pdistr(fData(all.eset)$ADJ.PVAL)
 volcano(fData(all.eset)$FC, fData(all.eset)$ADJ.PVAL)
@@ -359,6 +387,8 @@ length(hsa.gs)
 hsa.gs[1:2]
 @
 
+\newpage
+
 Currently, the following set-based enrichment analysis methods are supported
 <<sbea-methods>>=
 sbea.methods()
@@ -406,6 +436,9 @@ implemented in \Biocpkg{EmpiricalBrownsMethod})}
 	(Bayesian modeling approach taking set overlap into account by working on all sets 
 	simultaneously, thereby reducing the number of redundant sets; implemented in \Biocpkg{mgsa})}
 \end{itemize}
+
+\newpage
+
 For demonstration, we perform a basic ORA choosing a significance level 
 $\alpha$ of 0.1
 <<sbea>>=
@@ -428,7 +461,7 @@ The various options are described in Figure \ref{fig:oraRes}.
 ea.browse(sbea.res)
 @
 
-\begin{figure}
+\begin{figure*}
 \centering
 \includegraphics[width=14cm, height=8.75cm]{ora_ebrowse.png}
 \caption{ORA result view. For each significant gene set in the ranking, the user
@@ -436,7 +469,7 @@ ea.browse(sbea.res)
     with fold change and DE $p$-value, (2) interactive overview plots
     such as heatmap, $p$-value distribution, and volcano plot, (3) the pathway 
     in KEGG with differentially expressed genes highlighted in red.}\label{fig:oraRes}
-\end{figure}
+\end{figure*}
 
 The goal of the \Biocpkg{EnrichmentBrowser} package is to provide
 frequently used enrichment methods. However, it is also possible to exploit
@@ -461,8 +494,6 @@ dummy.sbea <- function(eset, gs, alpha, perm)
 }
 @
 
-\newpage
-
 We can plug this method into \Rfunction{sbea} as before.
 
 <<sbea2>>=
@@ -471,6 +502,7 @@ gs.ranking(sbea.res2)
 @ 
 
 \newpage
+
 \section{Network-based enrichment analysis}
 Having found sets of genes that are differentially regulated in the ALL data, 
 we are now interested whether these findings can be supported by known 
@@ -544,7 +576,6 @@ nbea.methods()
 	implemented in the \Biocpkg{neaGUI} package)}
 \end{itemize}
 
-\newpage
 For demonstration, we perform GGEA using the compiled KEGG regulatory network.
 
 <<nbea>>=
@@ -566,7 +597,7 @@ interaction type (activation/inhibition) is reflected in the correlation of the
 observed expression of both interaction partners.
 
 \begin{center}
-<<ggea-graph, fig=TRUE, width=12, height=6>>=
+<<ggea-graph, fig.width=12, fig.height=6>>=
 par(mfrow=c(1,2))
 ggea.graph(
     gs=hsa.gs[["hsa05217_Basal_cell_carcinoma"]], 
@@ -603,15 +634,16 @@ ranked as depicted in Figure \ref{fig:combRes}.
 ea.browse(comb.res, graph.view=hsa.grn, nr.show=5)
 @
 
-\begin{figure}[!h]
+\begin{figure*}[!h]
 \centering
 \includegraphics[width=17cm, height=6.8cm]{comb_ebrowse.png}
 \caption{Combined result view. By clicking on one of the columns 
     (ORA.RANK, ..., GGEA.PVAL) the result can be interactively ranked according
     to the selected criterion.}\label{fig:combRes}
-\end{figure}
+\end{figure*}
 
 \newpage
+
 \section{Putting it all together}
 There are cases where it is necessary to perform certain steps of the demonstrated
 enrichment analysis pipeline individually.
@@ -626,11 +658,9 @@ ebrowser(   meth=c("ora", "ggea"),
         org="hsa", gs=hsa.gs, grn=hsa.grn, comb=TRUE, nr.show=5)
 @
 
-%\newpage
 %\section{Advanced: Configuring the EnrichmentBrowser}
 %TODO
 
-\newpage
 \section{Frequently asked questions}
 \begin{enumerate}
 \item \textbf{How to cite the \Biocpkg{EnrichmentBrowser}?}\\[0.25cm]
@@ -653,6 +683,8 @@ Thus, for simple gene list enrichment, tools like \software{DAVID}
 \software{GeneAnalytics} (\href{http://geneanalytics.genecards.org}{http://geneanalytics.genecards.org})
 are more suitable, and it is recommended to use them for this purpose.
 \end{enumerate}
+
+\newpage
 %\bibliographystyle{unsrturl}
 \bibliography{refs}
 \end{document}

@@ -1,31 +1,33 @@
 de.ana <- function(expr, grp=NULL, blk=NULL, 
     de.method=c("limma", "edgeR", "DESeq"), padj.method="BH", stat.only=FALSE, min.cpm=2)
 {
-    is.eset <- is(expr, "eSet")
+    ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
+    if(is(expr, "ExpressionSet")) expr <- as(expr, "RangedSummarizedExperiment")
+    ###
+
+    is.eset <- is(expr, "SummarizedExperiment")
     if(is.eset) 
     { 
         GRP.COL <- config.ebrowser("GRP.COL")    
         BLK.COL <- config.ebrowser("BLK.COL")
 
         eset <- expr
-        if(is(expr, "SeqExpressionSet")) expr <- EDASeq::counts(eset)
-        else expr <- exprs(eset)
+        expr <- assay(eset)
         
         # check for group annotation
-        if(!(GRP.COL %in% colnames(pData(eset))))
-            stop(paste("Expression data \'expr\' is an ExpressionSet",
-                "but contains no group assignment in the pData slot"))
-        pData(eset) <- as.data.frame(pData(eset))
-		grp <- pData(eset)[,GRP.COL]
+        if(!(GRP.COL %in% colnames(colData(eset))))
+            stop("Group assignment must be specified")
+		grp <- colData(eset)[,GRP.COL]
 
         # check for block annotation
-        if(BLK.COL %in% colnames(pData(eset))) blk <- pData(eset)[,BLK.COL] 
+        if(BLK.COL %in% colnames(colData(eset))) blk <- colData(eset)[,BLK.COL] 
     }
-    if(class(expr) != "matrix")
-        stop("Expression data in \'expr\' must be either a matrix or a (Seq)ExpressionSet")
+    if(!is.matrix(expr))
+        stop(paste("Expression data in \'expr\' must be either", 
+            "a matrix, a SummarizedExperiment, or an ExpressionSet"))
 
     if(is.null(grp)) stop("Group assignment 'grp' must be specified") 
-    groups <- sort(unique(grp, decreasing=TRUE))
+    groups <- sort(unique(grp))
     if(!all(groups == c(0, 1))) 
         stop(paste0("Group classification is not binary:\n",
             "Expected (0, 1) but found (", paste(groups, collapse=", "), ")"))
@@ -41,11 +43,11 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
     f <- formula(paste0(f, "group"))
     
 	de.method <- match.arg(de.method)
-	data.type <- auto.detect.data.type(expr)
+	data.type <- .detectDataType(expr)
 	if(data.type == "rseq")
 	{
 		# filter low-expressed genes
-		rs <- rowSums(edgeR::cpm(exprs(eset)) > min.cpm)
+		rs <- rowSums(edgeR::cpm(assay(eset)) > min.cpm)
 		keep <-  rs >= ncol(expr) / 2
 		nr.low <- sum(!keep)
 		if(nr.low)
@@ -127,9 +129,17 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
 
     if(is.eset)
     {
-        i <- grep("STAT$", colnames(fData(eset)))
-        if(length(i)) fData(eset) <- fData(eset)[,-i]
-        fData(eset)[,colnames(de.tbl)] <- de.tbl
+        i <- grep("STAT$", colnames(rowData(eset)))
+        if(length(i)) rowData(eset) <- rowData(eset)[,-i]
+        rowData(eset)[,colnames(de.tbl)] <- DataFrame(de.tbl)
+
+        ### TEMPORARY: to confirm with downstream
+        fdat <- rowData(eset)
+        eset <- as(eset, "ExpressionSet")
+        fData(eset) <- as.data.frame(fdat) 
+        rownames(fData(eset)) <- featureNames(eset)
+        ###
+
         return(eset)
     }
     return(de.tbl)

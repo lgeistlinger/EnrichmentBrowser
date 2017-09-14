@@ -10,29 +10,30 @@
 normalize <- function(eset, norm.method="quantile", within=FALSE, data.type=c(NA, "ma", "rseq"))
 {
     # dealing with an eset?
-    if(class(eset) != "ExpressionSet") 
+    if(is(eset, "ExpressionSet")) eset <- as(eset, "RangedSummarizedExperiment")
+    
+    if(!is(eset, "SummarizedExperiment")) 
     {
-        if(class(eset) == "matrix") eset <- new("ExpressionSet", exprs=eset)
-        else stop("\'eset\' must be either a matrix or an ExpressionSet")
+        if(is.matrix(eset)) eset <- new("SummarizedExperiment", exprs=eset)
+        else stop(paste("\'eset\' must be either",
+            "a matrix, a SummarizedExperiment, or an ExpressionSet"))
     }
 
     # ma or rseq data?
-    
-    if("dataType" %in% names(experimentData(eset)@other))
-            data.type <- experimentData(eset)@other$dataType
+    if("dataType" %in% names(metadata(eset)))
+            data.type <- metadata(eset)$dataType
     else
     {
         data.type <- match.arg(data.type)
-        if(is.na(data.type))
-            data.type <- auto.detect.data.type(exprs(eset))
-        experimentData(eset)@other$dataType <- data.type  
+        if(is.na(data.type)) data.type <- .detectDataType(assay(eset))
+        metadata(eset)$dataType <- data.type  
     }
 
     # rseq normalization with EDASeq
     if(data.type == "rseq")
     {
         # remove genes with low read count
-	    is.too.low <- rowSums(exprs(eset)) < ncol(eset)
+	    is.too.low <- rowSums(assay(eset)) < ncol(eset)
 	    nr.too.low <- sum(is.too.low)
         if(nr.too.low > 0) message(paste("Removing",
         	nr.too.low, "genes with low read count ..."))
@@ -40,43 +41,36 @@ normalize <- function(eset, norm.method="quantile", within=FALSE, data.type=c(NA
  
         if(norm.method == "quantile") norm.method <- "full"
         
-        eset <- EDASeq::newSeqExpressionSet(
-                    counts=exprs(eset), 
-                    phenoData=pData(eset), 
-                    featureData=fData(eset),
-                    annotation=annotation(eset), 
-                    experimentData=experimentData(eset),
-                    protocolData=protocolData(eset))
-        
         # also within lane? -> gc content normalization
         if(within)
         {
-            gc.col <- grep("^[gG][cC]$", colnames(fData(eset)), value=TRUE)
+            gc.col <- grep("^[gG][cC]$", colnames(rowData(eset)), value=TRUE)
             if(length(gc.col) == 0)
             {
-                org <- annotation(eset)
+                org <- metadata(eset)$annotation
                 if(!length(org)) stop(paste("Please provide organism under", 
                     "investigation in the annotation slot. See man page for details."))
                 MODEL.ORGS <- c("cel", "dme", "hsa", "mmu", "rno",  "sce")
                 mode <- ifelse(org %in% MODEL.ORGS, "org.db", "biomart") 
                 lgc <- EDASeq::getGeneLengthAndGCContent(
-                    id=featureNames(eset), org=org, mode=mode)
-                fData(eset) <- cbind(fData(eset), lgc)
+                        id=rownames(eset), org=org, mode=mode)
+                rowData(eset)$gc <- lgc
                 gc.col <- "gc"
             }
             message("Normalizing for GC content ...")
-            na.gc <- is.na(fData(eset)[,"gc"])
+            na.gc <- is.na(rowData(eset)[,gc.col])
             nr.na.gc <- sum(na.gc)
             if(nr.na.gc > 0) message(paste("Removing", 
                 nr.na.gc, "genes due to missing GC content ..."))
             eset <- eset[!na.gc,]
-            eset <- EDASeq::withinLaneNormalization(eset, "gc", which=norm.method)
+            assay(eset) <- EDASeq::withinLaneNormalization(
+                assay(eset), rowData(eset)[,gc.col], which=norm.method)
         }
-        eset <- EDASeq::betweenLaneNormalization(eset, which=norm.method)
-        experimentData(eset)@other$dataType <- data.type
+        assay(eset) <- EDASeq::betweenLaneNormalization(assay(eset), which=norm.method)
     } 
     # ma normalization with limma
-    else exprs(eset) <- limma::normalizeBetweenArrays(exprs(eset), method=norm.method)
+    else assay(eset) <- limma::normalizeBetweenArrays(assay(eset), method=norm.method)
+    
     return(eset)
 }
 

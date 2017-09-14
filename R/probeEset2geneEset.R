@@ -17,16 +17,21 @@
 # fast conversion of probe 2 gene expression
 probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
 {
+    ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
+    if(is(probe.eset, "ExpressionSet")) 
+        probe.eset <- as(probe.eset, "RangedSummarizedExperiment")
+    ### 
+
     EZ.COL <- config.ebrowser("EZ.COL")
     eset <- probe.eset
-    if(!(EZ.COL %in% colnames(fData(eset)))) eset <- anno.p2g(eset)
+    if(!(EZ.COL %in% colnames(rowData(eset)))) eset <- .annoP2G(eset)
     
     # remove probes without gene annotation
-    not.na <- !is.na(fData(eset)[, EZ.COL])
+    not.na <- !is.na(rowData(eset)[, EZ.COL])
     if(sum(not.na) < nrow(eset)) eset <- eset[not.na,]
 
-    probe.exprs <- as.matrix(exprs(eset))
-    probe2gene <- as.vector(fData(eset)[, EZ.COL])
+    probe.exprs <- assay(eset)
+    probe2gene <- as.vector(rowData(eset)[, EZ.COL])
     
     # determine unique genes
     genes <- unique(probe2gene)
@@ -46,32 +51,32 @@ probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
                 else
                 { 
                     FC.COL <- config.ebrowser("FC.COL") 
-                    if(!(FC.COL %in% colnames(fData(eset))))
+                    if(!(FC.COL %in% colnames(rowData(eset))))
                         stop(paste("use.mean=FALSE, but did not find differential", 
-                            "expression in fData. Run de.ana first."))
+                            "expression in rowData. Run de.ana first."))
                     curr.exprs <- curr.exprs[
-                        which.max(abs(fData(eset)[curr.probes, FC.COL])),]
+                        which.max(abs(rowData(eset)[curr.probes, FC.COL])),]
                 }
             }
             return(curr.exprs)
         })) 
-    colnames(gene.exprs) <- sampleNames(eset)
+    colnames(gene.exprs) <- colnames(eset)
     rownames(gene.exprs) <- genes
 
     # create new eset
-    gene.eset <- new("ExpressionSet", exprs=gene.exprs,  
-        experimentData=experimentData(eset), annotation=annotation(eset))
-    pData(gene.eset) <- pData(eset)
+    gene.eset <- SummarizedExperiment(assays=list(exprs=gene.exprs), 
+        colData=colData(eset), metadata=metadata(eset))  
+    
     return(gene.eset)
 }
 
-anno.p2g <- function(eset) 
+.annoP2G <- function(eset) 
 {
     PRB.COL <- config.ebrowser("PRB.COL")
     EZ.COL <- config.ebrowser("EZ.COL")
 
-    is.eset <- class(eset) == "ExpressionSet"
-    if(is.eset) anno <- annotation(eset)
+    is.eset <- is(eset, "SummarizedExperiment")
+    if(is.eset) anno <- metadata(eset)$annotation
     else anno <- eset
     anno.pkg <- paste0(anno, ".db")
     
@@ -131,10 +136,10 @@ anno.p2g <- function(eset)
     }
     if(is.eset)
     {
-        p2g.map <- p2g.map[featureNames(eset)]
-        fData(eset)[,PRB.COL] <- names(p2g.map)
-        fData(eset)[,EZ.COL] <- p2g.map
-        annotation(eset) <- org
+        p2g.map <- p2g.map[rownames(eset)]
+        rowData(eset)[,PRB.COL] <- names(p2g.map)
+        rowData(eset)[,EZ.COL] <- p2g.map
+        metadata(eset)$annotation <- org
         return(eset)
     }
     fDat <- cbind(names(p2g.map), p2g.map)
@@ -143,7 +148,7 @@ anno.p2g <- function(eset)
 
 # converts from an annotation package ID to an organism ID
 # e.g. hgu95av2.db -> hsa
-anno.pkg.2.org <- function(anno.pkg)
+.annoPkg2Org <- function(anno.pkg)
 {
     info <- suppressMessages(capture.output(get(anno.pkg)))
     org.line <- grep(" ORGANISM: ", info, value=TRUE)

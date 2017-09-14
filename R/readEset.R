@@ -3,16 +3,7 @@
 # Author: ludwig geistlinger
 # Date: May 27th, 2010
 #
-# reads in data from plain text files and stores it in an expression
-# set and performs simultaneously a de primary analysis
-#
-# UPDATE: Oct 21th, 2014
-#
-# de analysis is now based on limma rather than simpleaffy
-# supported data types now include RNA-seq
-#
-#
-# UPDATE: Oct 21th, 2014
+# reads in data from plain text files and stores it in an expression set
 #
 ###############################################################################
 
@@ -30,10 +21,11 @@ read.eset <- function(exprs.file, pdat.file, fdat.file,
         fDat <- scan(fdat.file, what="character", quiet=TRUE)
         nr.features <- length(fDat) / ncol.fdat
         fDat <- matrix(fDat, nrow=nr.features, ncol=ncol.fdat, byrow=TRUE)
+        fDat <- as.data.frame(fDat, stringsAsFactors=FALSE)
     }
     else 
     {
-        fDat <- anno.p2g(fdat.file)
+        fDat <- .annoP2G(fdat.file)
         ncol.fdat <- ncol(fDat)
         nr.features <- nrow(fDat)
     }
@@ -43,6 +35,8 @@ read.eset <- function(exprs.file, pdat.file, fdat.file,
     pDat <- scan(pdat.file, what="character", quiet=TRUE)
     nr.samples <- length(pDat) / ncol.pdat
     pDat <- matrix(pDat, nrow=nr.samples, ncol=ncol.pdat, byrow=TRUE)
+    pDat <- as.data.frame(pDat, stringsAsFactors=FALSE)    
+    pDat[,2] <- as.integer(pDat[,2])
     
     # read expression values
     expr <- matrix(scan(exprs.file, quiet=TRUE), 
@@ -51,29 +45,29 @@ read.eset <- function(exprs.file, pdat.file, fdat.file,
     colnames(expr) <- pDat[,1]
 
     # deal with NAs
-    expr <- na.treat(expr, NA.method) 
+    expr <- .naTreat(expr, NA.method) 
     if(NA.method=="rm") fDat <- fDat[fDat[,1] %in% rownames(expr),]
    
     # create the eset
-    eset <- new("ExpressionSet", exprs=expr)
+    eset <- SummarizedExperiment(assays=list(exprs=expr))
     if(!is.na(anno)) annotation(eset) <- anno
-    pData(eset) <- data.frame(pDat, stringsAsFactors=FALSE, row.names=sampleNames(eset))
-    fData(eset) <- data.frame(fDat, stringsAsFactors=FALSE, row.names=featureNames(eset))
+    colData(eset) <- DataFrame(pDat, row.names=colnames(eset))
+    rowData(eset) <- DataFrame(fDat, row.names=rownames(eset))
     
-    colnames(pData(eset))[1:2] <- sapply(c("SMPL.COL", "GRP.COL"), config.ebrowser)
-    if(ncol.pdat > 2) colnames(pData(eset))[3] <- config.ebrowser("BLK.COL")
-    if(ncol.fdat == 1) colnames(fData(eset))[1] <- config.ebrowser("EZ.COL") 
-    else colnames(fData(eset))[1:2] <- sapply(c("PRB.COL", "EZ.COL"), config.ebrowser)
+    colnames(colData(eset))[1:2] <- sapply(c("SMPL.COL", "GRP.COL"), config.ebrowser)
+    if(ncol.pdat > 2) colnames(colData(eset))[3] <- config.ebrowser("BLK.COL")
+    if(ncol.fdat == 1) colnames(rowData(eset))[1] <- config.ebrowser("EZ.COL") 
+    else colnames(rowData(eset))[1:2] <- sapply(c("PRB.COL", "EZ.COL"), config.ebrowser)
    
     # ma or rseq?
     if(!(data.type %in% c("ma", "rseq"))) 
-        data.type <- auto.detect.data.type(expr)
-    experimentData(eset)@other$dataType <- data.type
+        data.type <- .detectDataType(expr)
+    metadata(eset)$dataType <- data.type
  
     return(eset)
 }
 
-na.treat <- function(expr, NA.method=c("mean", "rm", "keep"))
+.naTreat <- function(expr, NA.method=c("mean", "rm", "keep"))
 {
     NA.method <- match.arg(NA.method)
     # replace NAs by mean expression values
@@ -83,7 +77,7 @@ na.treat <- function(expr, NA.method=c("mean", "rm", "keep"))
     if(length(na.indr) == 0) return(expr)
     if(NA.method == "rm") return(expr[-na.indr,])
 
-    data.type <- auto.detect.data.type(expr)
+    data.type <- .detectDataType(expr)
 
     for(i in seq_along(na.indr))
     {
@@ -97,7 +91,7 @@ na.treat <- function(expr, NA.method=c("mean", "rm", "keep"))
     return(expr)
 }
 
-auto.detect.data.type <- function(expr) 
-    ifelse(all(is.wholenumber(expr), na.rm=TRUE), "rseq", "ma")
+.detectDataType <- function(expr) 
+    ifelse(all(.isWholenumber(expr), na.rm=TRUE), "rseq", "ma")
     
-is.wholenumber <- function(x, tol=.Machine$double.eps^0.5) abs(x-round(x)) < tol
+.isWholenumber <- function(x, tol=.Machine$double.eps^0.5) abs(x-round(x)) < tol

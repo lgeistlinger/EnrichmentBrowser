@@ -82,14 +82,14 @@ ebrowser <- function(
     {
         message("Read expression data ...")
         eset <- read.eset( exprs.file=exprs, 
-            pdat.file=pdat, fdat.file=fdat, data.type=data.type)
+            pdat.file=pdat, fdat.file=fdat, data.type=data.type )
     }
     else
     { 
         eset <- exprs
         if(is.na(data.type))
-            data.type <- auto.detect.data.type(exprs(eset))
-        experimentData(eset)@other$dataType <- data.type
+            data.type <- .detectDataType(assay(eset))
+        metadata(eset)$dataType <- data.type
     }
     
     # normalize?
@@ -101,10 +101,11 @@ ebrowser <- function(
     
     # probe 2 gene if data.type = ma
     # ... and it's not already a gene level eset
-    if(experimentData(eset)@other$dataType == "ma")
+    if(metadata(eset)$dataType == "ma")
     {
-        has.pcol <- config.ebrowser("PRB.COL") %in% colnames(fData(eset))
-        has.anno <- ifelse(length(annotation(eset)), nchar(annotation(eset)) > 3, FALSE)
+        has.pcol <- config.ebrowser("PRB.COL") %in% colnames(rowData(eset))
+        anno <- metadata(eset)$annotation
+        has.anno <- ifelse(length(anno), nchar(anno) > 3, FALSE)
         if(has.pcol || has.anno)
         {
             message("Transform probe expression to gene expression ...")    

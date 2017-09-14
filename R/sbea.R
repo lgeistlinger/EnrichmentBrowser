@@ -49,7 +49,7 @@ sbea <- function(
     { 
         method <- match.arg(method)
         data.type <- experimentData(eset)@other$dataType
-        if(is.null(data.type)) data.type <- auto.detect.data.type(exprs(eset))
+        if(is.null(data.type)) data.type <- .detectDataType(exprs(eset))
 
         # rseq? 
         if(data.type == "rseq")

@@ -86,8 +86,8 @@ Typically, the expression data is not already available in \R{} but
 rather has to be read in from file. 
 This can be done using the function \Rfunction{read.eset}, which reads 
 the expression data (\Rfunction{exprs}) along with the phenotype data 
-(\Rfunction{pData}) and feature data (\Rfunction{fData}) into an 
-\Rclass{ExpressionSet}. 
+(\Rfunction{colData}) and feature data (\Rfunction{rowData}) into a
+\Biocpkg{SummarizedExperiment}. 
 <<read-eset>>=
 library(EnrichmentBrowser)
 data.dir <- system.file("extdata", package="EnrichmentBrowser")
@@ -97,12 +97,12 @@ fdat.file <- file.path(data.dir, "fData.tab")
 eset <- read.eset(exprs.file, pdat.file, fdat.file)
 @
 
-The man pages provide details on file format and the \Rclass{ExpressionSet} 
+The man pages provide details on file format and the \Rclass{SummarizedExperiment} 
 data structure.
 
 <<help, eval=FALSE>>=
 ?read.eset
-?ExpressionSet
+?SummarizedExperiment
 @
 
 \newpage
@@ -145,14 +145,14 @@ As we often have more than one probe per gene, we compute gene expression values
 as the average of the corresponding probe values.
 <<probe2gene>>=
 all.eset <- probe.2.gene.eset(all.eset)
-head(featureNames(all.eset))
+head(rownames(all.eset))
 @
 Note, that the mapping from probe to gene is done automatically as long as 
 as you have the corresponding annotation package, here the 
 \Biocpkg{hgu95av2.db} package, installed. Otherwise, the mapping can be 
-defined in the \Rfunction{fData} slot.
+defined in the \Rfunction{rowData} slot.
 <<show-probe2gene>>=
-head(fData(eset))
+rowData(eset)
 @
 
 \subsection{RNA-seq data}
@@ -166,17 +166,14 @@ library(airway)
 data(airway)
 @
 
-and create the \Rclass{ExpressionSet}. 
 For further analysis, we remove genes with very low read counts and 
 measurements that are not mapped to an ENSEMBL gene ID.
 
 <<preproc-airway>>=
-expr <- assays(airway)[[1]]
-expr <- expr[grep("^ENSG", rownames(expr)),]
-expr <- expr[rowMeans(expr) > 10,]
-air.eset <- new("ExpressionSet", exprs=expr, annotation="hsa")
+air.eset <- airway[grep("^ENSG", rownames(airway)),]
+air.eset <- air.eset[rowMeans(assay(air.eset)) > 10,]
 dim(air.eset)
-exprs(air.eset)[1:4,1:4]
+assay(air.eset)[1:4,1:4]
 @
 
 \newpage
@@ -200,9 +197,9 @@ A default quantile normalization based on
 \Rfunction{normalizeBetweenArrays} from \Biocpkg{limma} can be carried out via
 
 <<norm-ma>>=
-before.norm <- exprs(all.eset)
+before.norm <- assay(all.eset)
 all.eset <- normalize(all.eset, norm.method="quantile")
-after.norm <- exprs(all.eset)
+after.norm <- assay(all.eset)
 @
 
 \begin{center}
@@ -235,7 +232,7 @@ e.g.~from BioMart or specific \Bioconductor annotation packages.
 Both modes are implemented in the \Biocpkg{EDASeq} function \Rfunction{getGeneLengthAndGCContent}.
 
 <<lgc, eval=FALSE>>=
-ids <- head(featureNames(air.eset))
+ids <- rownames(air.eset)
 lgc <- EDASeq::getGeneLengthAndGCContent(ids, org="hsa", mode="biomart") 
 @
 
@@ -243,7 +240,7 @@ Using precomputed information, normalization within and between lanes can be car
 
 <<norm2-rseq>>=
 lgc.file <- file.path(data.dir, "air_lgc.tab")
-fData(air.eset) <- read.delim(lgc.file)
+rowData(air.eset) <- read.delim(lgc.file)
 norm.air <- normalize(air.eset, within=TRUE)
 @
 
@@ -259,33 +256,33 @@ For the ALL dataset, this indicates whether the BCR-ABL gene fusion is
 present (1) or not (0). 
 
 <<sample-groups-ALL>>=
-pData(all.eset)$GROUP <- ifelse(all.eset$mol.biol == "BCR/ABL", 1, 0)
-table(pData(all.eset)$GROUP)
+all.eset$GROUP <- ifelse(all.eset$mol.biol == "BCR/ABL", 1, 0)
+table(all.eset$GROUP)
 @
 
 For the airway dataset, this indicates whether the cell lines have been treated 
 with dexamethasone (1) or not (0).
 
 <<sample-groups-airway>>=
-pData(air.eset)$GROUP <- ifelse(colData(airway)$dex == "trt", 1, 0)
-table(pData(air.eset)$GROUP)
+air.eset$GROUP <- ifelse(airway$dex == "trt", 1, 0)
+table(air.eset$GROUP)
 @
 
 Paired samples, or in general sample batches/blocks, can be defined via a 
-\Robject{BLOCK} column in the \Rfunction{pData} slot.
+\Robject{BLOCK} column in the \Rfunction{colData} slot.
 For the airway dataset, the sample blocks correspond to the four different cell 
 lines.
 
 <<sample-blocks>>=
-pData(air.eset)$BLOCK <- colData(airway)$cell
-table(pData(air.eset)$BLOCK)
+air.eset$BLOCK <- airway$cell
+table(air.eset$BLOCK)
 @
 
 For microarray expression data, the \Rfunction{de.ana} function carries 
 out a differential expression analysis between the two groups based on 
 functionality from the \Biocpkg{limma} package.
 Resulting fold changes and $t$-test derived $p$-values for each gene are 
-appended to the \Robject{fData} slot.
+appended to the \Robject{rowData} slot.
 
 <<DE-ana-ALL>>=
 all.eset <- de.ana(all.eset)
@@ -348,7 +345,7 @@ carried out using the function \Rfunction{map.ids}.
 
 <<idmap-airway>>=
 head(featureNames(air.eset))
-air.eset <- map.ids(air.eset, from="ENSEMBL", to="ENTREZID")
+air.eset <- map.ids(air.eset, org="hsa", from="ENSEMBL", to="ENTREZID")
 head(featureNames(air.eset))
 @
 

@@ -49,9 +49,14 @@
 .availableOrgPkgs <- function(type=c("OrgDb", "TxDb", "BSgenome"), local=TRUE)
 {
     if(local) pkgs <- .packages(all.available=TRUE)
-    else pkgs <- available.packages(paste0("http://bioconductor.org/",
-        "packages/release/data/annotation/src/contrib"))[, "Package"]
-    
+    else
+    {
+        pver <- substring(packageVersion("EnrichmentBrowser"), 3, 3)
+        is.even <- as.integer(pver) %% 2 == 0
+        repo.type <- ifelse(is.even, "release", "devel")
+        pkgs <- available.packages(paste0("http://bioconductor.org/",
+            "packages/", repo.type, "/data/annotation/src/contrib"))[, "Package"]
+    }
     type <- match.arg(type)
     org.string <- "^org.[A-z][a-z]+.[a-z]+.db$"
     if(type == "TxDb") 

@@ -4,9 +4,11 @@ import("graph")
 import("KEGGgraph")
 import("pathview")
 import("KEGGREST")
+import("SummarizedExperiment")
 
 importMethodsFrom("AnnotationDbi", mapIds, keys, keytypes, select)
 importFrom("S4Vectors", DataFrame)
+importMethodsFrom("S4Vectors", metadata)
 importMethodsFrom("ReportingTools", publish, finish)
 importFrom("ReportingTools", HTMLReport, Link)
 importFrom("hwriter", hmakeTag, hwrite, hwriteImage)
@@ -17,9 +19,9 @@ importFrom("stats", "formula", "mad", "median", "model.matrix",
              "p.adjust", "pchisq", "phyper", "pnorm", "qnorm",
              "quantile", "rnorm", "runif", "sd")
 importFrom("methods", "as", "getMethod", "is", "new")
-importFrom("utils", "available.packages", "browseURL",
-             "capture.output", "data", "head", "memory.limit",
-             "read.csv", "read.delim", "unzip", "write.table")
+importFrom("utils", "available.packages", "browseURL", "capture.output", 
+                "data", "head", "memory.limit", "packageVersion",
+                "read.csv", "read.delim", "unzip", "write.table")
 
 export( 
     read.eset, 

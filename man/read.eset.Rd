@@ -74,7 +74,7 @@
     }
 }
 \value{
-    An object of \code{\linkS4class{ExpressionSet}}.
+    An object of class \code{\linkS4class{SummarizedExperiment}}.
 }
 \details{
 See the limma's user guide 
@@ -100,7 +100,7 @@ properly defined with a 2-column fdat.file.
     Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
 }
 \seealso{
-    \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}}
+    \code{\linkS4class{SummarizedExperiment}}
 }
 \examples{
     # reading the expression data from file

@@ -31,9 +31,10 @@
         set-based enrichment. See Details. 
     } 
     \item{eset}{
-        Expression set. An object of class \code{\linkS4class{ExpressionSet}}. 
+        Expression dataset. 
+        An object of class \code{\linkS4class{SummarizedExperiment}}. 
         See \code{\link{read.eset}} and \code{\link{probe.2.gene.eset}} for 
-        required annotations in the pData and fData slots.
+        required annotations in the \code{rowData} and \code{colData} slots.
     }
     \item{gs}{
         Gene sets.

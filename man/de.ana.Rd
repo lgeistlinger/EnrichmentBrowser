@@ -18,8 +18,7 @@
         Expression data. 
         A numeric matrix. Rows correspond to genes, columns to samples.
         Alternatively, this can also be an object of class 
-        \code{\linkS4class{SummarizedExperiment}}
-        or an object of class \code{\linkS4class{ExpressionSet}}.
+        \code{\linkS4class{SummarizedExperiment}}.
         See the man page of \code{\link{read.eset}} for prerequisites 
         for the expression data.
     }
@@ -28,14 +27,12 @@
         Use '0' and '1' for unaffected (controls) and affected (cases) 
         samples, respectively.
         If NULL, this is assumed to be defined via a column named 'GROUP' 
-        in the colData / pData slot if 'expr' is a SummarizedExperiment / 
-        ExpressionSet.
+        in the \code{colData} slot if 'expr' is a \code{SummarizedExperiment}.
     }
     \item{blk}{
         Optional. For paired samples or sample blocks.
         This can also be defined via a column named 'BLOCK' 
-        in the colData / pData slot if 'expr' is a SummarizedExperiment / 
-        ExpressionSet.
+        in the \code{colData} slot if 'expr' is a \code{SummarizedExperiment}. 
     }
     \item{de.method}{
         Differential expression method.
@@ -68,8 +65,8 @@
     A DE-table with measures of differential expression for each gene/row, 
     i.e. a two-column matrix with log2 fold changes in the 1st column 
     and derived p-values in the 2nd column.
-    If 'expr' is a SummarizedExperiment / ExpressionSet, the DE-table will be 
-    automatically appended to the rowData / fData slot. 
+    If 'expr' is a \code{\linkS4class{SummarizedExperiment}}, the DE-table 
+    will be automatically appended to the \code{\link{rowData}} slot. 
 }
 \author{
     Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>

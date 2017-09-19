@@ -1,4 +1,3 @@
-import("Biobase")
 import("GSEABase")
 import("graph")
 import("KEGGgraph")

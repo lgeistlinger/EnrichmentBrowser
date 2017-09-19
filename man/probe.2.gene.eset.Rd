@@ -13,9 +13,9 @@
 }
 \arguments{
     \item{probe.eset}{
-        Probe expression set of class \code{\linkS4class{ExpressionSet}}.
-        The fData slot of the expression set must contain a 'GENE' column 
-        that lists for each probe the corresponding KEGG gene ID.
+        Probe expression data of class \code{\linkS4class{SummarizedExperiment}}.
+        The \code{rowData} slot of the expression dataset must contain 
+        a 'GENE' column that lists for each probe the corresponding KEGG gene ID.
     }
     \item{use.mean}{
         Logical.
@@ -27,13 +27,12 @@
     }
 }
 \value{
-    An \code{\linkS4class{ExpressionSet}} on gene level.
+    A \code{\linkS4class{SummarizedExperiment}} on gene level.
 }
 \author{
     Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
 }
 \seealso{
-    \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}}, 
     \code{\link{read.eset}} for reading expression data from file,
     \code{\link{de.ana}} for differential expression analysis. 
 }

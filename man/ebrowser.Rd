@@ -39,8 +39,8 @@
         (RNA-seq logCPMs).
         See limma's user guide for definition and normalization of the 
         different data types.       
-        Alternatively, this can be a SummarizedExperiment / ExpressionSet,
-        assuming the expression matrix in the 'assays' / 'exprs' slot.
+        Alternatively, this can be a \code{SummarizedExperiment},
+        assuming the expression matrix in the \code{assays} slot.
     }
     \item{pdat}{
         Phenotype data.
@@ -55,11 +55,10 @@
         class, respectively. 
         For paired samples or sample blocks a third column is expected that
         defines the blocks. 
-        If 'exprs' is a SummarizedExperiment / ExpressionSet,
+        If 'exprs' is a \code{SummarizedExperiment},
         the 'pdat' argument can be left unspecified, which then expects
         group and optional block assignments in respectively named columns
-        'GROUP' (mandatory) and 'BLOCK' (optional) in the 'colData' / 'pData' 
-        slot.
+        'GROUP' (mandatory) and 'BLOCK' (optional) in the \code{colData} slot.
     }
     \item{fdat}{
         Feature data.
@@ -70,10 +69,10 @@
         for each feature ID in 1st col; NO headers, row or column names.    
         The number of rows/features in this file should match the number of 
         rows/features of the expression matrix. 
-        If 'exprs' is a SummarizedExperiment / ExpressionSet-class,
+        If 'exprs' is a \code{SummarizedExperiment},
         the 'fdat' argument can be left unspecified, which then expects
         feature and gene IDs in respectively named columns
-        'PROBE' and 'GENE' in the 'rowData' / 'fData' slot.
+        'PROBE' and 'GENE' in the \code{rowData} slot.
     }
     \item{org}{
         Organism under investigation in KEGG three letter code, 

@@ -15,9 +15,8 @@
 }
 \arguments{
     \item{eset}{
-        Expression set.
-        An object of \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}}.
-        Expects the featureNames to be of gene ID type given in argument 'from'.
+        An object of class \code{\linkS4class{SummarizedExperiment}}.
+        Expects the names to be of gene ID type given in argument 'from'.
     }
     \item{org}{
         Organism in KEGG three letter code, 
@@ -39,14 +38,12 @@
 \value{
     id.types: character vector listing the available gene ID types for the mapping;
 
-    map.ids: An object of \code{\linkS4class{ExpressionSet}}.
+    map.ids: An object of \code{\linkS4class{SummarizedExperiment}}.
 }
 \details{
     The function 'id.types' lists the valid values which the arguments 'from' 
     and 'to' can take. This corresponds to the names of the available gene ID 
     types for the mapping.
-
-
 }
 \references{
     KEGG Organism code
@@ -56,7 +53,7 @@
     Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
 }
 \seealso{
-    \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}},
+    \code{\linkS4class{SummarizedExperiment}},
     \code{\link{mapIds}}, \code{\link{keytypes}}
 }
 \examples{

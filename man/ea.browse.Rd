@@ -63,10 +63,10 @@
     probe.eset <- read.eset(exprs.file, pdat.file, fdat.file)
     gene.eset <- probe.2.gene.eset(probe.eset) 
     gene.eset <- de.ana(gene.eset)
-    annotation(gene.eset) <- "hsa"
+    metadata(gene.eset)$annotation <- "hsa"
 
     # artificial enrichment analysis results
-    gs <- make.example.data(what="gs", gnames=featureNames(gene.eset))
+    gs <- make.example.data(what="gs", gnames=names(gene.eset))
     ea.res <- make.example.data(what="ea.res", method="ora", eset=gene.eset, gs=gs)
 
     # (5) result visualization and exploration

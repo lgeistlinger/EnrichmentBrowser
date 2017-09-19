@@ -35,11 +35,9 @@
         3rd col = regulation effect; Use '+' and '-' for activation/inhibition.
     }
     \item{eset}{
-        Expression set. 
-        An object of class \code{\linkS4class{ExpressionSet}} containing the 
-        gene expression set. See \code{\link{read.eset}} and 
-        \code{\link{probe.2.gene.eset}} for required annotations 
-        in the pData and fData slot.
+        Expression data given as SummarizedExperiment or ExpressionSet. 
+        See \code{\link{read.eset}} and \code{\link{probe.2.gene.eset}} for 
+        required annotations. 
     }
     \item{alpha}{
         Statistical significance level. Defaults to 0.05.
@@ -68,7 +66,7 @@
     \code{\link{ea.browse}} for exploration of resulting gene sets. 
 }
 \examples{
-    # (1) expression set: 
+    # (1) expression data: 
     # simulated expression values of 100 genes
     # in two sample groups of 6 samples each
     eset <- make.example.data(what="eset")
@@ -76,10 +74,10 @@
 
     # (2) gene sets:
     # draw 10 gene sets with 15-25 genes
-    gs <- make.example.data(what="gs", gnames=featureNames(eset))
+    gs <- make.example.data(what="gs", gnames=names(eset))
 
     # (3) compiling artificial regulatory network 
-    grn <- make.example.data(what="grn", nodes=featureNames(eset))
+    grn <- make.example.data(what="grn", nodes=names(eset))
 
     # (4) plot consistency graph
     ggea.graph(gs=gs[[1]], grn=grn, eset=eset)

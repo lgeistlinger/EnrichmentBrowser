@@ -104,7 +104,7 @@
 
     # ... normalize also for GC content
     gc.content <- rnorm(100, 0.5, sd=0.1)
-    fData(rseq.eset)$gc <- gc.content 
+    rowData(rseq.eset)$gc <- gc.content 
 
     norm.eset <- normalize(rseq.eset, within=TRUE)
 }

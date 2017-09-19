@@ -207,15 +207,15 @@
 
     # (2) gene sets:
     # draw 10 gene sets with 15-25 genes
-    gs <- make.example.data(what="gs", gnames=featureNames(eset))
+    gs <- make.example.data(what="gs", gnames=names(eset))
 
     # (3) make 2 artificially enriched sets:
-    sig.genes <- featureNames(eset)[fData(eset)$ADJ.PVAL < 0.1]
+    sig.genes <- names(eset)[rowData(eset)$ADJ.PVAL < 0.1]
     gs[[1]] <- sample(sig.genes, length(gs[[1]])) 
     gs[[2]] <- sample(sig.genes, length(gs[[2]]))   
    
     # (4) gene regulatory network 
-    grn <- make.example.data(what="grn", nodes=featureNames(eset))
+    grn <- make.example.data(what="grn", nodes=names(eset))
     
     # (5) performing the enrichment analysis
     ea.res <- nbea(method="ggea", eset=eset, gs=gs, grn=grn)

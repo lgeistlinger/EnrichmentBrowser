@@ -18,9 +18,8 @@
         Expression data. 
         A numeric matrix. Rows correspond to genes, columns to samples.
         Alternatively, this can also be an object of class 
-        \code{\linkS4class{ExpressionSet}} (in case of microarray data) 
-        or an object of class \code{\linkS4class{SeqExpressionSet}} 
-        (in case of RNA-seq data).
+        \code{\linkS4class{SummarizedExperiment}}
+        or an object of class \code{\linkS4class{ExpressionSet}}.
         See the man page of \code{\link{read.eset}} for prerequisites 
         for the expression data.
     }
@@ -29,12 +28,14 @@
         Use '0' and '1' for unaffected (controls) and affected (cases) 
         samples, respectively.
         If NULL, this is assumed to be defined via a column named 'GROUP' 
-        in the pData slot if 'expr' is a (Seq)ExpressionSet.
+        in the colData / pData slot if 'expr' is a SummarizedExperiment / 
+        ExpressionSet.
     }
     \item{blk}{
         Optional. For paired samples or sample blocks.
         This can also be defined via a column named 'BLOCK' 
-        in the pData slot if 'expr' is a (Seq)ExpressionSet.
+        in the colData / pData slot if 'expr' is a SummarizedExperiment / 
+        ExpressionSet.
     }
     \item{de.method}{
         Differential expression method.
@@ -67,8 +68,8 @@
     A DE-table with measures of differential expression for each gene/row, 
     i.e. a two-column matrix with log2 fold changes in the 1st column 
     and derived p-values in the 2nd column.
-    If 'expr' is a (Seq)ExpressionSet, the DE-table will be automatically
-    appended to the fData slot. 
+    If 'expr' is a SummarizedExperiment / ExpressionSet, the DE-table will be 
+    automatically appended to the rowData / fData slot. 
 }
 \author{
     Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
@@ -86,11 +87,11 @@
     # (1) microarray data: intensity measurements
     ma.eset <- make.example.data(what="eset", type="ma")
     ma.eset <- de.ana(ma.eset)
-    head(fData(ma.eset))
+    rowData(ma.eset, use.names=TRUE)
     
     # (2) RNA-seq data: read counts
     rseq.eset <- make.example.data(what="eset", type="rseq")
     rseq.eset <- de.ana(rseq.eset, de.method="DESeq")
-    head(fData(rseq.eset))
+    rowData(rseq.eset, use.names=TRUE)
 }
 

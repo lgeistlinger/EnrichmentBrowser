@@ -10,19 +10,19 @@
 ggea.graph <- function(gs, grn, eset, 
     alpha=0.05, beta=1, max.edges=50, cons.thresh=0.7)
 {
-    sgrn <- query.grn(gs, grn, index=FALSE)
-    g <- construct.ggea.graph(grn=sgrn, eset=eset,
+    sgrn <- .queryGRN(gs, grn, index=FALSE)
+    g <- .constructGGEAGraph(grn=sgrn, eset=eset,
         alpha=alpha, beta=beta, max.edges=max.edges, cons.thresh=cons.thresh)
-    plot.ggea.graph(g)
+    .plotGGEAGraph(g)
 }
 
 ##
-## plot.ggea.graph
+## .plotGGEAGraph
 ##
 ## function plots a graph of a gene regulatory network
-## that has been previously constructed via construct.ggea.graph
+## that has been previously constructed via .constructGGEAGraph
 ##
-plot.ggea.graph <- function(graph, show.scores=FALSE, title="GGEA Graph")
+.plotGGEAGraph <- function(graph, show.scores=FALSE, title="GGEA Graph")
 {
     graphRenderInfo(graph) <- list(main=title)
 
@@ -46,29 +46,33 @@ plot.ggea.graph <- function(graph, show.scores=FALSE, title="GGEA Graph")
 }
 
 ##
-## construct.ggea.graph
+## .constructGGEAGraph
 ##
 ## function construct and renders a graph of a gene regulatory network
 ##
-construct.ggea.graph <- function(grn, eset, 
+.constructGGEAGraph <- function(grn, eset, 
     alpha=0.05, beta=1, max.edges=50, cons.thresh=0.7)
 {
+    ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
+    if(is(eset, "ExpressionSet")) eset <- as(eset, "RangedSummarizedExperiment")
+    ###   
+
     # consistency
-    nodes <- intersect(featureNames(eset), grn[,1:2]) 
+    nodes <- intersect(names(eset), grn[,1:2]) 
     nr.nodes <- length(nodes)
     
     node.grid <- seq_len(nr.nodes)
     names(node.grid) <- nodes
 
-    grn <- transform.grn(grn, node.grid)
+    grn <- .transformGRN(grn, node.grid)
 	if(nrow(grn) < 2) return(NULL)
 
-    fDat <- as.matrix(fData(eset)[nodes, 
+    fDat <- as.matrix(rowData(eset, use.names=TRUE)[nodes, 
         sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)])
-    de <- comp.de(fDat, alpha=alpha, beta=beta)
+    de <- .compDE(fDat, alpha=alpha, beta=beta)
     grn.de <- cbind(de[grn[,1]], de[grn[,2]])
     if(ncol(grn) > 2) grn.de <- cbind(grn.de, grn[,3])
-    edge.cons <- apply(grn.de, MARGIN=1, FUN=is.consistent)
+    edge.cons <- apply(grn.de, MARGIN=1, FUN=.isConsistent)
     
     ord <- order(abs(edge.cons), decreasing=TRUE)
     edge.cons <- edge.cons[ord]
@@ -106,12 +110,12 @@ construct.ggea.graph <- function(grn, eset,
 
     # render graph
     # (a) render nodes
-    nColor <- apply(fDat, 1, determine.node.color)
+    nColor <- apply(fDat, 1, .determineNodeColor)
     nLwd <- rep(3, nr.nodes)
     names(nLwd) <- nodes
-    org <- annotation(eset)
+    org <- metadata(eset)$annotation
     if(!length(org)) nLabel <- nodes
-    else nLabel <- get.kegg.display.name(nodes, org=org)
+    else nLabel <- .getKEGGDisplayName(nodes, org=org)
     names(nLabel) <- nodes
 
     nodeRenderInfo(gr) <- list(label=nLabel, col=nColor, lwd=nLwd)
@@ -123,12 +127,12 @@ construct.ggea.graph <- function(grn, eset,
     # colors & lwds, etc
     eLty <- rep("solid", nr.edges)
     names(eLty) <- edges
-    eCol <- sapply(edge.cons, determine.edge.color)
+    eCol <- sapply(edge.cons, .determineEdgeColor)
     names(eCol) <- edges
     eLabel <- round(edge.cons, digits=1)
     names(eLabel) <- edges
     eLwd <- sapply(edge.cons, function(e) 
-        determine.edge.lwd(e, cons.thresh=cons.thresh))
+        .determineEdgeLwd(e, cons.thresh=cons.thresh))
     names(eLwd) <- edges
 
     edgeRenderInfo(gr) <-
@@ -144,7 +148,7 @@ construct.ggea.graph <- function(grn, eset,
     return(gr)
 }
 
-get.kegg.display.name <- function(gene.id, org)
+.getKEGGDisplayName <- function(gene.id, org)
 {
     entry <- keggList(paste(org, gene.id, sep=":"))
     dnames <- sapply(entry, function(e) unlist(strsplit(e, "[,;] "))[1])
@@ -152,28 +156,28 @@ get.kegg.display.name <- function(gene.id, org)
 }
 
 ##
-## determine.edge.lwd
+## .determineEdgeLwd
 ##
 ## function returns line width depending on edge consistency
 ##
-determine.edge.lwd <- function(edge.cons, cons.thresh=0.7) 
+.determineEdgeLwd <- function(edge.cons, cons.thresh=0.7) 
     ifelse(abs(edge.cons) > cons.thresh, 
         1 + (abs(edge.cons) - cons.thresh) * 10, 1)
 
 ##
-## determine.edge.color
+## .determineEdgeColor
 ##
 ## function returns a color depending on edge consistency
 ##
-determine.edge.color <- function(edge.cons) 
+.determineEdgeColor <- function(edge.cons) 
     ifelse(edge.cons < 0, rgb(0,0,abs(edge.cons)), rgb(abs(edge.cons),0,0))
 
 ##
-## determine.node.color
+## .determineNodeColor
 ##
 ## function returns a color depending on fc sign and significance
 ##
-determine.node.color <- function(node.info)
+.determineNodeColor <- function(node.info)
 {
     color <- rgb(0,0,0)
     if(any(is.na(node.info))) return(color)

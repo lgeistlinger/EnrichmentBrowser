@@ -24,10 +24,9 @@
 \arguments{
     \item{meth}{
         Enrichment analysis method.
-        Currently, the following enrichment analysis methods are supported:
-        \sQuote{ora}, \sQuote{safe}, \sQuote{gsea}, \sQuote{samgs}, 
-        \sQuote{ggea}, \sQuote{spia}, \sQuote{nea}, and \sQuote{pathnet}.
-        See \code{\link{sbea}} and \code{\link{nbea}} for details.
+        See \code{\link{sbea.methods}} and \code{\link{nbea.methods}} for
+        currently supported enrichment analysis methods.
+        See also \code{\link{sbea}} and \code{\link{nbea}} for details.
     }
     \item{exprs}{
       Expression matrix.
@@ -40,9 +39,8 @@
         (RNA-seq logCPMs).
         See limma's user guide for definition and normalization of the 
         different data types.       
-        Alternatively, this can be an object of 
-        \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}},
-        assuming the expression matrix in the 'exprs' slot.
+        Alternatively, this can be a SummarizedExperiment / ExpressionSet,
+        assuming the expression matrix in the 'assays' / 'exprs' slot.
     }
     \item{pdat}{
         Phenotype data.
@@ -57,12 +55,11 @@
         class, respectively. 
         For paired samples or sample blocks a third column is expected that
         defines the blocks. 
-        If 'exprs' is an object of 
-        \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}},
+        If 'exprs' is a SummarizedExperiment / ExpressionSet,
         the 'pdat' argument can be left unspecified, which then expects
         group and optional block assignments in respectively named columns
-        'GROUP' (mandatory) and 'BLOCK' (optional) in the 'pData' slot of the 
-        ExpressionSet.
+        'GROUP' (mandatory) and 'BLOCK' (optional) in the 'colData' / 'pData' 
+        slot.
     }
     \item{fdat}{
         Feature data.
@@ -73,11 +70,10 @@
         for each feature ID in 1st col; NO headers, row or column names.    
         The number of rows/features in this file should match the number of 
         rows/features of the expression matrix. 
-        If 'exprs' is an object of 
-        \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}},
+        If 'exprs' is a SummarizedExperiment / ExpressionSet-class,
         the 'fdat' argument can be left unspecified, which then expects
         feature and gene IDs in respectively named columns
-        'PROBE' and 'GENE' in the 'fData' slot of the ExpressionSet.
+        'PROBE' and 'GENE' in the 'rowData' / 'fData' slot.
     }
     \item{org}{
         Organism under investigation in KEGG three letter code, 
@@ -147,6 +143,11 @@
     \item{nr.show}{
         Number of gene sets to show. 
         As default all statistical significant gene sets are displayed.
+        Note that this only influences the number of gene sets for which
+        additional visualization will be provided (typically only of interest 
+        for the top / signifcant gene sets).
+        Selected enrichment methods and resulting flat gene set rankings 
+        still include the complete number of gene sets under study.
     }
 }   
 \value{

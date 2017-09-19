@@ -83,7 +83,7 @@
 }
 \examples{
 
-    # (1) expression set: 
+    # (1) expression data: 
     # simulated expression values of 100 genes
     # in two sample groups of 6 samples each
     eset <- make.example.data(what="eset")
@@ -91,7 +91,7 @@
 
     # (2) gene sets:
     # draw 10 gene sets with 15-25 genes
-    gs <- make.example.data(what="gs", gnames=featureNames(eset))
+    gs <- make.example.data(what="gs", gnames=names(eset))
 
     # (3) make artificial enrichment analysis results:
     # 2 ea methods with 5 significantly enriched gene sets each 

@@ -76,13 +76,13 @@ get.kegg.genesets <- function(pwys, gmt.file=NULL)
 {
     if(class(pwys) == "character")
     {
-        if(length(pwys) == 1 && file.exists(pwys)) pwys <- extract.pwys(pwys)
-        else return(download.kegg.genesets(pwys, gmt.file=gmt.file))
+        if(length(pwys) == 1 && file.exists(pwys)) pwys <- .extractPwys(pwys)
+        else return(.dwnldKeggGS(pwys, gmt.file=gmt.file))
     }
-    return(extract.kegg.genesets(pwys, gmt.file=gmt.file))
+    return(.extractKeggGS(pwys, gmt.file=gmt.file))
 }
 
-download.kegg.genesets <- function(pwys, gmt.file=NULL)
+.dwnldKeggGS <- function(pwys, gmt.file=NULL)
 {
     # download all gs of organism
     if(length(pwys) == 1 && length(grep("^[a-z]{3}$", pwys)))
@@ -120,17 +120,17 @@ download.kegg.genesets <- function(pwys, gmt.file=NULL)
         names(titles) <- pwys
         pwys <- titles
     }
-    names(gs) <- make.gs.names(names(pwys), pwys)
-    if(!is.null(gmt.file)) write.gmt(gs, gmt.file=gmt.file)
+    names(gs) <- .makeGSNames(names(pwys), pwys)
+    if(!is.null(gmt.file)) .writeGMT(gs, gmt.file=gmt.file)
     return(gs)
 }
 
-# only preferred over 'download.kegg.genesets' 
+# only preferred over '.dwnldKeggGS' 
 # when pathway kgmls have already been download
-extract.kegg.genesets <- function(pwys, gmt.file=NULL)
+.extractKeggGS <- function(pwys, gmt.file=NULL)
 {
     # read in & parse pathways
-    if(class(pwys) == "character") pwys <- extract.pwys(pwys)
+    if(class(pwys) == "character") pwys <- .extractPwys(pwys)
     
     # get pathway annotations
     nn <- sapply(pwys, getName)
@@ -140,20 +140,20 @@ extract.kegg.genesets <- function(pwys, gmt.file=NULL)
     gs <- sapply(pwys, 
         function(pwy)
         {
-            genes <- get.genes.by.pathway(pwy)
+            genes <- .getGenesByPwy(pwy)
             genes <- sub("^[a-z]{3}:", "", genes)
             genes <- sort(genes)
             return(genes)
         }, simplify=FALSE)
 
-    names(gs) <- make.gs.names(nn, tt)
+    names(gs) <- .makeGSNames(nn, tt)
     
-    if(!is.null(gmt.file)) write.gmt(gs, gmt.file=gmt.file)
+    if(!is.null(gmt.file)) .writeGMT(gs, gmt.file=gmt.file)
     return(gs)
 }
 
-## extract pwys from zip archive and parse KGML files
-extract.pwys <- function(pwy.zip)
+## .extractPwys from zip archive and parse KGML files
+.extractPwys <- function(pwy.zip)
 {
     pwy.dir <- dirname(pwy.zip)
     unzip(pwy.zip, exdir=pwy.dir, junkpaths=TRUE)
@@ -164,7 +164,7 @@ extract.pwys <- function(pwy.zip)
     return(pwys)
 }
 
-get.genes.by.pathway <- function(pwy)
+.getGenesByPwy <- function(pwy)
 {
     ts <- sapply(nodes(pwy), getType)
     genes <- unique(unlist(sapply(nodes(pwy)[ts == "gene"], getName)))
@@ -177,7 +177,7 @@ get.genes.by.pathway <- function(pwy)
 #
 
 # build first gmt column: the ID (format: <pwy.nr>_<pwy.title>)
-make.gs.names <- function(ids, titles)
+.makeGSNames <- function(ids, titles)
 {
     ids <- sub("path:", "", ids)
     titles <- sapply(titles, function(title) unlist(strsplit(title, " - "))[1])
@@ -189,7 +189,7 @@ make.gs.names <- function(ids, titles)
 }
 
 # write genesets to file in GMT format
-write.gmt <- function(gs, gmt.file)
+.writeGMT <- function(gs, gmt.file)
 {
     ## collapse geneset members to one tab separated string 
     gs.strings <- sapply(gs, function(x) paste(x,collapse="\t"))
@@ -227,7 +227,7 @@ parse.genesets.from.GMT <- function(gmt.file)
 }
 
 # prepare gene sets as gene set collection from a variety of input formats
-prep.gsets <- function(gsets)
+.prepGS <- function(gsets)
 {
     if(class(gsets) != "GeneSetCollection")
 	{	
@@ -247,18 +247,18 @@ prep.gsets <- function(gsets)
 			    if(file.exists(gsets[1])) 
                     gsets <- parse.genesets.from.GMT(gsets)
 			    # char vector
-			    else gsets <- auto.create.gsets(gsets)
+			    else gsets <- .createGS(gsets)
 		    }
         }
-        gsets <- gs.list.2.gs.coll(gsets)
+        gsets <- .gsList2Collect(gsets)
 	}
     return(gsets)
 }
 
 # coerces a list of gene sets (char vecs) into a GeneSetCollection
-gs.list.2.gs.coll <- function(gs.list)
+.gsList2Collect <- function(gs.list)
 {
-	gs.type <- auto.detect.gs.type(names(gs.list)[1])
+	gs.type <- .detectGSType(names(gs.list)[1])
     ctype <- paste0(gs.type, "Collection")
 	gs.list.new <- sapply(names(gs.list), 
         function(s){
@@ -285,9 +285,9 @@ gs.list.2.gs.coll <- function(gs.list)
 
 # create gene sets from a list of gene set ids such as
 # 'hsa00010' (KEGG ID) or 'GO:0000002' (GO ID)
-auto.create.gsets <- function(gs.ids)
+.createGS <- function(gs.ids)
 {
-	gs.type <- auto.detect.gs.type(gs.ids[1])
+	gs.type <- .detectGSType(gs.ids[1])
 	if(gs.type == "GO") gs <- get.go.genesets(gs.ids)
 	else if(gs.type == "KEGG") gs <- get.kegg.genesets(gs.ids)
 	else stop(paste("Automatic gene set recognition 
@@ -296,11 +296,10 @@ auto.create.gsets <- function(gs.ids)
 }
 
 # currently supported: GO, KEGG, user.def
-auto.detect.gs.type <- function(gs.id)
+.detectGSType <- function(gs.id)
 {
 	if(substring(gs.id, 1, 3) == "GO:") return("GO")
 	else if(grepl("^[a-z]{3}[0-9]{5}", gs.id)) return("KEGG")
 	else return("Computed") 
 }
-
 

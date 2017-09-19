@@ -28,18 +28,22 @@ sbea <- function(
     GSP.COL <- config.ebrowser("GSP.COL")
     FC.COL <-  config.ebrowser("FC.COL")
     ADJP.COL <-  config.ebrowser("ADJP.COL")
-    
+
+    ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
+    if(is(eset, "ExpressionSet")) eset <- as(eset, "RangedSummarizedExperiment")
+    ###    
+
     # dealing with NA's
-    nr.na <- sum(is.na(fData(eset)[,FC.COL]))
-    if(nr.na) eset <- eset[!is.na(fData(eset)[,FC.COL]),]
-    nr.na <- sum(is.na(fData(eset)[,ADJP.COL]))
-    if(nr.na) eset <- eset[!is.na(fData(eset)[,ADJP.COL]),]    
+    nr.na <- sum(is.na(rowData(eset)[,FC.COL]))
+    if(nr.na) eset <- eset[!is.na(rowData(eset)[,FC.COL]),]
+    nr.na <- sum(is.na(rowData(eset)[,ADJP.COL]))
+    if(nr.na) eset <- eset[!is.na(rowData(eset)[,ADJP.COL]),]    
 
     # getting gene sets
     if(!is.list(gs)) gs <- parse.genesets.from.GMT(gs)
 
     # restrict eset and gs to intersecting genes
-    igenes <- intersect(featureNames(eset), unique(unlist(gs)))
+    igenes <- intersect(rownames(eset), unique(unlist(gs)))
     eset <- eset[igenes,]
     gs <- sapply(gs, function(s) s[s %in% igenes]) 
     lens <- sapply(gs, length)
@@ -48,8 +52,8 @@ sbea <- function(
     if(is.character(method))
     { 
         method <- match.arg(method)
-        data.type <- experimentData(eset)@other$dataType
-        if(is.null(data.type)) data.type <- .detectDataType(exprs(eset))
+        data.type <- metadata(eset)$dataType
+        if(is.null(data.type)) data.type <- .detectDataType(assay(eset))
 
         # rseq? 
         if(data.type == "rseq")
@@ -66,7 +70,7 @@ sbea <- function(
             else
             {
                 # gs2cmat
-                #cmat <- .gmt2cmat(gs, featureNames(eset), GS.MIN.SIZE, GS.MAX.SIZE)
+                #cmat <- .gmt2cmat(gs, rownames(eset), GS.MIN.SIZE, GS.MAX.SIZE)
                 #if(nrow(cmat) < nrow(eset)) eset <- eset[rownames(cmat),] 
                 f <- file()
                 sink(file=f)
@@ -81,7 +85,7 @@ sbea <- function(
                 # ebm
                 else if(method == "ebm") gs.ps <- .ebm(eset, cmat)
 		        # all others
-                else gs.ps <- rseq.sbea(method, eset, cmat, perm, alpha)
+                else gs.ps <- .rseqSBEA(method, eset, cmat, perm, alpha)
             }
         }
         # microarray
@@ -105,7 +109,7 @@ sbea <- function(
             else
             {
                 # gs2cmat
-                #cmat <- .gmt2cmat(gs, featureNames(eset), GS.MIN.SIZE, GS.MAX.SIZE)
+                #cmat <- .gmt2cmat(gs, rownames(eset), GS.MIN.SIZE, GS.MAX.SIZE)
                 #if(nrow(cmat) < nrow(eset)) eset <- eset[rownames(cmat),] 
                 f <- file()
                 sink(file=f)
@@ -128,7 +132,7 @@ sbea <- function(
                     if(!file.exists(out.dir)) dir.create(out.dir)
                     samt.file <- file.path(out.dir, "samt.RData")
                     GRP.COL <- config.ebrowser("GRP.COL")
-                    gs.ps <- SAMGS(GS=as.data.frame(cmat), DATA=exprs(eset), 
+                    gs.ps <- SAMGS(GS=as.data.frame(cmat), DATA=assay(eset), 
                         cl=as.factor(as.integer(eset[[GRP.COL]]) + 1), 
                         nbPermutations=perm, 
                         tstat.file=samt.file)
@@ -227,16 +231,16 @@ local.de.ana <- function (X.mat, y.vec, args.local)
 #
 ###
 
-rseq.sbea <- function(method, eset, cmat, perm, alpha)
+.rseqSBEA <- function(method, eset, cmat, perm, alpha)
 {
 	assign("eset", eset, envir=.GlobalEnv)
     assign("local.de.ana", local.de.ana, envir=.GlobalEnv)
-    de.method <- grep(".STAT$", colnames(fData(eset)), value=TRUE)
+    de.method <- grep(".STAT$", colnames(rowData(eset)), value=TRUE)
     de.method <- sub(".STAT$",  "", de.method)
     
     blk <- NULL
     blk.col <- config.ebrowser("BLK.COL") 
-    if(blk.col %in% colnames(pData(eset))) blk <- pData(eset)[,blk.col]
+    if(blk.col %in% colnames(colData(eset))) blk <- colData(eset)[,blk.col]
 
     args.local <- list(de.method=de.method, blk=blk)
 
@@ -244,7 +248,7 @@ rseq.sbea <- function(method, eset, cmat, perm, alpha)
     if(method == "ora")
     {
         global <- "Fisher"
-        nr.sigs <- sum(fData(eset)[, config.ebrowser("ADJP.COL")] < alpha)
+        nr.sigs <- sum(rowData(eset)[, config.ebrowser("ADJP.COL")] < alpha)
         args.global$genelist.length <- nr.sigs
     }
     else if(method == "safe") global <- "Wilcoxon" 
@@ -255,11 +259,11 @@ rseq.sbea <- function(method, eset, cmat, perm, alpha)
         global.func <- paste("global", global, sep=".")
         assign(global.func, get(global.func), envir=.GlobalEnv)
         
-        if(method == "padog") args.global$gf <- get.gene.freq.weights(cmat)
+        if(method == "padog") args.global$gf <- .getGeneFreqWeights(cmat)
     }
 
-	x <- exprs(eset)
-    y <- pData(eset)[,config.ebrowser("GRP.COL")]
+	x <- assay(eset)
+    y <- colData(eset)[,config.ebrowser("GRP.COL")]
     gs.ps <- safe::safe(X.mat=x, y.vec=y, C.mat=cmat,         
         local="de.ana", args.local=args.local,
         global=global, args.global=args.global, 
@@ -275,7 +279,7 @@ rseq.sbea <- function(method, eset, cmat, perm, alpha)
     return(res.tbl)
 }
 
-is.sig <- function(fdat, alpha=0.05, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
+.isSig <- function(fdat, alpha=0.05, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
 {
     FC.COL <- config.ebrowser("FC.COL")
     ADJP.COL <- config.ebrowser("ADJP.COL")
@@ -319,12 +323,12 @@ is.sig <- function(fdat, alpha=0.05, beta=1, sig.stat=c("xxP", "xxFC", "|", "&")
 }
 
 # 1 HYPERGEOM ORA
-ora.hyperg <- function(fdat, cmat, 
+.oraHypergeom <- function(fdat, cmat, 
     alpha=0.05, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
 {
     # determine sig. diff. exp. genes of eset, 
     # corresponds to sample size from urn
-    isig <- is.sig(fdat, alpha, beta, sig.stat)
+    isig <- .isSig(fdat, alpha, beta, sig.stat)
     nr.sigs <- sum(isig)
     
     # determine overlap of sig and set genes for each set
@@ -368,17 +372,17 @@ ora.hyperg <- function(fdat, cmat,
     GRP.COL <- config.ebrowser("GRP.COL")
     ADJP.COL <- config.ebrowser("ADJP.COL")
 
-    x <- exprs(eset)
-    y <- pData(eset)[, GRP.COL]
+    x <- assay(eset)
+    y <- colData(eset)[, GRP.COL]
 
     # execute hypergeom ORA if no permutations
-    fdat <- fData(eset)
-    if(perm == 0) res.tbl <- ora.hyperg(fdat, cmat, alpha, beta, sig.stat)
+    fdat <- rowData(eset, use.names=TRUE)
+    if(perm == 0) res.tbl <- .oraHypergeom(fdat, cmat, alpha, beta, sig.stat)
     # else do resampling using functionality of SAFE
     else{
         # resampl ORA
         if(mode == 1){
-            nr.sigs <- sum(is.sig(fdat, alpha, beta, sig.stat))
+            nr.sigs <- sum(.isSig(fdat, alpha, beta, sig.stat))
             args <- list(one.sided=FALSE, genelist.length=nr.sigs)
 
             gs.ps <- safe::safe(X.mat=x, y.vec=y, global="Fisher", C.mat=cmat, 
@@ -410,8 +414,8 @@ ora.hyperg <- function(fdat, cmat,
     {
         npGSEA <- pTwoSided <- NULL
         .isAvailable("npGSEA", type="software")
-        gsc <- gs.list.2.gs.coll(gs.gmt)
-        res <- npGSEA(x=exprs(eset), y=eset[[GRP.COL]], set=gsc)
+        gsc <- .gsList2Collect(gs.gmt)
+        res <- npGSEA(x=assay(eset), y=eset[[GRP.COL]], set=gsc)
         ps <- sapply(res, pTwoSided)
         names(ps) <- names(gs.gmt)
         return(ps)
@@ -428,7 +432,7 @@ ora.hyperg <- function(fdat, cmat,
     if(!file.exists(out.dir)) dir.create(out.dir)
         
     # run GSEA
-    res <- GSEA(input.ds=as.data.frame(exprs(eset)), 
+    res <- GSEA(input.ds=as.data.frame(assay(eset)), 
         input.cls=cls, gs.db=gs.gmt, output.directory=out.dir, nperm=perm)
       
     gs.ps <- S4Vectors::as.matrix(res[,3:5])
@@ -442,8 +446,8 @@ ora.hyperg <- function(fdat, cmat,
 {
     empiricalBrownsMethod <- NULL
     .isAvailable("EmpiricalBrownsMethod", type="software")
-    pcol <-  fData(eset)[, config.ebrowser("ADJP.COL")]
-    e <- exprs(eset)
+    pcol <-  rowData(eset, use.names=TRUE)[, config.ebrowser("ADJP.COL")]
+    e <- assay(eset)
     gs.ps <- apply(cmat, 2, function(s) empiricalBrownsMethod(e[s,], pcol[s]))
     return(gs.ps)
 }
@@ -460,14 +464,14 @@ ora.hyperg <- function(fdat, cmat,
 
     blk <- NULL
     BLK.COL <- config.ebrowser("BLK.COL")
-    if(BLK.COL %in% colnames(pData(eset))) blk <- pData(eset)[,BLK.COL] 
+    if(BLK.COL %in% colnames(colData(eset))) blk <- colData(eset)[,BLK.COL] 
     paired <- !is.null(blk)
     resp.type <- ifelse(paired, "Two class paired", "Two class unpaired")
 
     # prepare input
-    x <- exprs(eset)
+    x <- assay(eset)
     y <- eset[[config.ebrowser("GRP.COL")]] + 1
-    genenames <- featureNames(eset)
+    genenames <- rownames(eset)
 
     # run GSA
     res <- GSA(x=x, y=y, nperms=perm, genesets=gs, resp.type=resp.type,
@@ -525,12 +529,12 @@ global.GSA <- function(cmat, u, ...)
   
     blk <- NULL
     BLK.COL <- config.ebrowser("BLK.COL")
-    if(BLK.COL %in% colnames(pData(eset))) blk <- pData(eset)[,BLK.COL] 
+    if(BLK.COL %in% colnames(colData(eset))) blk <- colData(eset)[,BLK.COL] 
     paired <- !is.null(blk)
   
     nmin <- config.ebrowser("GS.MIN.SIZE")
   
-    res <- padog(esetm=exprs(eset), group=grp, 
+    res <- padog(esetm=assay(eset), group=grp, 
         paired=paired, block=blk, gslist=gs, Nmin=nmin, NI=perm)
   
     res.tbl <- res[, c("meanAbsT0", "padog0", "PmeanAbsT", "Ppadog")]
@@ -541,7 +545,7 @@ global.GSA <- function(cmat, u, ...)
 
 
 # compute gene frequencies across genesets
-get.gene.freq.weights <- function(cmat)
+.getGeneFreqWeights <- function(cmat)
 {
     gf <- rowSums(cmat)
     if (!all(gf == 1)) 
@@ -586,9 +590,9 @@ global.PADOG <- function(cmat, u, args.global)
     .isAvailable("mgsa", type="software")
     
     # extract significant (DE) genes
-    isig <- is.sig(fData(eset), alpha, beta, sig.stat)
-    obs <- featureNames(eset)[isig]
-    pop <- featureNames(eset)
+    isig <- .isSig(rowData(eset, use.names=TRUE), alpha, beta, sig.stat)
+    obs <- rownames(eset)[isig]
+    pop <- rownames(eset)
   
     # run mgsa
     res <- mgsa(o=obs, sets=gs, population=pop)
@@ -604,7 +608,7 @@ global.PADOG <- function(cmat, u, args.global)
     gt <- NULL
     .isAvailable("globaltest", type="software")
 
-    grp <- pData(eset)[, config.ebrowser("GRP.COL")]
+    grp <- colData(eset)[, config.ebrowser("GRP.COL")]
     res <- gt(grp, eset, subsets=gs, permutations=perm)
     res <- res@result[,2:1]
     colnames(res) <- c("STAT", config.ebrowser("GSP.COL"))
@@ -619,10 +623,10 @@ global.PADOG <- function(cmat, u, args.global)
     method <- match.arg(method)
 
     # design matrix
-    grp <- pData(eset)[, config.ebrowser("GRP.COL")]
+    grp <- colData(eset)[, config.ebrowser("GRP.COL")]
     blk <- NULL
     BLK.COL <- config.ebrowser("BLK.COL")
-    if(BLK.COL %in% colnames(pData(eset))) blk <- pData(eset)[,BLK.COL]
+    if(BLK.COL %in% colnames(colData(eset))) blk <- colData(eset)[,BLK.COL]
    
     group <- factor(grp)
     paired <- !is.null(blk)
@@ -635,7 +639,7 @@ global.PADOG <- function(cmat, u, args.global)
     f <- formula(paste0(f, "group"))
     design <- model.matrix(f)
 
-    y <- exprs(eset)
+    y <- assay(eset)
     # rseq data
     if(rseq)
     {
@@ -645,7 +649,7 @@ global.PADOG <- function(cmat, u, args.global)
     }
     
     # set gene sets
-    gs.index <- limma::ids2indices(gs, featureNames(eset))
+    gs.index <- limma::ids2indices(gs, rownames(eset))
     
     # run roast / camera
     if(method == "roast")
@@ -674,14 +678,14 @@ global.PADOG <- function(cmat, u, args.global)
     .isAvailable("GSVA", type="software")
   
     # compute GSVA per sample enrichment scores
-    es <- gsva(expr=exprs(eset), gset.idx.list=gs, rnaseq=rseq)
+    es <- gsva(expr=assay(eset), gset.idx.list=gs, rnaseq=rseq)
     es <- es$es.obs
   
     # set design matrix
-    grp <- pData(eset)[, config.ebrowser("GRP.COL")]
+    grp <- colData(eset)[, config.ebrowser("GRP.COL")]
     blk <- NULL
     BLK.COL <- config.ebrowser("BLK.COL")
-    if(BLK.COL %in% colnames(pData(eset))) blk <- pData(eset)[,BLK.COL]
+    if(BLK.COL %in% colnames(colData(eset))) blk <- colData(eset)[,BLK.COL]
 
     group <- factor(grp)
     paired <- !is.null(blk)

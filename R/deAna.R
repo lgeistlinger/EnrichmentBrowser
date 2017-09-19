@@ -132,14 +132,6 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
         i <- grep("STAT$", colnames(rowData(eset)))
         if(length(i)) rowData(eset) <- rowData(eset)[,-i]
         rowData(eset)[,colnames(de.tbl)] <- DataFrame(de.tbl)
-
-        ### TEMPORARY: to confirm with downstream
-        fdat <- rowData(eset)
-        eset <- as(eset, "ExpressionSet")
-        fData(eset) <- as.data.frame(fdat) 
-        rownames(fData(eset)) <- featureNames(eset)
-        ###
-
         return(eset)
     }
     return(de.tbl)

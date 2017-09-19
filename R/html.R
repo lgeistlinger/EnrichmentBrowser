@@ -13,7 +13,7 @@
 #
 ###############################################################################
 
-create.index <- function(meth, comb)
+.createIndex <- function(meth, comb)
 {
     out.dir <- config.ebrowser("OUTDIR.DEFAULT")
     indexPage <- HTMLReport(shortName = 'index',
@@ -55,7 +55,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     eset <- res$eset
     alpha <- res$alpha
     gs <- res$gs
-
+    
     # create out dir
     out.dir <- config.ebrowser("OUTDIR.DEFAULT")
     if(!file.exists(out.dir)) dir.create(out.dir)
@@ -70,7 +70,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
 
     # expecting transition from gene set lists to collections in the near future
     # gsc <- res$gsc
-    gsc <- gs.list.2.gs.coll(gs[res[,1]])
+    gsc <- .gsList2Collect(gs[res[,1]])
     res[,1] <- sapply(res[,1], function(s) unlist(strsplit(s, "_"))[1])
     
     is.kegg <- is(collectionType(gsc[[1]]), "KEGGCollection")
@@ -94,20 +94,22 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     # make gene pages
     im <- incidence(gsc)
     org <- organism(gsc[[1]])
-    if(org == "") org <- annotation(eset)
+    if(org == "") org <- metadata(eset)$annotation
     if(!length(org)) stop("Organism annotation not found!\n", 
-        "Organism under study must be annotated via annotation(eset)")
+        "Organism under study must be annotated via metadata(eset)$annotation")
 
     message("Creating gene report ...")
     eset <- eset[colnames(im),]
-    fDat <- fData(eset)[,sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)]
-    gt <- suppressMessages(gene.table(im, org, fcs=fDat))
+    rcols <- sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)
+    fDat <- rowData(eset, use.names=TRUE)[,rcols]
+    fDat <- as.data.frame(fDat)
+    gt <- suppressMessages(.geneTable(im, org, fcs=fDat))
     gn.cols <- sapply(c("SYM.COL", "GN.COL"), config.ebrowser)
-    fData(eset)[,gn.cols] <- gt[,gn.cols] 
-    gt.reps <- sapply(gsc, function(s) gene.report(s, gt, out.dir)) 
+    rowData(eset)[,gn.cols] <- DataFrame(gt[,gn.cols]) 
+    gt.reps <- sapply(gsc, function(s) .geneReport(s, gt, out.dir)) 
     
     # make gene set page
-    # (1) link gene report
+    # (1) link .geneReport
     link <- paste0(names(gsc), ".html")
     res[,"NR.GENES"] <- hwrite(res[,"NR.GENES"], link=link, table = FALSE)
    
@@ -116,7 +118,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     out.prefix <- file.path(rep.dir, names(gsc))
     names(out.prefix) <- names(gsc)
     vcol <- sapply(gsc, function(s) 
-        view.set(eset[geneIds(s),], out.prefix[setName(s)]))
+        .viewSet(eset[geneIds(s),], out.prefix[setName(s)]))
     vcol <- hwriteImage(sub("sview.html", "volc.png", vcol),
         link=vcol, table = FALSE, height=50, width=50, target="_blank")
     res <- DataFrame(res, vcol)
@@ -127,7 +129,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     { 
         message("Creating kegg view ...")
         vcol <- sapply(gsc, function(s) 
-            view.path(setName(s), eset[geneIds(s),], out.prefix[setName(s)]))
+            .viewPath(setName(s), eset[geneIds(s),], out.prefix[setName(s)]))
         vcol <- hwriteImage(sub("kview.html", "kpath.png", vcol),
             link=vcol, table = FALSE, height=50, width=50, target="_blank")
         res <- DataFrame(res, vcol)
@@ -138,7 +140,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     if(!is.null(graph.view)) 
     {
         message("Creating graph view ...")
-        vcol <- sapply(gsc, function(s) view.graph(eset[geneIds(s),], query.grn(
+        vcol <- sapply(gsc, function(s) .viewGraph(eset[geneIds(s),], .queryGRN(
             geneIds(s), graph.view, index=FALSE), alpha, out.prefix[setName(s)]))
         vcol <- hwriteImage(sub("html$", "png", vcol),
             link=vcol, table = FALSE, height=50, width=50, target="_blank")
@@ -150,7 +152,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     link <- NULL
     GS.COL <- config.ebrowser("GS.COL")
     if(is.kegg) link <- sapply(gsc, function(s) 
-        get.html.of.marked.pathway(setName(s), geneIds(s)[fDat[geneIds(s),2] < alpha]))
+        .getHTMLOfMarkedPathway(setName(s), geneIds(s)[fDat[geneIds(s),2] < alpha]))
     else if(is.go) link <- paste0(config.ebrowser("GO.SHOW.URL"), res[,GS.COL])
     if(!is.null(link)) res[,GS.COL] <- 
         hwrite(res[,GS.COL], link=link, table=FALSE)
@@ -166,7 +168,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     if(!html.only) if (interactive()) browseURL(rep)
 }
 
-make.view <- function(html1, html2, gene.html.pos=c("bottom", "topright"))
+.makeView <- function(html1, html2, gene.html.pos=c("bottom", "topright"))
 {
     gene.html.pos <- match.arg(gene.html.pos)
     s <- unlist(strsplit(html1, "_"))[1]
@@ -193,7 +195,7 @@ make.view <- function(html1, html2, gene.html.pos=c("bottom", "topright"))
     return(cont)
 }
 
-view.set <- function(eset, out.prefix)
+.viewSet <- function(eset, out.prefix)
 {
     out.files <- paste(out.prefix, 
         c("sview.html", "volc.png", "hmap.png"), sep="_" )
@@ -203,9 +205,9 @@ view.set <- function(eset, out.prefix)
         ##
         # 1 PLOT: heatmap & volcano
         ##
-        volc.html <- make.volc.html(eset, out.files[2])
-        hmap.html <- make.hmap.html(eset, out.files[3])
-        cont <- make.view(volc.html, hmap.html) 
+        volc.html <- .makeVolcHTML(eset, out.files[2])
+        hmap.html <- .makeHmapHTML(eset, out.files[3])
+        cont <- .makeView(volc.html, hmap.html) 
         cat(cont, file=out.files[1])
     }
     views <- basename(out.files[1])
@@ -225,14 +227,14 @@ view.set <- function(eset, out.prefix)
 #    return(rev(views))
 }
 
-view.path <- function(s, eset, out.prefix)
+.viewPath <- function(s, eset, out.prefix)
 {
     org <- substring(s, 1, 3)
     pwy.id <- sub("^[a-z]{3}", "", s)
-    fc <- fData(eset)[,config.ebrowser("FC.COL")]
+    fc <- rowData(eset)[,config.ebrowser("FC.COL")]
     gn.cols <- sapply(c("SYM.COL", "GN.COL"), config.ebrowser)
-    gnam <- apply(fData(eset)[,gn.cols], 1, paste, collapse=": ")
-    names(fc) <- names(gnam) <- featureNames(eset)
+    gnam <- apply(rowData(eset)[,gn.cols], 1, paste, collapse=": ")
+    names(fc) <- names(gnam) <- names(eset)
 
     out.files <- paste(out.prefix, 
         c("kview.html", "kpath.png", "kgraph.png"), sep="_")
@@ -242,9 +244,9 @@ view.path <- function(s, eset, out.prefix)
         ##
         # 1 PLOT: kegg.native & kegg.graph
         ##
-        kpath.html <- make.kpath.html(fc, pwy.id, org, out.files[2])
-        kgraph.html <- make.kgraph.html(fc, gnam, pwy.id, org, out.files[3])
-        cont <- make.view(kgraph.html, kpath.html, gene.html.pos="topright") 
+        kpath.html <- .makeKPathHTML(fc, pwy.id, org, out.files[2])
+        kgraph.html <- .makeKGraphHTML(fc, gnam, pwy.id, org, out.files[3])
+        cont <- .makeView(kgraph.html, kpath.html, gene.html.pos="topright") 
         cat(cont, file=out.files[1])
     }
     
@@ -252,7 +254,7 @@ view.path <- function(s, eset, out.prefix)
     return(views)
 } 
 
-view.graph <- function(eset, sgrn, alpha, out.prefix)
+.viewGraph <- function(eset, sgrn, alpha, out.prefix)
 {
     out.files <- paste0(out.prefix, "_gview.", c("html", "png", "txt"))
     
@@ -261,10 +263,10 @@ view.graph <- function(eset, sgrn, alpha, out.prefix)
         ##
         # 1 PLOT: ggea.graph
         ##
-        ggraph.html <- make.ggraph.html(eset, sgrn, alpha, out.files[2])
+        ggraph.html <- .makeGGraphHTML(eset, sgrn, alpha, out.files[2])
         void.html <- "void.html"
         cat(hmakeTag('html'), file=file.path(dirname(out.prefix),void.html))
-        cont <- make.view(ggraph.html, void.html)   
+        cont <- .makeView(ggraph.html, void.html)   
         cat(cont, file=out.files[1])
     }
     
@@ -272,24 +274,24 @@ view.graph <- function(eset, sgrn, alpha, out.prefix)
     return(views)
 }
 
-make.hmap.html <- function(eset, img.file)
+.makeHmapHTML <- function(eset, img.file)
 {
     width <- config.ebrowser("PLOT.WIDTH") 
     height <- config.ebrowser("PLOT.HEIGHT")
 
     # 1: make the plot
     # (a) heatmap 1: all features vs all samples
-    expr <- exprs(eset)
-    rownames(expr) <- fData(eset)[,config.ebrowser("SYM.COL")]
+    expr <- assay(eset)
+    rownames(expr) <- rowData(eset)[,config.ebrowser("SYM.COL")]
     png(img.file, width=width, height=height)
-    exprs.heatmap(expr=expr, grp=pData(eset)[,config.ebrowser("GRP.COL")])
+    exprs.heatmap(expr=expr, grp=eset[[config.ebrowser("GRP.COL")]])
     dev.off()
     img.tag <- hwriteImage(basename(img.file))
 
     # (b) heatmap 2: most signif features
     max.row <- 40
-    fc <- abs(fData(eset)[,config.ebrowser("FC.COL")])
-    p <- -log(fData(eset)[,config.ebrowser("ADJP.COL")], base=10)
+    fc <- abs(rowData(eset)[,config.ebrowser("FC.COL")])
+    p <- -log(rowData(eset)[,config.ebrowser("ADJP.COL")], base=10)
     ind <- (fc >= 1) | (p >= 1)
     eset <- eset[ind,]
     if(nrow(eset) > 1)
@@ -303,15 +305,15 @@ make.hmap.html <- function(eset, img.file)
             #    # select most variable samples
             #if(ncol(eset) > max.col)
             #{
-            #    svar <- apply(exprs(eset), 2, var)
+            #    svar <- apply(assay(eset), 2, var)
             #    eset <- eset[,order(svar, decreasing=TRUE)[seq_len(max.col)]]
             #}
         }
-        expr <- exprs(eset)
-        rownames(expr) <- fData(eset)[,config.ebrowser("SYM.COL")]
+        expr <- assay(eset)
+        rownames(expr) <- rowData(eset)[,config.ebrowser("SYM.COL")]
         img2 <- sub(".png$", "2.png", img.file)
         png(img2, width=width, height=height)
-        exprs.heatmap(expr=expr, grp=pData(eset)[,config.ebrowser("GRP.COL")])
+        exprs.heatmap(expr=expr, grp=eset[[config.ebrowser("GRP.COL")]])
         dev.off()
         img.tag <- paste0(img.tag, hwriteImage(basename(img2)))
     }
@@ -323,13 +325,13 @@ make.hmap.html <- function(eset, img.file)
     return(basename(hmap.html))
 }
 
-make.volc.html <- function(eset, img.file)
+.makeVolcHTML <- function(eset, img.file)
 {    
     width <- config.ebrowser("PLOT.WIDTH") 
     height <- config.ebrowser("PLOT.HEIGHT")
 
-    fc <- fData(eset)[,config.ebrowser("FC.COL")]
-    p <- fData(eset)[,config.ebrowser("ADJP.COL")]
+    fc <- rowData(eset)[,config.ebrowser("FC.COL")]
+    p <- rowData(eset)[,config.ebrowser("ADJP.COL")]
     # 1: make the plot
     png(img.file, width=width, height=height)
         volcano(fc, p)
@@ -380,8 +382,8 @@ make.volc.html <- function(eset, img.file)
     con <- file(volc.html, open="w")
     
     gn.cols <- sapply(c("SYM.COL", "GN.COL"), config.ebrowser)
-    titles <- apply(fData(eset)[,gn.cols], 1, paste, collapse=": ") 
-    refs <- paste0(config.ebrowser("GENE.URL"), featureNames(eset))
+    titles <- apply(rowData(eset)[,gn.cols], 1, paste, collapse=": ") 
+    refs <- paste0(config.ebrowser("GENE.URL"), names(eset))
     geneplotter::imageMap(coord, con, 
         list(HREF=refs, TITLE=titles, TARGET=rep("gene", nrow(coord))), 
         basename(img.file))    
@@ -389,7 +391,7 @@ make.volc.html <- function(eset, img.file)
     return(basename(volc.html))
 }
 
-make.kpath.html <- function(fc, pwy.id, org, img.file)
+.makeKPathHTML <- function(fc, pwy.id, org, img.file)
 {
     # 1: make the plot
     # run pathview for getting native overplotted image
@@ -408,7 +410,7 @@ make.kpath.html <- function(fc, pwy.id, org, img.file)
     return(basename(kpath.html))
 }
 
-make.kgraph.html <- function(fc, gname, pwy.id, org, img.file)
+.makeKGraphHTML <- function(fc, gname, pwy.id, org, img.file)
 {
     width <- config.ebrowser("PLOT.WIDTH") 
     height <- config.ebrowser("PLOT.HEIGHT")
@@ -446,14 +448,14 @@ make.kgraph.html <- function(fc, gname, pwy.id, org, img.file)
     return(basename(kgraph.html))
 }
 
-make.ggraph.html <- function(eset, sgrn, alpha, img.file)
+.makeGGraphHTML <- function(eset, sgrn, alpha, img.file)
 {
     width <- config.ebrowser("PLOT.WIDTH") 
     height <- config.ebrowser("PLOT.HEIGHT")
 
     sggea.graph <- NULL
     if(nrow(sgrn) > 0)
-        sggea.graph <- construct.ggea.graph(grn=sgrn, eset=eset, alpha=alpha)
+        sggea.graph <- .constructGGEAGraph(grn=sgrn, eset=eset, alpha=alpha)
     
     # txt report
     report.file <- sub("png$", "txt", img.file)
@@ -472,7 +474,7 @@ make.ggraph.html <- function(eset, sgrn, alpha, img.file)
     png(img.file, width=width, height=height)
     par(mai=rep(0,4))
     if(!is.null(sggea.graph))
-        sggea.graph <- plot.ggea.graph(sggea.graph,
+        sggea.graph <- .plotGGEAGraph(sggea.graph,
             show.scores=(numEdges(sggea.graph) < config.ebrowser("NR.SHOW")))
     else plot(NA, axes=FALSE, xlim=c(0,1), ylim=c(0,1),
         ylab="", xlab="", main="No edges in network for this set!")
@@ -482,8 +484,8 @@ make.ggraph.html <- function(eset, sgrn, alpha, img.file)
     if(!is.null(sggea.graph))
     {
         gn.cols <- sapply(c("SYM.COL", "GN.COL"), config.ebrowser)
-        gnam <- apply(fData(eset)[,gn.cols], 1, paste, collapse=": ")
-        names(gnam) <- featureNames(eset)
+        gnam <- apply(rowData(eset)[,gn.cols], 1, paste, collapse=": ")
+        names(gnam) <- names(eset)
 
         # image map
         nd <- nodes(sggea.graph)
@@ -499,7 +501,7 @@ make.ggraph.html <- function(eset, sgrn, alpha, img.file)
     return(basename(ggraph.html))
 }
 
-get.html.of.marked.pathway <- function(pwy, oids)
+.getHTMLOfMarkedPathway <- function(pwy, oids)
 {
     pwy <- sub("^path:", "", pwy)
     oids <- gsub("[a-z]{3}:", "", oids)
@@ -510,7 +512,7 @@ get.html.of.marked.pathway <- function(pwy, oids)
 }
 
 
-gene.report <- function(s, gt, out.dir)
+.geneReport <- function(s, gt, out.dir)
 {
     # (0) extract gene information
     gt <- gt[geneIds(s),]
@@ -522,7 +524,7 @@ gene.report <- function(s, gt, out.dir)
     # (1) html table
     htmlRep <- HTMLReport(basePath=out.dir, reportDirectory="reports",
         shortName=setName(s), title=paste(setName(s), "Gene Report", sep=": "))
-    publish(gt, htmlRep, .modifyDF=list(ncbi.gene.link))#, pubmed.link),
+    publish(gt, htmlRep, .modifyDF=list(.ncbiGeneLink))#, .pubmedLink),
         #colClasses = c(rep("sort-string-robust", 3), rep("sort-num-robust", ncol(gt)-3 )))
 
     # (2) flat file
@@ -537,7 +539,7 @@ gene.report <- function(s, gt, out.dir)
     return(rep)
 }
 
-get.gene.annotation <- function(ids, org, biotype=TRUE)
+.getGeneAnno <- function(ids, org, biotype=TRUE)
 {
     # load org pkg
     org.pkg <- .org2pkg(org)
@@ -582,7 +584,7 @@ get.gene.annotation <- function(ids, org, biotype=TRUE)
     return(gt)
 }
 
-gene.table <- function(im, org, fcs=NULL, grn=NULL)#, context="")
+.geneTable <- function(im, org, fcs=NULL, grn=NULL)#, context="")
 {
     # load org pkg
     org.pkg <- .org2pkg(org)
@@ -635,7 +637,7 @@ gene.table <- function(im, org, fcs=NULL, grn=NULL)#, context="")
 }
 
 
-ncbi.gene.link <- function(object, ...)
+.ncbiGeneLink <- function(object, ...)
 {
     EZ.COL <- config.ebrowser("EZ.COL")
     col <- as.character(object[,EZ.COL])
@@ -644,7 +646,7 @@ ncbi.gene.link <- function(object, ...)
     return(object)
 }
 
-pubmed.link <- function(object, ...)
+.pubmedLink <- function(object, ...)
 {
     PMID.COL <- config.ebrowser("PMID.COL")
     spl <- sapply(as.character(object[,PMID.COL]), 
@@ -653,7 +655,3 @@ pubmed.link <- function(object, ...)
     object[,PMID.COL] <- hwrite(as.integer(spl[,1]), link=spl[,2], table=FALSE)
     return(object)    
 }
-
-
-
-

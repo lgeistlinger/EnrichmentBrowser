@@ -10,7 +10,7 @@
 
 compile.grn.from.kegg <- function(pwys, out.file=NULL)
 {
-    kegg.rels <- unique(get.kegg.rels.of.organism(pwys)[,1:3])
+    kegg.rels <- unique(.getKEGGRels(pwys)[,1:3])
     kegg.rels[,"TYPE"] <- ifelse(kegg.rels[,"TYPE"] == "-->", "+", "-") 
     if(is.null(out.file)) return(kegg.rels)
     write.table(kegg.rels, file=out.file, 
@@ -19,15 +19,15 @@ compile.grn.from.kegg <- function(pwys, out.file=NULL)
 }
 
 # rels %in% c("ECrel", "GErel", "PCrel", "PPrel")
-get.kegg.rels.of.organism <- function(  pwys, 
-                                        out.file=NULL, 
-                                        types=c("-->", "--|"), 
-                                        rels=c("GErel", "PPrel"))
+.getKEGGRels <- function(  pwys, 
+                           out.file=NULL, 
+                           types=c("-->", "--|"), 
+                           rels=c("GErel", "PPrel"))
 {
     if(is.character(pwys))
     {
         if(nchar(pwys) == 3) pwys <- download.kegg.pathways(pwys)
-        else pwys <- extract.pwys(pwys)
+        else pwys <- .extractPwys(pwys)
     }
 
     org <- getPathwayInfo(pwys[[1]])@org
@@ -57,12 +57,12 @@ get.kegg.rels.of.organism <- function(  pwys,
                     rt <- getType(e)
                     if(rt %in% rels)
                     {
-                        et <- get.edge.type(e)
+                        et <- .getEdgeType(e)
                         if(et %in% types)
                         {
                             entries <- getEntryID(e)
-                            ids1 <- get.node.name(entries[1], nodes(p))
-                            ids2 <- get.node.name(entries[2], nodes(p))
+                            ids1 <- .getNodeName(entries[1], nodes(p))
+                            ids2 <- .getNodeName(entries[2], nodes(p))
                             sapply(ids1, function(i) 
                                 sapply(ids2, function(j)
                                     writeLines(
@@ -86,13 +86,13 @@ get.kegg.rels.of.organism <- function(  pwys,
     message(paste(org, "KEGG relations written to", out.file))
 }
 
-get.edge.type <- function(edge)
+.getEdgeType <- function(edge)
 {
     if(length(getSubtype(edge)) == 0) return(NA)
     return(getSubtype(edge)$subtype@value)
 }
 
-get.node.name <- function(entry, nodes)
+.getNodeName <- function(entry, nodes)
 {
     n <- nodes[[entry]]
     ids <- getName(n)

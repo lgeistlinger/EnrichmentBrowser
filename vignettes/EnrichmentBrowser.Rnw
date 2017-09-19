@@ -152,7 +152,7 @@ as you have the corresponding annotation package, here the
 \Biocpkg{hgu95av2.db} package, installed. Otherwise, the mapping can be 
 defined in the \Rfunction{rowData} slot.
 <<show-probe2gene>>=
-rowData(eset)
+rowData(eset, use.names=TRUE)
 @
 
 \subsection{RNA-seq data}
@@ -286,7 +286,7 @@ appended to the \Robject{rowData} slot.
 
 <<DE-ana-ALL>>=
 all.eset <- de.ana(all.eset)
-head(fData(all.eset), n=4)
+rowData(all.eset, use.names=TRUE)
 @
  
 Raw $p$-values are already corrected for multiple testing 
@@ -298,15 +298,16 @@ plot (fold change against $p$-value).
 \begin{center}
 <<plot-DE, fig.width=12, fig.height=6>>=
 par(mfrow=c(1,2))
-pdistr(fData(all.eset)$ADJ.PVAL)
-volcano(fData(all.eset)$FC, fData(all.eset)$ADJ.PVAL)
+pdistr(rowData(all.eset)$ADJ.PVAL)
+volcano(rowData(all.eset)$FC, rowData(all.eset)$ADJ.PVAL)
 @
 \end{center}
 
 The expression change of highest statistical significance is observed for the 
 ENTREZ gene \verb=7525=. 
 <<DE-exmpl>>=
-fData(all.eset)[ which.min(fData(all.eset)$ADJ.PVAL), ]
+ind.min <- which.min( rowData(all.eset)$ADJ.PVAL )
+rowData(all.eset, use.names=TRUE)[ ind.min, ]
 @
 This turns out to be the YES proto-oncogene 1 
 (\href{http://www.genome.jp/dbget-bin/www_bget?hsa:7525}{hsa:7525@KEGG}).
@@ -319,7 +320,7 @@ Here, we use the analysis based on \Biocpkg{edgeR} for demonstration.
 
 <<DE-ana-airway>>=
 air.eset <- de.ana(air.eset, de.method="edgeR")
-head(fData(air.eset), n=4)
+rowData(air.eset, use.names=TRUE)
 @
 
 \newpage
@@ -344,9 +345,9 @@ ID mapping for the airway dataset (from ENSEMBL to ENTREZ gene ids) can then be
 carried out using the function \Rfunction{map.ids}.
 
 <<idmap-airway>>=
-head(featureNames(air.eset))
+head(rownames(air.eset))
 air.eset <- map.ids(air.eset, org="hsa", from="ENSEMBL", to="ENTREZID")
-head(featureNames(air.eset))
+head(rownames(air.eset))
 @
 
 Now, we subject the ALL and the airway gene expression data to the enrichment 

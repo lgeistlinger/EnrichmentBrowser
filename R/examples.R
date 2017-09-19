@@ -13,16 +13,16 @@ make.example.data <- function(
     what <- match.arg(what)
     res <- NULL
 
-    if(what=="eset") res <- make.exmpl.eset(...)
-    else if(what=="gs") res <- make.exmpl.gs(...)
-    else if(what=="grn") res <- make.exmpl.grn(...)
-    else if(what=="ea.res") res <- make.exmpl.ea.res(...)
+    if(what=="eset") res <- .makeExmplEset(...)
+    else if(what=="gs") res <- .makeExmplGS(...)
+    else if(what=="grn") res <- .makeExmplGRN(...)
+    else if(what=="ea.res") res <- .makeExmplRes(...)
     else stop("No example data for", what)
 
     return(res)
 }
 
-make.exmpl.eset <- function(type=c("ma", "rseq"), 
+.makeExmplEset <- function(type=c("ma", "rseq"), 
     nfeat=100, nsmpl=12, blk=TRUE, norm=FALSE, de.ana=FALSE)
 {
     type <- match.arg(type)
@@ -45,17 +45,17 @@ make.exmpl.eset <- function(type=c("ma", "rseq"),
     else
     {
         exds <- DESeq2::makeExampleDESeqDataSet(n=nfeat)
-        exmpl.exprs <- SummarizedExperiment::assays(exds)[[1]]
+        exmpl.exprs <- assay(exds)
     }
     rownames(exmpl.exprs) <- paste0("g", seq_len(nfeat))
     colnames(exmpl.exprs) <- paste0("s", seq_len(nsmpl))
-    eset <- new("ExpressionSet", exprs=exmpl.exprs)
+    eset <- SummarizedExperiment(assays=list(exprs=exmpl.exprs))
     
     # sample binary group assignment, e.g. two different treatments
-    pData(eset)$GROUP <- c(rep(0, nr.controls), rep(1, nr.cases))
+    eset$GROUP <- c(rep(0, nr.controls), rep(1, nr.cases))
 
     # sample batch effects: 3 sample blocks
-    if(blk) pData(eset)$BLOCK <- sample(rep(c(1,2,3), ceiling(nsmpl/3)))[seq_len(nsmpl)]
+    if(blk) eset$BLOCK <- sample(rep(c(1,2,3), ceiling(nsmpl/3)))[seq_len(nsmpl)]
     
     if(norm) eset <- normalize(eset)
     if(de.ana) eset <- de.ana(eset) 
@@ -63,7 +63,7 @@ make.exmpl.eset <- function(type=c("ma", "rseq"),
     return(eset)
 }
 
-make.exmpl.gs <- function(gnames=NULL, n=10, min.size=15, max.size=25)
+.makeExmplGS <- function(gnames=NULL, n=10, min.size=15, max.size=25)
 {
     if(is.null(gnames)) gnames <- paste0("g", 1:100)
     gs <- replicate(n, sample(gnames, sample(min.size:max.size,1)))
@@ -71,7 +71,7 @@ make.exmpl.gs <- function(gnames=NULL, n=10, min.size=15, max.size=25)
     return(gs)
 }
 
-make.exmpl.grn <- function(nodes=NULL, edge.node.ratio=3)
+.makeExmplGRN <- function(nodes=NULL, edge.node.ratio=3)
 {
     if(is.null(nodes)) nodes <- paste0("g", 1:100)
     nr.edges <- edge.node.ratio * length(nodes)           
@@ -81,10 +81,10 @@ make.exmpl.grn <- function(nodes=NULL, edge.node.ratio=3)
     return(grn)
 }
 
-make.exmpl.ea.res <- function(eset=NULL, gs=NULL, method="ora", alpha=0.05)
+.makeExmplRes <- function(eset=NULL, gs=NULL, method="ora", alpha=0.05)
 {
-    if(is.null(eset)) eset <- make.exmpl.eset()
-    if(is.null(gs)) gs <- make.exmpl.gs(gnames=featureNames(eset))
+    if(is.null(eset)) eset <- .makeExmplEset()
+    if(is.null(gs)) gs <- .makeExmplGS(gnames=rownames(eset))
     # (3) make artificial enrichment analysis results:
     # 2 ea methods with 5 significantly enriched gene sets each
     gs.res <- sample(names(gs))

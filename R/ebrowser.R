@@ -36,7 +36,7 @@ config.ebrowser <- function(key, value=NULL)
 ##
 # set the output directory
 ##
-set.out.dir <- function(out.dir)
+.setOutDir <- function(out.dir)
 {
     if(!file.exists(dirname(out.dir)))
         stop(paste0("Not a valid output directory path \'",out.dir,"\'"))
@@ -73,12 +73,12 @@ ebrowser <- function(
             stop("\'grn\' must be not null")
   
     out.dir <- config.ebrowser("OUTDIR.DEFAULT")
-    set.out.dir(out.dir)
+    .setOutDir(out.dir)
     
     # execution
     # read expression data
     data.type <- match.arg(data.type)
-    if(!is(exprs, "ExpressionSet"))
+    if(is.character(exprs))
     {
         message("Read expression data ...")
         eset <- read.eset( exprs.file=exprs, 
@@ -86,6 +86,10 @@ ebrowser <- function(
     }
     else
     { 
+        ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
+        if(is(eset, "ExpressionSet")) 
+            eset <- as(eset, "RangedSummarizedExperiment")
+        ###  
         eset <- exprs
         if(is.na(data.type))
             data.type <- .detectDataType(assay(eset))
@@ -117,8 +121,8 @@ ebrowser <- function(
 
     message("DE analysis ...")    
     gene.eset <- de.ana(gene.eset, de.method=de.method)
-    if(missing(org)) org <- annotation(gene.eset) 
-    else annotation(gene.eset) <- org
+    if(missing(org)) org <- metadata(gene.eset)$annotation 
+    else metadata(gene.eset)$annotation <- org
         
     nr.meth <- length(meth)
 	if(length(perm) != nr.meth) perm <- rep(perm[1], nr.meth)
@@ -144,12 +148,12 @@ ebrowser <- function(
         
         # link gene statistics
         if(m == "samgs" && file.exists("samt.RData"))
-            fData(gene.eset)$SAM.T <- 
+            rowData(gene.eset)$SAM.T <- 
                 round(get(load("samt.RData")), digits=2)
        
 
         if(m == "gsea" && file.exists("gsea_s2n.RData"))
-            fData(gene.eset)$GSEA.S2N <- 
+            rowData(gene.eset)$GSEA.S2N <- 
                 round(get(load("gsea_s2n.RData")), digits=2)
         
         if(comb) res.list[[i]] <- res
@@ -157,13 +161,15 @@ ebrowser <- function(
 
     # write genewise differential expression
     gene.diffexp.file <- "de.txt"
-    ord <- order(fData(gene.eset)[,ADJP.COL])
+    ord <- order(rowData(gene.eset)[,ADJP.COL])
 	message("Annotating genes ...")
-    gt <- get.gene.annotation(featureNames(gene.eset), org)
-    fData(gene.eset) <- cbind(gt, fData(gene.eset))
-	num.cols <- sapply(fData(gene.eset), is.numeric)
-    fData(gene.eset)[,num.cols] <- signif(fData(gene.eset)[,num.cols], digits=2)
-	gene.diffexp <- fData(gene.eset)[ord,]
+    gt <- .getGeneAnno(names(gene.eset), org)
+    rowData(gene.eset) <- cbind(gt, rowData(gene.eset))
+	num.cols <- sapply(rowData(gene.eset), is.numeric)
+    df <- as.data.frame(rowData(gene.eset)[,num.cols])
+    df <- signif(df, digits=2)
+    rowData(gene.eset)[,num.cols] <- DataFrame(df)
+	gene.diffexp <- rowData(gene.eset, use.names=TRUE)[ord,]
 
     write.table(gene.diffexp, 
         file=gene.diffexp.file, row.names=FALSE, quote=FALSE, sep="\t")
@@ -197,15 +203,16 @@ ebrowser <- function(
     if(browse)
     { 
         # plot DE
-        if(length(featureNames(gene.eset)) > 1000)
+        if(length(gene.eset) > 1000)
         {
-            message("Restricting global view to the 1000 most significant genes ...")
-            gene.eset <- gene.eset[order(fData(gene.eset)[,ADJP.COL])[1:1000],]
+            message("Restricting global view to the 1000 most significant genes")
+            ind <- order(rowData(gene.eset)[,ADJP.COL])[1:1000]
+            gene.eset <- gene.eset[ind,]
         }
-        vs <- view.set(gene.eset, out.prefix=file.path(out.dir,"global"))
+        vs <- .viewSet(gene.eset, out.prefix=file.path(out.dir,"global"))
         
         message("Produce html report ...")
-        create.index(meth, comb)
+        .createIndex(meth, comb)
     }
 }
 

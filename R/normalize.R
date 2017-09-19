@@ -14,7 +14,8 @@ normalize <- function(eset, norm.method="quantile", within=FALSE, data.type=c(NA
     
     if(!is(eset, "SummarizedExperiment")) 
     {
-        if(is.matrix(eset)) eset <- new("SummarizedExperiment", exprs=eset)
+        if(is.matrix(eset)) 
+            eset <- new("SummarizedExperiment", assays=list(exprs=eset))
         else stop(paste("\'eset\' must be either",
             "a matrix, a SummarizedExperiment, or an ExpressionSet"))
     }

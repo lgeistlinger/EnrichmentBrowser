@@ -11,7 +11,7 @@
 ###########################################################
 
 # Stouffer's combination of pvalues 
-stouffer.comb <- function(pvals, two.sided=TRUE)
+.stoufferComb <- function(pvals, two.sided=TRUE)
 {
     ## remove NA
     pvals <- pvals[!is.na(pvals)]
@@ -27,7 +27,7 @@ stouffer.comb <- function(pvals, two.sided=TRUE)
 }
 
 # Fisher's combination of pvalues
-fisher.comb <- function(pvals) {
+.fisherComb <- function(pvals) {
     Xsq <- -2*sum(log(pvals))
     p <- 1 - pchisq(Xsq, df = 2*length(pvals))
     return(p)
@@ -37,7 +37,7 @@ fisher.comb <- function(pvals) {
 # e.g. pvalues/scores of gene sets
 # res <- c(0.01, 0.02, ..)
 # names(res) <- c("gs1", "gs2", ..)
-get.ranks <- function(res, 
+.getRanks <- function(res, 
     rank.fun=c("comp.ranks", "rel.ranks", "abs.ranks"), 
     rank.col=config.ebrowser("GSP.COL"),
     decreasing=FALSE)
@@ -63,7 +63,7 @@ get.ranks <- function(res,
     return(ranks)
 }
 
-comb.ranks <- function(rankm, 
+.combRanks <- function(rankm, 
     comb.fun=c("mean", "median", "min", "max", "sum"))
 {   
     if(is.function(comb.fun)) ranks <- apply(rankm, 1, comb.fun)
@@ -114,7 +114,7 @@ comb.ea.results <- function(res.list,
     for(i in seq_len(nr.res))
     {
         res.tbl <- res.list[[i]]$res.tbl
-        ranks <- get.ranks(res.tbl, 
+        ranks <- .getRanks(res.tbl, 
             rank.fun=rank.fun, rank.col=rank.col[i], decreasing=decreasing[i])
         ord <- match(gs, res.tbl[,GS.COL])
         pvalm[,i] <- res.tbl[ord, GSP.COL]
@@ -122,7 +122,7 @@ comb.ea.results <- function(res.list,
     }
 
     # compute average ranks
-    av.ranks <- comb.ranks(rankm, comb.fun)
+    av.ranks <- .combRanks(rankm, comb.fun)
     if(is.character(comb.fun)) avr.cname <- toupper(match.arg(comb.fun))
     else avr.cname <- "COMB"
     avr.cname <- paste(avr.cname, "RANK", sep=".")

@@ -50,7 +50,7 @@ read.eset <- function(exprs.file, pdat.file, fdat.file,
    
     # create the eset
     eset <- SummarizedExperiment(assays=list(exprs=expr))
-    if(!is.na(anno)) annotation(eset) <- anno
+    if(!is.na(anno)) metadata(eset)$annotation <- anno
     colData(eset) <- DataFrame(pDat, row.names=colnames(eset))
     rowData(eset) <- DataFrame(fDat, row.names=rownames(eset))
     

@@ -57,10 +57,10 @@
     eset <- make.example.data(what="eset") 
     
     # plot heatmap
-    exprs.heatmap(expr=exprs(eset), grp=as.factor(pData(eset)$GROUP))
+    exprs.heatmap(expr=assay(eset), grp=as.factor(eset$GROUP))
 
     # (2) DE analysis
     eset <- de.ana(eset)
-    pdistr(fData(eset)$ADJ.PVAL)
-    volcano(fc=fData(eset)$FC, p=fData(eset)$ADJ.PVAL)
+    pdistr(rowData(eset)$ADJ.PVAL)
+    volcano(fc=rowData(eset)$FC, p=rowData(eset)$ADJ.PVAL)
 }

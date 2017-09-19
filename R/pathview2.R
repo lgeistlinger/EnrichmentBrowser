@@ -291,8 +291,8 @@ pathview2 <- function(
     to <- nmol.data[eri$enamesTo[ind]]
     grn <- cbind(from, to, etype[ind])
     edge.cons <- apply(grn, 1, 
-        function(x) if(any(is.na(x))) return(0) else return(is.consistent(x)))
-    ecol <- determine.edge.color(edge.cons)
+        function(x) if(any(is.na(x))) return(0) else return(.isConsistent(x)))
+    ecol <- .determineEdgeColor(edge.cons)
     edgeRenderInfo(gR2.layout)$col[ind] <- ecol 
 
     rg <- Rgraphviz::renderGraph(gR2.layout)

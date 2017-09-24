@@ -160,22 +160,17 @@ ebrowser <- function(
     }
 
     # write genewise differential expression
-    gene.diffexp.file <- "de.txt"
-    ord <- order(rowData(gene.eset)[,ADJP.COL])
+    gt.file <- "de.txt"
 	message("Annotating genes ...")
     gt <- .getGeneAnno(names(gene.eset), org)
-    rowData(gene.eset) <- cbind(gt, rowData(gene.eset))
-	num.cols <- sapply(rowData(gene.eset), is.numeric)
-    df <- as.data.frame(rowData(gene.eset)[,num.cols])
-    df <- signif(df, digits=2)
-    rowData(gene.eset)[,num.cols] <- DataFrame(df)
-	gene.diffexp <- rowData(gene.eset, use.names=TRUE)[ord,]
+    gt <- cbind(gt, rowData(gene.eset, use.names=TRUE))
+    gt <- .sortGeneTable(gt)
+    ind <- gt[,config.ebrowser("EZ.COL")]
+    gene.eset <- gene.eset[ind, ]
+    rowData(gene.eset) <- gt
 
-    write.table(gene.diffexp, 
-        file=gene.diffexp.file, row.names=FALSE, quote=FALSE, sep="\t")
-
-    message(paste("Genewise differential expression written to", 
-        gene.diffexp.file))    
+    message(paste("Genewise differential expression written to", gt.file))    
+    write.table(gt, file=gt.file, row.names=FALSE, quote=FALSE, sep="\t")
 
     if(comb)
     {
@@ -206,8 +201,7 @@ ebrowser <- function(
         if(length(gene.eset) > 1000)
         {
             message("Restricting global view to the 1000 most significant genes")
-            ind <- order(rowData(gene.eset)[,ADJP.COL])[1:1000]
-            gene.eset <- gene.eset[ind,]
+            gene.eset <- gene.eset[1:1000,]
         }
         vs <- .viewSet(gene.eset, out.prefix=file.path(out.dir,"global"))
         

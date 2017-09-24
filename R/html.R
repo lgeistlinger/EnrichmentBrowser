@@ -511,16 +511,24 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     return(paste0(config.ebrowser("KEGG.SHOW.URL"), request))
 }
 
+.sortGeneTable <- function(gt)
+{
+    gt <- as.data.frame(gt)
+    num.cols <- sapply(gt, is.numeric)
+    gt[,num.cols] <- signif(gt[,num.cols], digits=3)
+    scols <- sapply(c("ADJP.COL", "FC.COL"), config.ebrowser)
+    sorting.df <- gt[, scols]
+    sorting.df[,2] <- -abs(sorting.df[,2])
+    gt <- gt[do.call(order, sorting.df), , drop=FALSE]
+    return(gt)    
+}
 
 .geneReport <- function(s, gt, out.dir)
 {
     # (0) extract gene information
     gt <- gt[geneIds(s),]
-    scols <- sapply(c("ADJP.COL", "FC.COL"), config.ebrowser)
-    sorting.df <- gt[, scols]
-    sorting.df[,2] <- -abs(sorting.df[,2])
-    gt <- gt[do.call(order, sorting.df), , drop=FALSE]
-    
+    gt <- .sortGeneTable(gt)
+        
     # (1) html table
     htmlRep <- HTMLReport(basePath=out.dir, reportDirectory="reports",
         shortName=setName(s), title=paste(setName(s), "Gene Report", sep=": "))
@@ -539,7 +547,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     return(rep)
 }
 
-.getGeneAnno <- function(ids, org, biotype=TRUE)
+.getGeneAnno <- function(ids, org, biotype=FALSE)
 {
     # load org pkg
     org.pkg <- .org2pkg(org)

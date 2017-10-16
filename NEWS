@@ -1,3 +1,8 @@
+CHANGES IN VERSION 2.8.0
+------------------------
+
+    o Major migration from ExpressionSet to SummarizedExperiment
+
 CHANGES IN VERSION 2.4.1
 ------------------------
 

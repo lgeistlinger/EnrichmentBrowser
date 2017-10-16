@@ -97,42 +97,82 @@ fdat.file <- file.path(data.dir, "fData.tab")
 eset <- read.eset(exprs.file, pdat.file, fdat.file)
 @
 
-The man pages provide details on file format and the \Rclass{SummarizedExperiment} 
-data structure.
+The man pages provide details on file format and the
+\Rclass{SummarizedExperiment} data structure.
 
 <<help, eval=FALSE>>=
 ?read.eset
 ?SummarizedExperiment
 @
 
-\newpage
+\emph{Note:} Previous versions of the \Biocpkg{EnrichmentBrowser} used the
+\Rclass{ExpressionSet} data structure.
+The migration to \Rclass{SummarizedExperiment} in the current release of the
+\Biocpkg{EnrichmentBrowser} is done to reflect recent developments in 
+\Bioconductor{}, which discourage use of \Rclass{ExpressionSet} in favor of 
+\Rclass{SummarizedExperiment}.
+Major reasons are the compatibility of \Rclass{SummarizedExperiment} with 
+operations on genomic regions as well as efficient dealing with big data.
+
+To enable a smooth transition, all functions of the \Biocpkg{EnrichmentBrowser} 
+are still accepting also an \Rclass{ExpressionSet} as input, but are 
+consistently returning a \Rclass{SummarizedExperiment} as output.
+
+Furthermore, users can always coerce from \Rclass{SummarizedExperiment} to 
+ \Rclass{ExpressionSet} via
+
+<<sexp2eset>>=
+eset <- as(eset, "ExpressionSet")
+@
+
+and vice versa
+
+<<eset2sexp>>=
+eset <- as(eset, "RangedSummarizedExperiment")
+@
 
 \section{Types of expression data}
 
 The two major data types processed by the \Biocpkg{EnrichmentBrowser} are 
 microarray (intensity measurements) and RNA-seq (read counts) data.
 
+Although RNA-seq has become the \emph{de facto} standard for 
+transcriptomic profiling, it is important to know that many methods for 
+differential expression and gene set enrichment analysis have been 
+originally developed for microarray data.
+
+However, differences in data distribution assumptions (microarray: quasi-normal,
+RNA-seq: negative binomial) made adaptations in differential expression analysis
+and, to some extent, also in gene set enrichment analysis necessary.
+
+Thus, we consider two example datasets -- a microarray and a RNA-seq dataset, 
+and discuss similarities and differences of the respective analysis steps.
+
 \subsection{Microarray data}
 
 To demonstrate the functionality of the package for microarray data, we 
-consider expression measurements of patients suffering from acute lymphoblastic
+consider expression measurements of patients with acute lymphoblastic
  leukemia \cite{Chiaretti04}. A frequent chromosomal defect found among these 
 patients is a translocation, in which parts of chromosome 9 and 22 swap places. 
 This results in the oncogenic fusion gene BCR/ABL created by positioning the 
-ABL1 gene on chromosome 9 to a part of the BCR gene on chromosome 22.\\
+ABL1 gene on chromosome 9 to a part of the BCR gene on chromosome 22.
+
 We load the \Biocpkg{ALL} dataset
 <<load-ALL>>=
 library(ALL)
 data(ALL)
 @
-and select B-cell ALL patients with and without the BCR/ABL fusion as it has 
-been described previously \cite{Scholtens05}.
+
+and select B-cell ALL patients with and without the BCR/ABL fusion as 
+described previously \cite{Scholtens05}.
+
 <<subset-ALL>>=
 ind.bs <- grep("^B", ALL$BT)
 ind.mut <- which(ALL$mol.biol %in% c("BCR/ABL", "NEG"))
 sset <- intersect(ind.bs, ind.mut)
 all.eset <- ALL[, sset]
 @
+
 We can now access the expression values, which are intensity measurements 
 on a log-scale for 12,625 probes (rows) across 79 patients (columns).
 
@@ -143,24 +183,29 @@ exprs(all.eset)[1:4,1:4]
 
 As we often have more than one probe per gene, we compute gene expression values
 as the average of the corresponding probe values.
+
 <<probe2gene>>=
 all.eset <- probe.2.gene.eset(all.eset)
 head(rownames(all.eset))
 @
+
 Note, that the mapping from probe to gene is done automatically as long as 
 as you have the corresponding annotation package, here the 
 \Biocpkg{hgu95av2.db} package, installed. Otherwise, the mapping can be 
 defined in the \Rfunction{rowData} slot.
+
 <<show-probe2gene>>=
 rowData(eset, use.names=TRUE)
 @
 
 \subsection{RNA-seq data}
+
 To demonstrate the functionality of the package for RNA-seq data, we 
 consider transcriptome profiles of four primary human airway smooth muscle cell 
 lines in two conditions: control and treatment with dexamethasone \cite{Himes14}.
 
 We load the \Biocpkg{airway} dataset
+
 <<load-airway>>=
 library(airway)
 data(airway)
@@ -176,19 +221,18 @@ dim(air.eset)
 assay(air.eset)[1:4,1:4]
 @
 
-\newpage
-
 \section{Normalization}
 
 Normalization of high-throughput expression data is essential to make results 
 within and between experiments comparable.
-Microarray (intensity measurements) and RNA-seq (read counts) data
-exhibit typically distinct features that need to be normalized for.
+Microarray (intensity measurements) and RNA-seq (read counts) data typically 
+show distinct features that need to be normalized for.
 The function \Rfunction{normalize} wraps commonly used functionality from 
 \Biocpkg{limma} for microarray normalization and from \Biocpkg{EDASeq} for 
 RNA-seq normalization.
 For specific needs that deviate from these standard normalizations, the user
-should always refer to more specific functions/packages.\\
+should always refer to more specific functions/packages.
+
 Microarray data is expected to be single-channel. For two-color arrays, it is 
 expected that normalization within arrays has been already carried out, 
 e.g.~using \Rfunction{normalizeWithinArrays} from \Biocpkg{limma}.
@@ -211,7 +255,8 @@ boxplot(after.norm)
 \end{center}
 
 Note that this is only done for demonstration, as the ALL data has 
-been already RMA-normalized by the authors of the ALL dataset.\\  
+been already RMA-normalized by the authors of the ALL dataset.
+ 
 RNA-seq data is expected to be raw read counts. 
 Note that normalization for downstream DE analysis, e.g.~with 
 \Biocpkg{edgeR} and \Biocpkg{DESeq2}, is not ultimately necessary 
@@ -219,6 +264,7 @@ Note that normalization for downstream DE analysis, e.g.~with
 normalization approaches themselves.
 See the vignette of \Biocpkg{EDASeq}, \Biocpkg{edgeR}, and \Biocpkg{DESeq2} for
 details.
+
 In case normalization is desired, between-lane normalization to adjust for 
 sequencing depth can be carried out as demonstrated for microarray data.
 
@@ -228,15 +274,17 @@ norm.air <- normalize(air.eset, norm.method="quantile")
 
 Within-lane normalization to adjust for gene-specific effects such as gene 
 length and GC-content requires to retrieve this information first, 
-e.g.~from BioMart or specific \Bioconductor annotation packages.
-Both modes are implemented in the \Biocpkg{EDASeq} function \Rfunction{getGeneLengthAndGCContent}.
+e.g.~from \software{BioMart} or specific \Bioconductor annotation packages.
+Both modes are implemented in the \Biocpkg{EDASeq} function 
+\Rfunction{getGeneLengthAndGCContent}.
 
 <<lgc, eval=FALSE>>=
 ids <- rownames(air.eset)
 lgc <- EDASeq::getGeneLengthAndGCContent(ids, org="hsa", mode="biomart") 
 @
 
-Using precomputed information, normalization within and between lanes can be carried out via
+Using precomputed information, normalization within and between lanes can be 
+carried out via
 
 <<norm2-rseq>>=
 lgc.file <- file.path(data.dir, "air_lgc.tab")
@@ -244,23 +292,38 @@ rowData(air.eset) <- read.delim(lgc.file)
 norm.air <- normalize(air.eset, within=TRUE)
 @
 
-\newpage
-
 \section{Differential expression}
 
-Differential expression analysis between sample groups can be performed using 
-the function \Rfunction{de.ana}.
-As a prerequisite, the phenotype data should contain a binary group assignment 
-for each patient.
-For the ALL dataset, this indicates whether the BCR-ABL gene fusion is 
-present (1) or not (0). 
+The \Biocpkg{EnrichmentBrowser} incorporates established functionality from the
+\Biocpkg{limma} package for differential expression analysis between sample 
+groups.
+This involves the \Rfunction{voom}-transformation when applied to RNA-seq data.
+Alternatively, differential expression analysis for RNA-seq data can also be
+carried out based on the negative binomial distribution with \Biocpkg{edgeR}
+and \Biocpkg{DESeq2}.
+
+This can be performed using the function \Rfunction{de.ana}
+and assumes some standardized variable names:
+
+\begin{itemize}
+\item \textbf{GROUP} defines the sample groups being contrasted,
+\item \textbf{BLOCK} defines paired samples or sample blocks, as e.g.~for batch
+effects.
+\end{itemize}
+
+For more information on experimental design, see the
+\href{http://bioconductor.org/packages/limma}{limma user's guide},
+chapter 9.
+
+For the ALL dataset, the \textbf{GROUP} variable indicates whether the BCR-ABL 
+gene fusion is present (1) or not (0). 
 
 <<sample-groups-ALL>>=
 all.eset$GROUP <- ifelse(all.eset$mol.biol == "BCR/ABL", 1, 0)
 table(all.eset$GROUP)
 @
 
-For the airway dataset, this indicates whether the cell lines have been treated 
+For the airway dataset, it indicates whether the cell lines have been treated 
 with dexamethasone (1) or not (0).
 
 <<sample-groups-airway>>=
@@ -269,7 +332,7 @@ table(air.eset$GROUP)
 @
 
 Paired samples, or in general sample batches/blocks, can be defined via a 
-\Robject{BLOCK} column in the \Rfunction{colData} slot.
+\textbf{BLOCK} column in the \Rfunction{colData} slot.
 For the airway dataset, the sample blocks correspond to the four different cell 
 lines.
 
@@ -291,7 +354,8 @@ rowData(all.eset, use.names=TRUE)
  
 Raw $p$-values are already corrected for multiple testing 
 (\Robject{ADJ.PVAL}) using the method from Benjamini and Hochberg implemented 
-in the function \Rfunction{p.adjust} from the \CRANpkg{stats} package.\\
+in the function \Rfunction{p.adjust} from the \CRANpkg{stats} package.
+
 To get a first overview, we inspect the $p$-value distribution and the volcano 
 plot (fold change against $p$-value).
  
@@ -305,10 +369,12 @@ volcano(rowData(all.eset)$FC, rowData(all.eset)$ADJ.PVAL)
 
 The expression change of highest statistical significance is observed for the 
 ENTREZ gene \verb=7525=. 
+
 <<DE-exmpl>>=
 ind.min <- which.min( rowData(all.eset)$ADJ.PVAL )
 rowData(all.eset, use.names=TRUE)[ ind.min, ]
 @
+
 This turns out to be the YES proto-oncogene 1 
 (\href{http://www.genome.jp/dbget-bin/www_bget?hsa:7525}{hsa:7525@KEGG}).
   
@@ -316,6 +382,7 @@ For RNA-seq data, the \Rfunction{de.ana} function carries out a differential
 expression analysis between the two groups either based on functionality from
 \Biocpkg{limma} (that includes the \Rfunction{voom} transformation), or 
 alternatively, the popular \Biocpkg{edgeR} or \Biocpkg{DESeq2} package. 
+
 Here, we use the analysis based on \Biocpkg{edgeR} for demonstration.
 
 <<DE-ana-airway>>=
@@ -323,17 +390,17 @@ air.eset <- de.ana(air.eset, de.method="edgeR")
 rowData(air.eset, use.names=TRUE)
 @
 
-\newpage
-
 \section{ID mapping}
 
 Using genomic information from different resources often requires mapping 
 between different types of gene identifiers.
 Although primary analysis steps such as normalization and differential expression 
 analysis can be carried out independent of the gene ID type, downstream exploration 
-functionality of the \Biocpkg{EnrichmentBrowser} is consistently based on NCBI Entrez Gene IDs.
-It is thus, in this regard, beneficial to initially map gene IDs of a different type 
-to NCBI Entrez IDs.\\
+functionality of the \Biocpkg{EnrichmentBrowser} is consistently based on NCBI 
+Entrez Gene IDs.
+It is thus, in this regard, beneficial to initially map gene IDs of a different
+type to NCBI Entrez IDs.
+
 The function \Rfunction{id.types} lists the available ID types for the mapping 
 depending on the organism under investigation.
 
@@ -355,29 +422,36 @@ analysis.
 
 \newpage
 
-\section{Set-based enrichment analysis}
+\section{Enrichment analysis}
+
+\subsection{Set-based enrichment analysis}
 In the following, we introduce how the \Biocpkg{EnrichmentBrowser} package 
 can be used to perform state-of-the-art enrichment analysis of gene sets. 
 We consider the ALL and the airway gene expression data as processed in the 
-previous sections. We are now interested whether there are not only single genes
- that are differentially expressed, but also sets of genes known to work together, 
-e.g.~as defined in the Gene Ontology or the KEGG pathway annotation.\\
+previous sections. We are now interested in whether pre-defined sets of genes 
+that are known to work together, e.g. as defined in the Gene Ontology 
+or the KEGG pathway annotation, are coordinately differentially expressed.
+
 The function \Rfunction{get.kegg.genesets}, which is based on 
 functionality from the \Biocpkg{KEGGREST} package, downloads all KEGG 
-pathways for a chosen organism as gene sets.
+pathways for a chosen organism (here: \emph{Homo sapiens}) as gene sets.
 
 <<get-kegg-gs, eval=FALSE>>=
 kegg.gs <- get.kegg.genesets("hsa")
 @
 
-Analogously, the function \Rfunction{get.go.genesets} defines GO 
-terms of a selected ontology as gene sets.
+Analogously, the function \Rfunction{get.go.genesets} retrieves GO 
+terms of a selected ontology (here: biological process, BP) as defined in the
+\Biocpkg{GO.db} annotation package.
 
 <<get-go-gs, eval=FALSE>>=
 go.gs <- get.go.genesets(org="hsa", onto="BP", mode="GO.db")
 @
 
-User-defined gene sets can be parsed from the GMT file format 
+User-defined gene sets can be parsed from GMT file format.
+Here, we are using this functionality for reading a list of already downloaded
+KEGG gene sets for \emph{Homo sapiens} containing NCBI Entrez Gene IDs.
+ 
 <<parseGMT>>=
 gmt.file <- file.path(data.dir, "hsa_kegg_gs.gmt")
 hsa.gs <- parse.genesets.from.GMT(gmt.file)
@@ -385,55 +459,60 @@ length(hsa.gs)
 hsa.gs[1:2]
 @
 
-\newpage
-
 Currently, the following set-based enrichment analysis methods are supported
 <<sbea-methods>>=
 sbea.methods()
 @
 
 \begin{itemize}
-\item{ORA: Overrepresentation Analysis (simple and frequently used test based 
+\item ORA: Overrepresentation Analysis (simple and frequently used test based 
         on the hypergeometric distribution, see \cite{Goeman07} for a critical 
-        review)}
-\item{SAFE: Significance Analysis of Function and Expression 
-        (resampling version of ORA, implements additional test statistics, e.g.~Wilcoxon's
-        rank sum, and allows to estimate the significance of gene sets by 
-        sample permutation; implemented in the \Biocpkg{safe} package)} 
-\item{GSEA: Gene Set Enrichment Analysis (frequently used and widely accepted, 
+        review),
+\item SAFE: Significance Analysis of Function and Expression 
+       (resampling version of ORA, implements additional test statistics, 
+        e.g.~Wilcoxon's rank sum, and allows to estimate the significance of 
+        gene sets by sample permutation; implemented in the \Biocpkg{safe} 
+        package), 
+\item GSEA: Gene Set Enrichment Analysis (frequently used and widely accepted, 
         uses a Kolmogorov–Smirnov statistic to test whether the ranks of the 
         $p$-values of genes in a gene set resemble a uniform distribution 
-        \cite{Subramanian05})}
-\item{PADOG: Pathway Analysis with Down-weighting of Overlapping Genes 
-	(incorporates gene weights to favor genes appearing in few pathways versus genes 
-	that appear in many pathways; implemented in the \Biocpkg{PADOG} package)}
-\item{ROAST: ROtAtion gene Set Test 
-	(uses rotation instead of permutation for assessment of gene set significance; 
-	implemented in the \Biocpkg{limma} and \Biocpkg{edgeR} packages for microarray 
-	and RNA-seq data, respectively)}
-\item{CAMERA: Correlation Adjusted MEan RAnk gene set test
+        \cite{Subramanian05}),
+\item PADOG: Pathway Analysis with Down-weighting of Overlapping Genes 
+	(incorporates gene weights to favor genes appearing in few pathways versus 
+    genes that appear in many pathways; implemented in the \Biocpkg{PADOG} 
+    package),
+\item ROAST: ROtAtion gene Set Test 
+    (uses rotation instead of permutation for assessment of gene set significance;
+	implemented in the \Biocpkg{limma} and \Biocpkg{edgeR} packages for 
+    microarray and RNA-seq data, respectively),
+\item CAMERA: Correlation Adjusted MEan RAnk gene set test
 	(accounts for inter-gene correlations as implemented in the \Biocpkg{limma} 
-	and \Biocpkg{edgeR} packages for microarray and RNA-seq data, respectively)}
-\item{GSA: Gene Set Analysis
-	(differs from GSEA by using the maxmean statistic, i.e.~the mean of the positive or 
-	negative part of gene scores in the gene set; implemented in the \CRANpkg{GSA} package)}
-\item{GSVA: Gene Set Variation Analysis
-	(transforms the data from a gene by sample matrix to a gene set by sample matrix, 
-	thereby allowing the evaluation of gene set enrichment for each sample;
-	implemented in the \Biocpkg{GSVA} package)}
-\item{GLOBALTEST: Global testing of groups of genes
+	and \Biocpkg{edgeR} packages for microarray and RNA-seq data, respectively),
+\item GSA: Gene Set Analysis
+	(differs from GSEA by using the maxmean statistic, i.e.~the mean of the 
+    positive or negative part of gene scores in the gene set; 
+    implemented in the \CRANpkg{GSA} package),
+\item GSVA: Gene Set Variation Analysis
+	(transforms the data from a gene by sample matrix to a gene set by sample 
+    matrix, thereby allowing the evaluation of gene set enrichment for each 
+    sample; implemented in the \Biocpkg{GSVA} package)
+\item GLOBALTEST: Global testing of groups of genes
 	(general test of groups of genes for association with a response variable;
-	implemented in the \Biocpkg{globaltest} package)}
-\item{SAMGS: Significance Analysis of Microarrays on Gene Sets 
+	implemented in the \Biocpkg{globaltest} package),
+\item SAMGS: Significance Analysis of Microarrays on Gene Sets 
         (extending the SAM method for single genes to gene set analysis 
-        \cite{Dinu07})}
-\item{EBM: Empirical Brown's Method (combines $p$-values of genes in a 
+        \cite{Dinu07}),
+\item EBM: Empirical Brown's Method (combines $p$-values of genes in a 
 gene set using Brown's method to combine $p$-values from dependent tests;
-implemented in \Biocpkg{EmpiricalBrownsMethod})}
-\item{MGSA: Model-based Gene Set Analysis
-	(Bayesian modeling approach taking set overlap into account by working on all sets 
-	simultaneously, thereby reducing the number of redundant sets; implemented in \Biocpkg{mgsa})}
+implemented in \Biocpkg{EmpiricalBrownsMethod}),
+\item MGSA: Model-based Gene Set Analysis
+	(Bayesian modeling approach taking set overlap into account by working on 
+    all sets simultaneously, thereby reducing the number of redundant sets; 
+    implemented in \Biocpkg{mgsa}).
 \end{itemize}
+
+See also Appendix~\ref{sec:primer} for a comprehensive introduction on underlying
+statistical concepts.
 
 \newpage
 
@@ -446,13 +525,15 @@ gs.ranking(sbea.res)
 
 The result of every enrichment analysis is a ranking of gene sets by the 
 corresponding $p$-value. The \Rfunction{gs.ranking} function displays only those
-gene sets satisfying the chosen significance level $\alpha$.\\
+gene sets satisfying the chosen significance level $\alpha$.
+
 While such a ranked list is the standard output of existing enrichment tools, 
 the \Biocpkg{EnrichmentBrowser} package provides visualization 
 and interactive exploration of resulting gene sets far beyond that point.
 Using the \Rfunction{ea.browse} function creates a HTML summary from which each
 gene set can be inspected in detail (this builds on functionality from the
 \Biocpkg{ReportingTools} package). 
+
 The various options are described in Figure \ref{fig:oraRes}. 
 
 <<ea-browse, eval=FALSE>>=
@@ -472,12 +553,15 @@ ea.browse(sbea.res)
 The goal of the \Biocpkg{EnrichmentBrowser} package is to provide
 frequently used enrichment methods. However, it is also possible to exploit
 its visualization capabilities with user-defined set-based enrichment methods.
+
 This requires to implement a function that takes the characteristic arguments
 \Robject{eset} (expression data), \Robject{gs} (gene sets), \Robject{alpha}
 (significance level), and \Robject{perm} (number of permutations). 
+
 In addition, it must return a numeric vector \Robject{ps} storing the resulting
 $p$-value for each gene set in \Robject{gs}. The $p$-value vector must also be
-named accordingly (i.e.~\Rcode{names(ps) == names(gs)}).\\
+named accordingly (i.e.~\Rcode{names(ps) == names(gs)}).
+
 Let us consider the following dummy enrichment method, which randomly renders 
 five gene sets significant and the remaining insignificant.
 
@@ -499,34 +583,36 @@ sbea.res2 <- sbea(method=dummy.sbea, eset=all.eset, gs=hsa.gs)
 gs.ranking(sbea.res2)
 @ 
 
-\newpage
+\subsection{Network-based enrichment analysis}
 
-\section{Network-based enrichment analysis}
 Having found sets of genes that are differentially regulated in the ALL data, 
 we are now interested whether these findings can be supported by known 
 regulatory interactions. 
+
 For example, we want to know whether transcription factors and their target 
-genes are expressed in accordance to the connecting regulations. 
+genes are expressed in accordance to the connecting regulations 
+(activation/inhibition). 
 Such information is usually given in a gene regulatory network derived from 
-specific experiments, e.g.~using the \Biocpkg{GeneNetworkBuilder}, or compiled 
-from the literature (\cite{Geistlinger13} for an example). 
+specific experiments or compiled from the literature (\cite{Geistlinger13} 
+for an example). 
+
 There are well-studied processes and organisms for which comprehensive and 
 well-annotated regulatory networks are available, e.g.~the \verb=RegulonDB= for
 \emph{E.~coli} and \verb=Yeastract= for \emph{S.~cerevisiae}. 
 However, there are also cases where such a network is missing. 
-A first simple workaround is to compile a network from regulations in the KEGG
-database.\\
-We can download all KEGG pathways of a specified organism via the 
-\Rfunction{download.kegg.pathways} function that exploits functionality
-from the \Biocpkg{KEGGREST} package.
+A basic workaround is to compile a network from regulations in the KEGG
+database.
+
+We can download all KEGG pathways of a specified organism 
+(here: \emph{Homo sapiens}) via 
 
 <<dwnld-pwys, eval=FALSE>>=
 pwys <- download.kegg.pathways("hsa")
 @
 
-In this case, we have already downloaded a selection of human KEGG pathways.
-We parse them making use of the \Biocpkg{KEGGgraph} package and compile the 
-resulting gene regulatory network.   
+For demonstration purposes, we use a selection of already downloaded human 
+KEGG pathways.
+
 <<compile-grn>>=
 pwys <- file.path(data.dir, "hsa_kegg_pwys.zip")
 hsa.grn <- compile.grn.from.kegg(pwys)
@@ -535,43 +621,44 @@ head(hsa.grn)
 
 Now, we are able to perform enrichment analysis using the compiled network.
 Currently, the following network-based enrichment analysis methods are supported
+
 <<nbea-methods>>=
 nbea.methods()
 @
  
 \begin{itemize}
-\item{GGEA: Gene Graph Enrichment Analysis 
+\item GGEA: Gene Graph Enrichment Analysis 
     (evaluates consistency of known regulatory interactions with the observed
-    expression data \cite{Geistlinger11})}
-\item{SPIA: Signaling Pathway Impact Analysis 
+    expression data \cite{Geistlinger11}),
+\item SPIA: Signaling Pathway Impact Analysis 
     (combines ORA with the probability that expression changes
 	are propagated across the pathway topology;
-	implemented in the \Biocpkg{SPIA} package)}
-\item{PathNet: Pathway Analysis using Network Information
-    (applies ORA on combined evidence for the observed signal for gene nodes and the signal 
-	implied by connected neighbors in the network; 
-	implemented in the \Biocpkg{PathNet} package)}
-\item{DEGraph: Differential expression testing for gene graphs
+	implemented in the \Biocpkg{SPIA} package),
+\item PathNet: Pathway Analysis using Network Information
+    (applies ORA on combined evidence for the observed signal for gene nodes 
+    and the signal implied by connected neighbors in the network; 
+	implemented in the \Biocpkg{PathNet} package),
+\item DEGraph: Differential expression testing for gene graphs
 	(multivariate testing of differences in mean incorporating underlying 
-	graph structure; implemented in the \Biocpkg{DEGraph} package)}
-\item{TopologyGSA: Topology-based Gene Set Analysis
+	graph structure; implemented in the \Biocpkg{DEGraph} package),
+\item TopologyGSA: Topology-based Gene Set Analysis
 	 (uses Gaussian graphical models to incorporate the dependence structure 
 	among genes as implied by pathway topology;
-	implemented in the \CRANpkg{topologyGSA} package)}
-\item{GANPA: Gene Association Network-based Pathway Analysis
+	implemented in the \CRANpkg{topologyGSA} package),
+\item GANPA: Gene Association Network-based Pathway Analysis
 	(incorporates network-derived gene weights in the enrichment analysis;
-	implemented in the \CRANpkg{GANPA} package)}
-\item{CePa: Centrality-based Pathway enrichment
+	implemented in the \CRANpkg{GANPA} package),
+\item CePa: Centrality-based Pathway enrichment
 	(incorporates network centralities as node weights mapped from 
 	differentially expressed genes in pathways;
-		implemented in the \CRANpkg{CePa} package)}
-\item{NetGSA: Network-based Gene Set Analysis
+		implemented in the \CRANpkg{CePa} package),
+\item NetGSA: Network-based Gene Set Analysis
 	(incorporates external information about interactions among genes
 	as well as novel interactions learned from data;
-	implemented in the \CRANpkg{NetGSA} package)}
-\item{NEA: Network Enrichment Analysis 
+	implemented in the \CRANpkg{NetGSA} package),
+\item NEA: Network Enrichment Analysis 
     (applies ORA on interactions instead of genes; 
-	implemented in the \Biocpkg{neaGUI} package)}
+	implemented in the \Biocpkg{neaGUI} package).
 \end{itemize}
 
 For demonstration, we perform GGEA using the compiled KEGG regulatory network.
@@ -656,8 +743,222 @@ ebrowser(   meth=c("ora", "ggea"),
         org="hsa", gs=hsa.gs, grn=hsa.grn, comb=TRUE, nr.show=5)
 @
 
-%\section{Advanced: Configuring the EnrichmentBrowser}
-%TODO
+\section{Advanced: configuration parameters}
+
+Similar to \R's options settings, the \Biocpkg{EnrichmentBrowser} uses certain
+package-wide configuration parameters, which affect the way in which analysis is
+carried out and how results are displayed.
+The settings of these parameters can be examined and, to some extent, also 
+changed using the function \Rfunction{config.ebrowser}.
+For instance, the default directory where the \Biocpkg{EnrichmentBrowser} writes
+results to can be updated via
+
+<<config-set>>=
+config.ebrowser(key="OUTDIR.DEFAULT", value="/my/out/dir")
+@
+
+and examined via
+
+<<config-get>>=
+config.ebrowser("OUTDIR.DEFAULT")
+@
+
+Note that changing these defaults should be done with care, as inappropriate 
+settings might impair the package's functionality.
+The complete list of incorporated configuration parameters along with their 
+default settings can be inspected via
+
+<<config-man, eval=FALSE>>=
+?config.ebrowser
+@
+
+\newpage
+
+\appendix
+
+\section{A primer on terminology and statistical theory}\label{sec:primer}
+
+\subsection{Where does it all come from?}\label{sec:ora}
+
+Test whether known biological functions or processes are over-represented
+(= enriched) in an experimentally-derived gene list, e.g.~a list of
+differentially expressed (DE) genes. See~\cite{Goeman07} for
+a critical review.
+
+Example: Transcriptomic study, in which 12,671 genes have been tested for
+differential expression between two sample conditions and 529 genes were found
+DE.
+
+Among the DE genes, 28 are annotated to a specific functional gene set, which
+contains in total 170 genes. This setup corresponds to a $2\times2$ contingency table,
+
+<<deTbl>>=
+deTable <-
+     matrix(c(28, 142, 501, 12000),
+            nrow = 2,
+            dimnames = list(c("DE", "Not.DE"),
+                            c("In.gene.set", "Not.in.gene.set")))
+deTable
+@
+
+where the overlap of 28 genes can be assessed based on the hypergeometric 
+distribution.                         
+This corresponds to a one-sided version of Fisher's exact test, yielding here a
+significant enrichment.
+
+<<fisher>>= 
+fisher.test(deTable, alternative = "greater")
+@
+
+This basic principle is at the foundation of major public and commercial 
+enrichment tools such as \software{DAVID}
+(\href{https://david.ncifcrf.gov}{https://david.ncifcrf.gov}) and
+\software{Pathway Studio} (\href{https://www.pathwaystudio.com}{https://www.pathwaystudio.com}).
+
+Although gene set enrichment methods have been primarily developed and applied
+on transcriptomic data, they have recently been modified, extended and applied
+also in other fields of genomic and biomedical research. 
+This includes novel approaches for functional enrichment analysis of proteomic 
+and metabolomic data as well as genomic regions and disease 
+phenotypes~\cite{Lavallee16,Chagoyen16,McLean10,Ried12}.
+
+\subsection{Gene sets, pathways \& regulatory networks}
+
+\emph{Gene sets} are simple lists of usually functionally related genes without further
+specification of relationships between genes.
+
+\emph{Pathways} can be interpreted as specific gene sets, typically representing a
+group of genes that
+work together in a biological process. Pathways are commonly divided in
+metabolic and signaling pathways.
+Metabolic pathways such as glycolysis represent biochemical substrate conversions
+by specific enzymes. Signaling pathways such as the MAPK signaling pathway 
+describe signal transduction cascades from receptor proteins to transcription 
+factors, resulting in activation or inhibition of specific target genes.
+
+\emph{Gene regulatory networks} describe the interplay and effects of regulatory
+factors (such as transcription factors and microRNAs) on the expression of their
+target genes.
+
+\subsection{Resources}
+
+\software{GO} (\href{http://www.geneontology.org}{http://www.geneontology.org}) 
+and 
+\software{KEGG} (\href{http://www.genome.jp/kegg}{http://www.genome.jp/kegg})
+annotations are most frequently used for the enrichment analysis of
+functional gene sets. Despite an increasing number of gene set and pathway
+databases, they are typically the first choice due to their long-standing
+curation and availability for a wide range of species.
+
+The Gene Ontology (GO) consists of three major sub-ontologies 
+that classify gene products according to molecular function (MF), biological 
+process (BP) and cellular component (CC). Each ontology consists of GO terms 
+that define MFs, BPs or CCs to which specific genes are annotated. The terms 
+are organized in a directed acyclic graph, where edges between the terms 
+represent relationships of different types. They relate the terms according to 
+a parent-child scheme, i.e.~parent terms denote more general entities, whereas 
+child terms represent more specific entities.
+
+The Kyoto Encyclopedia of Genes and Genomes (KEGG) is a collection of
+manually drawn pathway maps representing molecular interaction and reaction
+networks.
+These pathways cover a wide range of biochemical processes that can be divided in
+7 broad categories: metabolism, genetic and environmental information processing,
+cellular processes, organismal systems, human diseases, and drug development.
+Metabolism and drug development pathways differ from pathways of the other 5
+categories by illustrating reactions between chemical compounds.
+Pathways of the other 5 categories illustrate molecular interactions between
+genes and gene products.
+
+\subsection{Gene set analysis vs.~gene set enrichment analysis}
+
+The two predominantly used enrichment methods are:
+\begin{itemize}
+\item Overrepresentation analysis (ORA), testing whether a gene set contains
+disproportional many genes of significant expression change, based on the
+procedure outlined in section~\ref{sec:ora},
+\item Gene set enrichment analysis (GSEA), testing whether genes of a gene set
+accumulate at the top or bottom of the full gene vector ordered by direction
+and magnitude of expression change~\cite{Subramanian05}.
+\end{itemize}
+
+However, the term \emph{gene set enrichment analysis} nowadays subsumes a general
+strategy implemented by a wide range of methods~\cite{Huang09}.
+Those methods have in common the same goal, although approach and statistical
+model can vary substantially~\cite{Goeman07,Khatri12}.
+
+To better distinguish from the specific method, some authors use the term
+\emph{gene set analysis} to denote the general strategy.
+However, there is also a specific method of this name~\cite{Efron07}.
+
+\subsection{Underlying null: competitive vs.~self-contained}
+
+Goeman and Buehlmann, 2007, classified existing enrichment methods into 
+\emph{competitive} and \emph{self-contained} based on the underlying null 
+hypothesis~\cite{Goeman07}.
+
+\begin{itemize}
+\item \emph{Competitive} null hypothesis: the genes in the set of interest are 
+at most as often DE as the genes not in the set,
+\item \emph{Self-contained} null hypothesis: no genes in the set of interest are DE.
+\end{itemize}
+
+Although the authors argue that a self-contained null is closer to the actual
+question of interest, the vast majority of enrichment methods is competitive.
+
+Goeman and Buehlmann further raise several critical issues concerning the 
+$2\times2$ ORA:
+
+\begin{itemize}
+\item rather arbitrary classification of genes in DE / not DE,
+\item based on gene sampling, although sampling of subjects is appropriate,
+\item unrealistic independence assumption between genes, resulting in highly
+anti-conservative \emph{p}-values.
+\end{itemize}
+
+With regard to these statistical concerns, GSEA is considered superior:
+
+\begin{itemize}
+\item takes all measured genes into account,
+\item subject sampling via permutation of class labels,
+\item the incorporated permutation procedure implicitly accounts for correlations
+between genes.
+\end{itemize}
+
+However, the simplicity and general applicability of ORA is unmet by subsequent
+methods improving on these issues. 
+For instance, GSEA requires the expression data as input, which is not available
+for gene lists derived from other experiment types.
+On the other hand, the involved sample permutation procedure has been proven
+inaccurate and time-consuming~\cite{Efron07,Phipson10,Larson15}.
+
+\subsection{Generations: ora, fcs \& topology-based}
+
+Khatri \textit{et al}., 2012, have taken a
+slightly different approach by classifying methods along the timeline of  
+development into three generations~\cite{Khatri12}:
+
+\begin{enumerate}
+\item Generation: ORA methods based on the $2\times2$ contingency table test,
+\item Generation: functional class scoring (FCS) methods such as GSEA, which 
+compute gene set (= functional class) scores by summarizing per-gene DE statistics,
+\item Generation: topology-based methods, explicitly taking into account interactions
+between genes as defined in signaling pathways and gene regulatory networks
+(\cite{Geistlinger11} for an example).
+\end{enumerate}
+
+Although topology-based (also: network-based) methods appear to be most realistic,
+their straightforward application can be impaired by features that are 
+not detectable on the transcriptional level (such as protein-protein interactions)
+and insufficient network knowledge~\cite{Geistlinger13,Bayerlova15}.
+
+Given the individual benefits and limitations of existing methods,
+cautious interpretation of results is required to derive valid conclusions.
+Whereas no single method is best suited for all application scenarios, applying
+multiple methods can be beneficial.
+This has been shown to filter out spurious hits of individual methods, thereby
+reducing the outcome to gene sets accumulating evidence from different 
+methods~\cite{Geistlinger16,Alhamdoosh17}.
 
 \section{Frequently asked questions}
 \begin{enumerate}
@@ -682,7 +983,6 @@ Thus, for simple gene list enrichment, tools like \software{DAVID}
 are more suitable, and it is recommended to use them for this purpose.
 \end{enumerate}
 
-\newpage
-%\bibliographystyle{unsrturl}
 \bibliography{refs}
+
 \end{document}

@@ -127,8 +127,7 @@
         else if(length(pkg) > 1)
         {
             message("Found several genome assemblies")
-            sapply(pkg, function(p) 
-                message(paste(which(pkg==p), p, sep=": ")))
+            for(p in pkg) message(paste(which(pkg==p), p, sep=": "))
             n <- readline(paste0("Choose assembly (1-", length(pkg),") : "))
             pkg <- pkg[as.integer(n)]
 

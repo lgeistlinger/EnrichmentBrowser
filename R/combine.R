@@ -51,7 +51,7 @@
         names(rcol) <- res[, GS.COL] 
 
         if(rank.fun == "comp.ranks")
-            ranks <- sapply(rcol, function(p) mean(rcol <= p) * 100)
+            ranks <- vapply(rcol, function(p) mean(rcol <= p) * 100, numeric(1))
         else
         {
             ucats <- unique(rcol)
@@ -129,7 +129,7 @@ comb.ea.results <- function(res.list,
 
     # construct combined table
     res.tbl <- data.frame(rankm, av.ranks, pvalm)
-    methods <- sapply(res.list, function(x) toupper(x$method))
+    methods <- vapply(res.list, function(x) toupper(x$method), character(1))
     colnames(res.tbl) <- c(paste0(methods, ".RANK"), avr.cname, 
                 paste0(methods, ".PVAL"))
     rownames(res.tbl) <- gs

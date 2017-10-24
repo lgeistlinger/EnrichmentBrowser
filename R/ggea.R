@@ -36,7 +36,7 @@
 
     # restrict to gene sets with a minimal number of edges
     gs.grns <- lapply(gs, function(s) .queryGRN(s, grn, gs.edges))
-    nr.rels <- sapply(gs.grns, length)
+    nr.rels <- lengths(gs.grns)
     ind <- which(nr.rels >= config.ebrowser("GS.MIN.SIZE")) 
         #& (res.tbl[,"NR.RELS"] <= GS.MAX.SIZE)
     if(length(ind) == 0) stop("No gene set with minimal number of interactions")
@@ -52,11 +52,13 @@
     gs.rels.cons <- lapply(gs.grns, function(gg) grn.cons[gg])
     thresh.rels <- lapply(gs.rels.cons, 
         function(gsc) which(gsc >= cons.thresh))   
-    nr.thresh.rels <- sapply(thresh.rels, length)
+    nr.thresh.rels <- lengths(thresh.rels)
     
     # restrict to gene sets with relations above consistency threshold
     ind <- which(nr.thresh.rels > 0)
-    gs.cons <- sapply(ind, function(i) sum(gs.rels.cons[[i]][thresh.rels[[i]]]))
+    gs.cons <- vapply(ind, 
+        function(i) sum(gs.rels.cons[[i]][thresh.rels[[i]]]),
+        numeric(1))
     nr.rels <- nr.thresh.rels[ind]
 
     # result table
@@ -135,7 +137,7 @@
 # map gene ids in gsets  to integer indices of rowData
 .transformGS <- function(gs, fMap)
 {
-    gs.mapped <- sapply(gs, function(s){
+    gs.mapped <- lapply(gs, function(s){
                 set <- fMap[s]
                 set <- set[!is.na(set)]
                 names(set) <- NULL  
@@ -171,14 +173,18 @@
     # fuzzy pvalue
     neg.log.alpha <- -log(alpha, base=10)
     inv.neg.log.alpha <- 1 / neg.log.alpha
-    de <- sapply(ps, function(p) 
-        ifelse(p > neg.log.alpha, 1, p * inv.neg.log.alpha))
+    de <- vapply(ps, 
+            function(p) 
+                ifelse(p > neg.log.alpha, 1, p * inv.neg.log.alpha),
+            numeric(1))
     
     if(use.fc)
     {
         # fuzzy fc
         abs.fcs <- abs(fcs)
-        mapped.fcs <- sapply(abs.fcs, function(fc) ifelse(fc > beta, 1, fc))
+        mapped.fcs <- vapply(abs.fcs, 
+            function(fc) ifelse(fc > beta, 1, fc),
+            numeric(1))
         de <- (mapped.fcs + de) / 2
     }
         
@@ -238,16 +244,17 @@
         
         # recompute ggea scores
         grn.cons <- .scoreGRN(fDat, grn, alpha, beta, cons.thresh) 
-        gs.rels.cons <- sapply(gs.grns, function(gg) grn.cons[gg])
-        thresh.rels <- sapply(gs.rels.cons, 
+        gs.rels.cons <- lapply(gs.grns, function(gg) grn.cons[gg])
+        thresh.rels <- lapply(gs.rels.cons, 
                 function(gsc) which(gsc >= cons.thresh))   
-        nr.thresh.rels <- sapply(thresh.rels, length)
+        nr.thresh.rels <- lengths(thresh.rels)
             
         # restrict to gene sets with relations above consistency threshold
         ind <- which(nr.thresh.rels > 0)
-        perm.scores <- sapply(seq_along(gs.grns), function(i) 
-            ifelse(i %in% ind, 
-                sum(gs.rels.cons[[i]][thresh.rels[[i]]]), cons.thresh)) 
+        perm.scores <- sapply(seq_along(gs.grns), 
+            function(i) 
+                ifelse(i %in% ind, 
+                    sum(gs.rels.cons[[i]][thresh.rels[[i]]]), cons.thresh)) 
         
         #perm.scores <- tryCatch(recomp(), error = function(e){})
         #if(!is.null(perm.scores)) 
@@ -275,7 +282,8 @@
 
         # recompute ggea scores
         grn.cons <- .scoreGRN(fDat, grn, alpha, beta)
-        perm.scores <- sapply(gs.grns, function(gg) sum(grn.cons[gg]))
+        perm.scores <- vapply(gs.grns, 
+            function(gg) sum(grn.cons[gg]), numeric(1))
         count.larger <- count.larger + (perm.scores > obs.scores)
     }
     p <- count.larger / perm

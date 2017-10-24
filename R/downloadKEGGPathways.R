@@ -17,14 +17,14 @@ download.kegg.pathways <- function(org, out.dir=NULL, zip=FALSE)
 {
     pwys <- keggList("pathway", org)
     message("download:")
-    kgmls <- sapply(names(pwys), 
+    kgmls <- vapply(names(pwys), 
         function(pwy)
         {
             message(pwy)
             pwy <- sub("^path:", "", pwy)
             kgml <- keggGet(pwy, "kgml")
             return(kgml)
-        })
+        }, character(1))
     names(kgmls) <- sub("^path:", "", names(kgmls))
 
     if(is.null(out.dir))
@@ -35,8 +35,8 @@ download.kegg.pathways <- function(org, out.dir=NULL, zip=FALSE)
 
     message("write kgml files ...")
     if(!file.exists(out.dir)) dir.create(out.dir)
-    sapply(names(kgmls), function(n) 
-        cat(kgmls[n], file=file.path(out.dir, paste(n, ".xml", sep=""))))
+    for(n in names(kgmls)) 
+        cat(kgmls[n], file=file.path(out.dir, paste(n, ".xml", sep="")))
 
     if(zip) 
     {
@@ -45,7 +45,7 @@ download.kegg.pathways <- function(org, out.dir=NULL, zip=FALSE)
         setwd(out.dir)
         zip.file <- paste(org, "zip", sep=".")
         system(paste("zip", zip.file, pattern))
-        sapply(list.files(out.dir, pattern=pattern), file.remove)
+        for(f in list.files(out.dir, pattern=pattern)) file.remove(f)
     }
 }
 

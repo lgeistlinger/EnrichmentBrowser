@@ -45,8 +45,8 @@ sbea <- function(
     # restrict eset and gs to intersecting genes
     igenes <- intersect(rownames(eset), unique(unlist(gs)))
     eset <- eset[igenes,]
-    gs <- sapply(gs, function(s) s[s %in% igenes]) 
-    lens <- sapply(gs, length)
+    gs <- lapply(gs, function(s) s[s %in% igenes]) 
+    lens <- lengths(gs)
     gs <- gs[lens >= GS.MIN.SIZE & lens <= GS.MAX.SIZE]
 
     if(is.character(method))

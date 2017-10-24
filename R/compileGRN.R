@@ -45,33 +45,33 @@ compile.grn.from.kegg <- function(pwys, out.file=NULL)
     GRN.HEADER.COLS <- c("FROM", "TO", "TYPE", "REL", "PWY")
     writeLines(paste(GRN.HEADER.COLS, collapse="\t"), con)
 
-    sapply(pwys, 
-        function(p)
-        {
-            nr <- getPathwayInfo(p)@number
-            sapply(edges(p),
-                function(e)
-                {  
-                    # effect type: -->, --|, ...
-                    # relation type: GErel, PPrel, ...
-                    rt <- getType(e)
-                    if(rt %in% rels)
-                    {
-                        et <- .getEdgeType(e)
-                        if(et %in% types)
-                        {
-                            entries <- getEntryID(e)
-                            ids1 <- .getNodeName(entries[1], nodes(p))
-                            ids2 <- .getNodeName(entries[2], nodes(p))
-                            sapply(ids1, function(i) 
-                                sapply(ids2, function(j)
-                                    writeLines(
-                                        paste(c(i,j,et,rt,nr), collapse="\t"), con)))
-                        }
-                    }
-                })
-            flush(con)
-        })
+    for(p in pwys)
+    {
+        nr <- getPathwayInfo(p)@number
+        for(e in edges(p))
+        {  
+            # effect type: -->, --|, ...
+            # relation type: GErel, PPrel, ...
+            rt <- getType(e)
+            if(rt %in% rels)
+            {
+                et <- .getEdgeType(e)
+                if(et %in% types)
+                {
+                    entries <- getEntryID(e)
+                    ids1 <- .getNodeName(entries[1], nodes(p))
+                    ids2 <- .getNodeName(entries[2], nodes(p))
+                    for(i in ids1) 
+                        for(j in ids2)
+                            writeLines(
+                                paste(c(i,j,et,rt,nr), collapse="\t"), 
+                            con)
+                        
+                }
+            }
+        }
+        flush(con)
+    }
 
     close(con)
     cont <- as.matrix(read.delim(out.file))
@@ -100,7 +100,7 @@ compile.grn.from.kegg <- function(pwys, out.file=NULL)
     {
         ids <- NULL 
         ncomp <- getComponent(n)
-        ids <- unlist(sapply(ncomp, function(comp) getName(nodes[[comp]])))
+        ids <- unlist(lapply(ncomp, function(comp) getName(nodes[[comp]])))
     }
     ids <- sub("^[a-z]{3}:", "", ids)
     return(ids)

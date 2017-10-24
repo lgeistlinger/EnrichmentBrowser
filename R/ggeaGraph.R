@@ -93,8 +93,12 @@ ggea.graph <- function(gs, grn, eset,
     nr.nodes <- length(nodes)
     fDat <- fDat[nodes,]
 
-    grn[,1] <- sapply(grn[,1], function(x) which(node.grid == x))
-    grn[,2] <- sapply(grn[,2], function(x) which(node.grid == x)) 
+    grn[,1] <- vapply(grn[,1], 
+        function(x) which(node.grid == x),
+        integer(1))
+    grn[,2] <- vapply(grn[,2], 
+        function(x) which(node.grid == x),
+        integer(1)) 
     ord <- do.call(order, as.data.frame(grn))
     grn <- grn[ord,]
     edge.cons <- edge.cons[ord]
@@ -127,12 +131,13 @@ ggea.graph <- function(gs, grn, eset,
     # colors & lwds, etc
     eLty <- rep("solid", nr.edges)
     names(eLty) <- edges
-    eCol <- sapply(edge.cons, .determineEdgeColor)
+    eCol <- vapply(edge.cons, .determineEdgeColor, character(1))
     names(eCol) <- edges
     eLabel <- round(edge.cons, digits=1)
     names(eLabel) <- edges
-    eLwd <- sapply(edge.cons, function(e) 
-        .determineEdgeLwd(e, cons.thresh=cons.thresh))
+    eLwd <- vapply(edge.cons, 
+        function(e) .determineEdgeLwd(e, cons.thresh=cons.thresh),
+        numeric(1))
     names(eLwd) <- edges
 
     edgeRenderInfo(gr) <-
@@ -151,7 +156,9 @@ ggea.graph <- function(gs, grn, eset,
 .getKEGGDisplayName <- function(gene.id, org)
 {
     entry <- keggList(paste(org, gene.id, sep=":"))
-    dnames <- sapply(entry, function(e) unlist(strsplit(e, "[,;] "))[1])
+    dnames <- vapply(entry, 
+        function(e) unlist(strsplit(e, "[,;] "))[1],
+        character(1))
     return(dnames)
 }
 

@@ -55,8 +55,8 @@ nbea <- function(
     eset.genes <- rownames(eset)
     rel.genes <- intersect(intersect(gs.genes, grn.genes), eset.genes)
     eset <- eset[rel.genes,]
-    gs <- sapply(gs, function(s) s[s%in% rel.genes])
-    lens <- sapply(gs, length)
+    gs <- lapply(gs, function(s) s[s%in% rel.genes])
+    lens <- lengths(gs)
     gs <- gs[lens >= GS.MIN.SIZE & lens <= GS.MAX.SIZE]
     grn <- grn[grn[,1] %in% rel.genes & grn[,2] %in% rel.genes,] 
     
@@ -128,7 +128,7 @@ nbea <- function(
 
     n <- nrow(grn)
     grid <- seq_len(n-1)
-    ind <- sapply(grid,
+    ind <- vapply(grid,
         function(i)
         {
             x <- igrn[i,2:1]
@@ -137,7 +137,7 @@ nbea <- function(
             cigrn <- cigrn[cigrn[,1] == x[1], , drop=FALSE]
             is.rev <- any( cigrn[,2] == x[2] )
             return(is.rev)
-        })
+        }, logical(1))
     ind <- c(ind, FALSE)
     grn <- grn[!ind,]
 }
@@ -299,8 +299,9 @@ nbea <- function(
 
     res <- res$enrichment_results[, 
         c("Name", "No_of_Genes", "Sig_Direct", "Sig_Combi", "p_PathNet")]
-    rownames(res) <- sapply(as.vector(res[,1]), 
-        function(s) grep(unlist(strsplit(s,"_"))[1], names(gs), value=TRUE))
+    rownames(res) <- vapply(as.vector(res[,1]), 
+        function(s) grep(unlist(strsplit(s,"_"))[1], names(gs), value=TRUE),
+        character(1))
     res <- res[-1]    
     colnames(res) <- c("NR.GENES", "NR.SIG.GENES", "NR.SIG.COMB.GENES", GSP.COL)
     res <- as.matrix(res)
@@ -310,7 +311,7 @@ nbea <- function(
 # pathnet helper: extract pathway data from gs and grn
 .extrPwyDat <- function(gs, grn)
 {
-    pwy.dat <- sapply(names(gs), 
+    pwy.dat <- lapply(names(gs), 
         function(n)
         {
             genes <- gs[[n]] 
@@ -320,8 +321,10 @@ nbea <- function(
             else dat <- NULL
         }
     )
-    pwy.dat <- pwy.dat[!sapply(pwy.dat, is.null)]
-    pwy.datm <- matrix("", nrow=sum(sapply(pwy.dat, nrow)), ncol=3)
+    ind <- vapply(pwy.dat, is.null, logical(1))
+    pwy.dat <- pwy.dat[!ind]
+    nr <- sum( vapply(pwy.dat, nrow, integer(1)) )
+    pwy.datm <- matrix("", nrow=nr, ncol=3)
     colnames(pwy.datm) <- c("id1", "id2", "title")
     start <- 1
     for(i in seq_len(length(pwy.dat)))

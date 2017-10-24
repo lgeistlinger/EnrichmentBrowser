@@ -48,22 +48,22 @@ get.go.genesets <- function(org,
             attributes=c("go_id", "name_1006", "namespace_1003"))
         GO2descr <- GO2descr[GO2descr$go_id != "", ]
         GO2descr <- GO2descr[order(GO2descr[,"go_id"]),]
-        ontos <- sapply(GO2descr[,3], 
+        ontos <- vapply(GO2descr[,3], 
             function(x)
             {
                 spl <- unlist(strsplit(x, "_"))
                 onto <- paste(substring(spl,1,1), collapse="")         
                 return(toupper(onto))
-            }) 
+            }, character(1)) 
         GO2descr <- GO2descr[ontos==onto,1:2]
         
         gene2GO <- getBM(attributes = c("entrezgene", "go_id"), mart=ensembl)
         gene2GO <- gene2GO[apply(gene2GO, 1 , function(r) all(r != "")), ]
         gene2GO <- gene2GO[order(gene2GO[,"go_id"]),]
         gene2GO <- gene2GO[gene2GO[,"go_id"] %in% GO2descr[,"go_id"],]
-        gs <- sapply(GO2descr[,"go_id"], 
+        gs <- lapply(GO2descr[,"go_id"], 
             function(g) gene2GO[gene2GO[,"go_id"] == g, "entrezgene"])
-        gs <- sapply(gs, function(s) as.character(sort(s)))
+        gs <- lapply(gs, function(s) as.character(sort(s)))
         names(gs) <- paste(GO2descr[,1], gsub(" ", "_", GO2descr[,2]), sep="_")
     }
     return(gs)
@@ -91,7 +91,7 @@ get.kegg.genesets <- function(pwys, gmt.file=NULL)
         pwys <- keggList("pathway", org)
         pwy2gene <- keggLink(org, "pathway")
 
-        gs <- sapply(names(pwys), 
+        gs <- lapply(names(pwys), 
             function(pwy)
             { 
                 genes <- pwy2gene[names(pwy2gene) == pwy]
@@ -99,12 +99,12 @@ get.kegg.genesets <- function(pwys, gmt.file=NULL)
                 genes <- sort(genes)
                 names(genes) <- NULL
                 return(genes)
-            }, simplify=FALSE)
+            })
     }
     # download selected ids
     else
     {
-        gs <- sapply(pwys, 
+        gs <- lapply(pwys, 
             function(pwy)
             { 
                 info <- keggLink(paste0("path:", pwy))
@@ -114,9 +114,9 @@ get.kegg.genesets <- function(pwys, gmt.file=NULL)
                 genes <- sort(genes)
                 names(genes) <- NULL
                 return(genes)
-            }, simplify=FALSE)
-        titles <- sapply(pwys, 
-            function(pwy) keggList(paste0("map", sub("^[a-z]{3}", "", pwy))))
+            })
+        titles <- vapply(pwys, function(pwy) 
+            keggList(paste0("map", sub("^[a-z]{3}", "", pwy))), character(1))
         names(titles) <- pwys
         pwys <- titles
     }
@@ -133,18 +133,18 @@ get.kegg.genesets <- function(pwys, gmt.file=NULL)
     if(class(pwys) == "character") pwys <- .extractPwys(pwys)
     
     # get pathway annotations
-    nn <- sapply(pwys, getName)
-    tt <- sapply(pwys, getTitle)
+    nn <- vapply(pwys, getName, character(1))
+    tt <- vapply(pwys, getTitle, character(1))
     
     # extract genesets
-    gs <- sapply(pwys, 
+    gs <- lapply(pwys, 
         function(pwy)
         {
             genes <- .getGenesByPwy(pwy)
             genes <- sub("^[a-z]{3}:", "", genes)
             genes <- sort(genes)
             return(genes)
-        }, simplify=FALSE)
+        })
 
     names(gs) <- .makeGSNames(nn, tt)
     
@@ -160,17 +160,16 @@ get.kegg.genesets <- function(pwys, gmt.file=NULL)
     pwy.files <- list.files(pwy.dir, pattern="*.xml", full.names=TRUE)
     pwys <- sapply(pwy.files, parseKGML)
     ## clean up
-    sapply(pwy.files, file.remove)
+    for(f in pwy.files) file.remove(f)
     return(pwys)
 }
 
 .getGenesByPwy <- function(pwy)
 {
-    ts <- sapply(nodes(pwy), getType)
-    genes <- unique(unlist(sapply(nodes(pwy)[ts == "gene"], getName)))
+    ts <- vapply(nodes(pwy), getType, character(1))
+    genes <- unique(unlist(lapply(nodes(pwy)[ts == "gene"], getName)))
     return(genes)
 }
-
 
 #
 # (3) UTILS
@@ -180,7 +179,9 @@ get.kegg.genesets <- function(pwys, gmt.file=NULL)
 .makeGSNames <- function(ids, titles)
 {
     ids <- sub("path:", "", ids)
-    titles <- sapply(titles, function(title) unlist(strsplit(title, " - "))[1])
+    titles <- vapply(titles, 
+        function(title) unlist(strsplit(title, " - "))[1], 
+        character(1))
     titles <- sub("^ +", "", titles)
     titles <- sub(" +$", "", titles)
     titles <- gsub(" ", "_", titles)
@@ -192,7 +193,9 @@ get.kegg.genesets <- function(pwys, gmt.file=NULL)
 .writeGMT <- function(gs, gmt.file)
 {
     ## collapse geneset members to one tab separated string 
-    gs.strings <- sapply(gs, function(x) paste(x,collapse="\t"))
+    gs.strings <- vapply(gs, 
+        function(x) paste(x, collapse="\t"),
+        character(1))
     
     ## paste an not annotated second column (artifact of gmt format)
     ann <- paste(names(gs), rep(NA,length(gs)), sep="\t")
@@ -260,7 +263,7 @@ parse.genesets.from.GMT <- function(gmt.file)
 {
 	gs.type <- .detectGSType(names(gs.list)[1])
     ctype <- paste0(gs.type, "Collection")
-	gs.list.new <- sapply(names(gs.list), 
+	gs.list.new <- lapply(names(gs.list), 
         function(s){
                 spl <- unlist(strsplit(s,"_")) 
                 args <- list()
@@ -279,6 +282,7 @@ parse.genesets.from.GMT <- function(gmt.file)
                         organism=org)
                 return(gset)
         })
+    names(gs.list.new) <- names(gs.list)
     gsc <- GeneSetCollection(gs.list.new) 
     return(gsc)
 }

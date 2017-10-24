@@ -37,13 +37,12 @@
         publish(Link("Full Ranking", "comb.txt"), indexPage) 
     }
 
-    sapply(meth,
-        function(m)
-        {
-            publish(hwrite(paste(toupper(m), "Results"), heading=4), indexPage)
-            publish(Link("Top Table", paste0(m, ".html")), indexPage)
-            publish(Link("Full Ranking", paste0(m, ".txt")), indexPage) 
-        })
+    for(m in meth)
+    {
+        publish(hwrite(paste(toupper(m), "Results"), heading=4), indexPage)
+        publish(Link("Top Table", paste0(m, ".html")), indexPage)
+        publish(Link("Full Ranking", paste0(m, ".txt")), indexPage) 
+    }
     index <- finish(indexPage)
     if (interactive()) browseURL(index)
 }
@@ -71,13 +70,15 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     # expecting transition from gene set lists to collections in the near future
     # gsc <- res$gsc
     gsc <- .gsList2Collect(gs[res[,1]])
-    res[,1] <- sapply(res[,1], function(s) unlist(strsplit(s, "_"))[1])
+    res[,1] <- vapply(res[,1], 
+        function(s) unlist(strsplit(s, "_"))[1],
+        character(1))
     
     is.kegg <- is(collectionType(gsc[[1]]), "KEGGCollection")
     is.go <- is(collectionType(gsc[[1]]), "GOCollection")
 
-    gs.title <- sapply(gsc, description)
-    nr.genes <- sapply(gsc, function(g) length(geneIds(g)))
+    gs.title <- vapply(gsc, description, character(1))
+    nr.genes <- vapply(gsc, function(g) length(geneIds(g)), integer(1))
 
     cnames <- c(colnames(res)[1], "TITLE")
     resn <- DataFrame(res[,1], gs.title)

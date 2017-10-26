@@ -13,10 +13,7 @@
 }
 \arguments{
     \item{eset}{
-        Expression set. 
-        An object of \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}}.
-        See the man page of \code{\link{read.eset}} for prerequisites 
-        for the expression data.
+        An object of class \code{\linkS4class{SummarizedExperiment}}.
     }
     \item{norm.method}{
         Determines how the expression data should be normalized.
@@ -45,10 +42,7 @@
     }
 }
 \value{ 
-    An object of \code{\link[Biobase:ExpressionSet-class]{ExpressionSet-class}}.
-    For RNA-seq data, an object of 
-    \code{\link[EDASeq:SeqExpressionSet-class]{SeqExpressionSet-class}}
-    to conform with downstream DE analysis.
+    An object of class \code{\linkS4class{SummarizedExperiment}}.
 }
 \details{
     Normalization of high-throughput expression data is essential
@@ -70,10 +64,10 @@
     See the vignette of EDASeq, edgeR, and DESeq for details.
 }
 \author{
-    Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
+    Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \seealso{
-    \code{\link{read.eset}} describes prerequisites for the expression data;
+    \code{\link{read.eset}} for reading expression data from file;
 
     \code{\link{normalizeWithinArrays}} and
     \code{\link{normalizeBetweenArrays}} for normalization of microarray data;

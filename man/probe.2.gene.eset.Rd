@@ -4,9 +4,8 @@
     Transformation of probe level expression to gene level expression 
 }
 \description{
-    Reads expression data at probe level and summarizes gene expression 
-    behavior by averaging over all probes that are annotated to a particular 
-    gene. 
+    Transforms expression data on probe level to gene level expression 
+    by summarizing all probes that are annotated to a particular gene. 
 }
 \usage{
     probe.2.gene.eset( probe.eset, use.mean = TRUE )
@@ -30,7 +29,7 @@
     A \code{\linkS4class{SummarizedExperiment}} on gene level.
 }
 \author{
-    Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
+    Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \seealso{
     \code{\link{read.eset}} for reading expression data from file,
@@ -39,8 +38,8 @@
 \examples{
     # (1) reading the expression data from file
     exprs.file <- system.file("extdata/exprs.tab", package="EnrichmentBrowser")
-    pdat.file <- system.file("extdata/pData.tab", package="EnrichmentBrowser")
-    fdat.file <- system.file("extdata/fData.tab", package="EnrichmentBrowser")
+    pdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
+    fdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
     probe.eset <- read.eset(exprs.file, pdat.file, fdat.file)
     gene.eset <- probe.2.gene.eset(probe.eset) 
 }

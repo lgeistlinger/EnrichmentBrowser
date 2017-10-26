@@ -19,20 +19,20 @@
     }
 }   
 \details{
-    Important pData, fData, and result column names:
+    Important colData, rowData, and result column names:
     \itemize{
-        \item SMPL.COL: pData column storing the sample IDs (default: "SAMPLE")
-        \item GRP.COL: pData column storing binary group assignment (default: "GROUP")
-        \item BLK.COL: pData column defining paired samples or sample blocks (default: "BLOCK")
+        \item SMPL.COL: colData column storing the sample IDs (default: "SAMPLE")
+        \item GRP.COL: colData column storing binary group assignment (default: "GROUP")
+        \item BLK.COL: colData column defining paired samples or sample blocks (default: "BLOCK")
 
-        \item PRB.COL: fData column storing probe/feature IDs ("PROBEID", read-only)
-        \item EZ.COL: fData column storing gene ENTREZ IDs ("ENTREZID", read-only)
-        \item SYM.COL: fData column storing gene symbols ("SYMBOL", read-only)
-        \item GN.COL: fData column storing gene names ("GENENAME", read-only)
+        \item PRB.COL: rowData column storing probe/feature IDs ("PROBEID", read-only)
+        \item EZ.COL: rowData column storing gene ENTREZ IDs ("ENTREZID", read-only)
+        \item SYM.COL: rowData column storing gene symbols ("SYMBOL", read-only)
+        \item GN.COL: rowData column storing gene names ("GENENAME", read-only)
 
-        \item FC.COL: fData column storing (log2) fold changes of differential 
+        \item FC.COL: rowData column storing (log2) fold changes of differential 
             expression between sample groups (default: "FC")
-        \item ADJP.COL: fData column storing adjusted (corrected for multiple testing) 
+        \item ADJP.COL: rowData column storing adjusted (corrected for multiple testing) 
             p-values of differential expression between sample groups (default: "ADJ.PVAL")
 
         \item GS.COL: result table column storing gene set IDs (default: "GENE.SET")
@@ -74,7 +74,7 @@
     Otherwise, it updates the selected parameter with the given value.
 }
 \author{
-    Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
+    Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \examples{
     # getting config information

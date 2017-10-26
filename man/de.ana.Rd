@@ -19,8 +19,6 @@
         A numeric matrix. Rows correspond to genes, columns to samples.
         Alternatively, this can also be an object of class 
         \code{\linkS4class{SummarizedExperiment}}.
-        See the man page of \code{\link{read.eset}} for prerequisites 
-        for the expression data.
     }
     \item{grp}{
         *BINARY* group assignment for the samples. 
@@ -69,10 +67,10 @@
     will be automatically appended to the \code{\link{rowData}} slot. 
 }
 \author{
-    Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
+    Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \seealso{
-    \code{\link{read.eset}} describes prerequisites for the expression data,
+    \code{\link{read.eset}} for reading expression data from file,
     \code{\link{normalize}} for normalization of expression data,
     \code{\link{voom}} for preprocessing of RNA-seq data,
     \code{\link{p.adjust}} for multiple testing correction,

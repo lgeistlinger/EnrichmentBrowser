@@ -35,9 +35,8 @@
         3rd col = regulation effect; Use '+' and '-' for activation/inhibition.
     }
     \item{eset}{
-        Expression data given as SummarizedExperiment or ExpressionSet. 
-        See \code{\link{read.eset}} and \code{\link{probe.2.gene.eset}} for 
-        required annotations. 
+        Expression data given as an object of class 
+            \code{\linkS4class{SummarizedExperiment}}. 
     }
     \item{alpha}{
         Statistical significance level. Defaults to 0.05.
@@ -59,7 +58,7 @@
     None, plots to a graphics device.
 }
 \author{
-    Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
+    Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \seealso{
     \code{\link{nbea}} to perform network-based enrichment analysis.

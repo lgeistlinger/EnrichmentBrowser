@@ -69,7 +69,7 @@
    Depends on the 'what' argument. 
 } 
 \author{
-    Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
+    Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \examples{
     eset <- make.example.data(what="eset")

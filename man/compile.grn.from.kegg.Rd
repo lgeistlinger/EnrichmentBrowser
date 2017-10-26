@@ -32,7 +32,7 @@
     else: none, as the gene regulatory network is written to file
 }
 \author{
-    Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
+    Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \seealso{
     \code{\link[KEGGgraph:KEGGPathway-class]{KEGGPathway-class}}, 

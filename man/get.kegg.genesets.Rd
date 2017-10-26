@@ -48,7 +48,7 @@
     \url{http://www.genome.jp/kegg/catalog/org_list.html}
 }
 \author{
-    Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
+    Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \seealso{  
     \code{\link{keggList}}, \code{\link{keggLink}},

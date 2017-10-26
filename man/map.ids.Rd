@@ -50,14 +50,14 @@
     \url{http://www.genome.jp/kegg/catalog/org_list.html}
 }
 \author{
-    Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
+    Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \seealso{
     \code{\linkS4class{SummarizedExperiment}},
     \code{\link{mapIds}}, \code{\link{keytypes}}
 }
 \examples{
-    # create an expression set with 3 genes and 3 samples
+    # create an expression dataset with 3 genes and 3 samples
     eset <- make.example.data("eset", nfeat=3, nsmpl=3)
     names(eset) <- paste0("ENSG00000000", c("003","005", "419"))
     eset <- map.ids(eset, org="hsa")

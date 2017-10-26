@@ -46,7 +46,7 @@
     None, plots to a graphics device.
 }
 \author{
-    Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
+    Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \seealso{
     \code{\link{de.ana}} for differential expression analysis,

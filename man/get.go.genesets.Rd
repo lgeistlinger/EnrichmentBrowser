@@ -40,7 +40,7 @@
     \url{http://geneontology.org/}
 }
 \author{
-    Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
+    Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \seealso{  
     \code{\link{annFUN}} for general GO2gene mapping used in the 'GO.db' mode,

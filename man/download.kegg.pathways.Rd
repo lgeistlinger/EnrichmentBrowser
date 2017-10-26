@@ -30,7 +30,7 @@
     else: none, as pathways are written to file
 }
 \author{
-    Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
+    Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \seealso{
     \code{\link{keggList}}, \code{\link{keggGet}}, 

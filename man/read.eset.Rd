@@ -1,11 +1,11 @@
 \name{read.eset}
 \alias{read.eset}
 \title{ 
-    Reading gene expression data from file into an expression set 
+    Reading gene expression data from file
 }
 \description{
     The function reads in plain expression data from file with minimum 
-    annotation requirements for the pData and fData slots. 
+    annotation requirements for the colData and rowData slots. 
 }
 \usage{
     read.eset( exprs.file, pdat.file, fdat.file, 
@@ -77,27 +77,27 @@
     An object of class \code{\linkS4class{SummarizedExperiment}}.
 }
 \details{
-See the limma's user guide 
-\url{http://www.bioconductor.org/packages/limma}
-for definition and normalization of the different expression data types.        
-
-In case of microarry data the feature IDs typically correspond to probe IDs.
-Thus, the fdat.file should define a mapping from probe ID (1st column) to
-corresponding KEGG gene ID (2nd column).
-The mapping can be defined automatically by providing the ID of a 
-recognized platform such as 'hgu95av2' (Affymetrix Human Genome U95 chip).
-This requires that a corresponding '.db' package exists (see 
-\url{http://www.bioconductor.org/packages/release/BiocViews.html#___ChipName}
-for all available chips/packages) and that you have it installed.
-*However, this option should be used with care*. Existing mappings might
-be outdated and sometimes the KEGG gene ID does not correspond to the Entrez ID 
-(e.g. for E. coli and S. cerevisae). In these cases probe identifiers are mapped
- twice (probe ID -> Entrez ID -> KEGG ID), which almost always results in loss
-of information. Thus, mapping quality should always be checked and in case
-properly defined with a 2-column fdat.file.
+    See the limma's user guide 
+    \url{http://www.bioconductor.org/packages/limma}
+    for definition and normalization of the different expression data types.        
+    
+    In case of microarry data the feature IDs typically correspond to probe IDs.
+    Thus, the fdat.file should define a mapping from probe ID (1st column) to
+    corresponding KEGG gene ID (2nd column).
+    The mapping can be defined automatically by providing the ID of a 
+    recognized platform such as 'hgu95av2' (Affymetrix Human Genome U95 chip).
+    This requires that a corresponding '.db' package exists (see 
+    \url{http://www.bioconductor.org/packages/release/BiocViews.html#___ChipName}
+    for all available chips/packages) and that you have it installed.
+    *However, this option should be used with care*. Existing mappings might
+    be outdated and sometimes the KEGG gene ID does not correspond to the Entrez ID 
+    (e.g. for E. coli and S. cerevisae). In these cases probe identifiers are mapped
+     twice (probe ID -> Entrez ID -> KEGG ID), which almost always results in loss
+    of information. Thus, mapping quality should always be checked and in case
+    properly defined with a 2-column fdat.file.
 }
 \author{
-    Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
+    Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \seealso{
     \code{\linkS4class{SummarizedExperiment}}
@@ -105,8 +105,8 @@ properly defined with a 2-column fdat.file.
 \examples{
     # reading the expression data from file
     exprs.file <- system.file("extdata/exprs.tab", package="EnrichmentBrowser")
-    pdat.file <- system.file("extdata/pData.tab", package="EnrichmentBrowser")
-    fdat.file <- system.file("extdata/fData.tab", package="EnrichmentBrowser")
+    pdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
+    fdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
     eset <- read.eset(exprs.file, pdat.file, fdat.file)
 }
 

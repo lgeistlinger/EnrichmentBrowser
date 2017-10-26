@@ -79,7 +79,7 @@
     \code{\link{sbea}}, \code{\link{nbea}}, \code{\link{ea.browse}}
 }
 \author{
-    Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
+    Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \examples{
 

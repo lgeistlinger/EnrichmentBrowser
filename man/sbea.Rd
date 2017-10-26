@@ -9,7 +9,7 @@
 \description{
     This is the main function for the enrichment analysis of gene sets.
     It implements and wraps existing implementations of several frequently 
-    used state-of-art methods and allows a flexible inspection of 
+    used methods and allows a flexible inspection of 
     resulting gene set rankings. 
 }
 \usage{
@@ -33,8 +33,25 @@
     \item{eset}{
         Expression dataset. 
         An object of class \code{\linkS4class{SummarizedExperiment}}. 
-        See \code{\link{read.eset}} and \code{\link{probe.2.gene.eset}} for 
-        required annotations in the \code{rowData} and \code{colData} slots.
+        Mandatory minimal annotations:
+        \itemize{
+            \item colData column storing binary group assignment (named "GROUP")
+            \item rowData column storing (log2) fold changes of differential 
+                    expression between sample groups (named "FC")
+            \item rowData column storing adjusted (corrected for multiple testing)
+                    p-values of differential expression between sample groups 
+                    (named "ADJ.PVAL")
+        }         
+        Additional optional annotations:
+        \itemize{
+            \item colData column defining paired samples or sample blocks 
+                    (named "BLOCK")
+            \item metadata slot named "annotation" giving the organism under
+                    investigation in KEGG three letter code 
+                    (e.g. "hsa" for Homo sapiens)  
+            \item metadata slot named "dataType" indicating the expression data 
+                    type ("ma" for microarray, "rseq" for RNA-seq) 
+        }
     }
     \item{gs}{
         Gene sets.
@@ -179,7 +196,7 @@
     \code{\link{comb.ea.results}} to combine results from different methods.
 }
 \author{
-    Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
+    Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \examples{
     # currently supported methods

@@ -51,15 +51,15 @@
 \seealso{
     \code{\link{sbea}}, \code{\link{nbea}}, \code{\link{comb.ea.results}}}
 \author{
-    Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
+    Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \examples{
     
     # real data
     # (1) reading the expression data from file
     exprs.file <- system.file("extdata/exprs.tab", package="EnrichmentBrowser")
-    pdat.file <- system.file("extdata/pData.tab", package="EnrichmentBrowser")
-    fdat.file <- system.file("extdata/fData.tab", package="EnrichmentBrowser")
+    pdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
+    fdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
     probe.eset <- read.eset(exprs.file, pdat.file, fdat.file)
     gene.eset <- probe.2.gene.eset(probe.eset) 
     gene.eset <- de.ana(gene.eset)

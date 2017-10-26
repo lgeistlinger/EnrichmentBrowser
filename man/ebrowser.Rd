@@ -168,13 +168,13 @@ Limma User's guide:
 \url{http://www.bioconductor.org/packages/limma}
 }
 \author{
-    Ludwig Geistlinger <Ludwig.Geistlinger@bio.ifi.lmu.de>
+    Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \examples{
     # expression data from file
     exprs.file <- system.file("extdata/exprs.tab", package="EnrichmentBrowser")
-    pdat.file <- system.file("extdata/pData.tab", package="EnrichmentBrowser")
-    fdat.file <- system.file("extdata/fData.tab", package="EnrichmentBrowser")
+    pdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
+    fdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
     
     # getting all human KEGG gene sets
     # hsa.gs <- get.kegg.genesets("hsa")

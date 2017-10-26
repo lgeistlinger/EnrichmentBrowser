@@ -92,8 +92,8 @@ the expression data (\Rfunction{exprs}) along with the phenotype data
 library(EnrichmentBrowser)
 data.dir <- system.file("extdata", package="EnrichmentBrowser")
 exprs.file <- file.path(data.dir, "exprs.tab")
-pdat.file <- file.path(data.dir, "pData.tab")
-fdat.file <- file.path(data.dir, "fData.tab")
+pdat.file <- file.path(data.dir, "colData.tab")
+fdat.file <- file.path(data.dir, "rowData.tab")
 eset <- read.eset(exprs.file, pdat.file, fdat.file)
 @
 
@@ -981,6 +981,7 @@ Thus, for simple gene list enrichment, tools like \software{DAVID}
 (\href{https://david.ncifcrf.gov}{https://david.ncifcrf.gov}) and
 \software{GeneAnalytics} (\href{http://geneanalytics.genecards.org}{http://geneanalytics.genecards.org})
 are more suitable, and it is recommended to use them for this purpose.
+
 \end{enumerate}
 
 \bibliography{refs}

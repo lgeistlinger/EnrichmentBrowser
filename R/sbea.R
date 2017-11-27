@@ -609,12 +609,12 @@ global.PADOG <- function(cmat, u, args.global)
     .isAvailable("globaltest", type="software")
 
     grp <- colData(eset)[, config.ebrowser("GRP.COL")]
+    eset <- as(eset, "ExpressionSet")
     res <- gt(grp, eset, subsets=gs, permutations=perm)
     res <- res@result[,2:1]
     colnames(res) <- c("STAT", config.ebrowser("GSP.COL"))
     return(res)
 }
-
 
 # 9 ROAST
 # 10 CAMERA
@@ -663,8 +663,8 @@ global.PADOG <- function(cmat, u, args.global)
     else
     { 
         res <- limma::camera(y, gs.index, design, sort=FALSE)
-        res <- res[,1:4]
-        colnames(res) <- c("NR.GENES", "COR", "DIR", config.ebrowser("GSP.COL"))
+        res <- res[,1:3]
+        colnames(res) <- c("NR.GENES", "DIR", config.ebrowser("GSP.COL"))
         res[,"DIR"] <- ifelse(res[,"DIR"] == "Up", 1, -1)
     }
     return(res)
@@ -678,8 +678,8 @@ global.PADOG <- function(cmat, u, args.global)
     .isAvailable("GSVA", type="software")
   
     # compute GSVA per sample enrichment scores
-    es <- gsva(expr=assay(eset), gset.idx.list=gs, rnaseq=rseq)
-    es <- es$es.obs
+    kcdf <- ifelse(rseq, "Poisson", "Gaussian")
+    es <- gsva(expr=assay(eset), gset.idx.list=gs, kcdf=kcdf)
   
     # set design matrix
     grp <- colData(eset)[, config.ebrowser("GRP.COL")]

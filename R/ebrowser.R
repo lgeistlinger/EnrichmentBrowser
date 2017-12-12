@@ -36,7 +36,7 @@ config.ebrowser <- function(key, value=NULL)
 ##
 # set the output directory
 ##
-.setOutDir <- function(out.dir)
+.checkOutDir <- function(out.dir)
 {
     if(!file.exists(dirname(out.dir)))
         stop(paste0("Not a valid output directory path \'",out.dir,"\'"))
@@ -45,7 +45,6 @@ config.ebrowser <- function(key, value=NULL)
             "does not exist.\nThus, the directory is going to be created."))
         dir.create(out.dir)
     }
-    setwd(out.dir)
 }
 
 
@@ -73,8 +72,8 @@ ebrowser <- function(
             stop("\'grn\' must be not null")
   
     out.dir <- config.ebrowser("OUTDIR.DEFAULT")
-    .setOutDir(out.dir)
-    
+    .checkOutDir(out.dir)    
+
     # execution
     # read expression data
     data.type <- match.arg(data.type)
@@ -131,7 +130,7 @@ ebrowser <- function(
     {
         m <- meth[i]
         message(paste("Execute", toupper(m), "..."))
-        out.file <- paste0(m, ".txt")
+        out.file <- file.path(out.dir, paste0(m, ".txt"))
 
         if(m %in% nbea.methods()) 
             res <- nbea( method=m, eset=gene.eset, gs=gs, 
@@ -147,20 +146,21 @@ ebrowser <- function(
         if(browse) ea.browse( res, nr.show, graph.view=grn, html.only=TRUE )
         
         # link gene statistics
-        if(m == "samgs" && file.exists("samt.RData"))
+        sam.file <- file.path(out.dir, "samt.RData")    
+        if(m == "samgs" && file.exists(sam.file))
             rowData(gene.eset)$SAM.T <- 
-                round(get(load("samt.RData")), digits=2)
+                round(get(load(sam.file)), digits=2)
        
-
-        if(m == "gsea" && file.exists("gsea_s2n.RData"))
+        s2n.file <- file.path(out.dir, "gsea_s2n.RData")
+        if(m == "gsea" && file.exists(s2n.file))
             rowData(gene.eset)$GSEA.S2N <- 
-                round(get(load("gsea_s2n.RData")), digits=2)
+                round(get(load(s2n.file)), digits=2)
         
         if(comb) res.list[[i]] <- res
     }
 
     # write genewise differential expression
-    gt.file <- "de.txt"
+    gt.file <- file.path(out.dir, "de.txt")
 	message("Annotating genes ...")
     gt <- .getGeneAnno(names(gene.eset), org)
     gt <- cbind(gt, rowData(gene.eset, use.names=TRUE))
@@ -181,7 +181,7 @@ ebrowser <- function(
         else
         {
             # combine results in a specified out file
-            out.file <- "comb.txt"
+            out.file <- file.path(out.dir, "comb.txt")
             res <- comb.ea.results(res.list=res.list)
             write.table(res$res.tbl, 
                 file=out.file, quote=FALSE, row.names=FALSE, sep="\t")
@@ -203,7 +203,7 @@ ebrowser <- function(
             message("Restricting global view to the 1000 most significant genes")
             gene.eset <- gene.eset[1:1000,]
         }
-        vs <- .viewSet(gene.eset, out.prefix=file.path(out.dir,"global"))
+        vs <- .viewSet(gene.eset, out.prefix=file.path(out.dir, "global"))
         
         message("Produce html report ...")
         .createIndex(meth, comb)

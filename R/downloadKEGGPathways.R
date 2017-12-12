@@ -41,9 +41,8 @@ download.kegg.pathways <- function(org, out.dir=NULL, zip=FALSE)
     if(zip) 
     {
         message("zip ...")
-        pattern <- "*.xml"
-        setwd(out.dir)
-        zip.file <- paste(org, "zip", sep=".")
+        pattern <- file.path(out.dir, "*.xml")
+        zip.file <- file.path(out.dir, paste(org, "zip", sep="."))
         system(paste("zip", zip.file, pattern))
         for(f in list.files(out.dir, pattern=pattern)) file.remove(f)
     }

@@ -7,8 +7,119 @@
 #
 ############################################################
 
+compileGRN <- function(org, mode=c("kegg", "graphite"), act.inh=TRUE)
+{
+    mode <- match.arg(mode)    
+    if(mode == "kegg") grn <- compile.grn.from.kegg() 
+}    
 
-compile.grn.from.kegg <- function(pwys, out.file=NULL)
+compileGRNFromGraphite <- function(org, dbs=c("kegg", "reactome"), act.inh=TRUE)
+{
+    pathways <- pathwayDatabases <- NULL
+    .isAvailable("graphite", type="software")
+
+    all.dbs <- as.matrix(pathwayDatabases())
+
+    # valid org?
+    org.ind <- grep(org, all.dbs[,"species"])
+    if(!length(org.ind)) 
+        stop(paste0("No graphite data for organism \"", org, "\"")) 
+
+    # which DBs are available for this org?
+    gorg <- all.dbs[org.ind[1], "species"]
+    org.dbs <- all.dbs[org.ind, "database"]
+
+    db.csv <- paste(org.dbs[seq_len(length(org.dbs) - 1)], collapse=", ")
+    db.csv <- paste(db.csv, org.dbs[length(org.dbs)], sep=" and ")
+    message(paste("Found data from", db.csv, "for", gorg, "in graphite"))
+
+    # any invalid user dbs?
+    na.dbs <- setdiff(dbs, org.dbs)
+    if(length(na.dbs)) for(n in na.dbs) warning(paste("Ignoring", n)) 
+
+    dbs <- intersect(org.dbs, dbs)
+    db.csv <- paste(dbs[seq_len(length(dbs) - 1)], collapse=", ")
+    db.csv <- paste(db.csv, dbs[length(dbs)], sep=" and ")
+    message(paste("Constructing GRN from", db.csv))
+
+    # construct
+    edge.coll <- lapply(dbs, function(d) .processDB(d, gorg, act.inh))
+    grn <- do.call(rbind, edge.coll)
+    grn <- unique(grn)
+    return(grn)
+}    
+
+.processDB <- function(d, gorg, act.inh)
+{    
+    message(paste("Processing", d, "...")) 
+    pwys <- pathways(gorg, d)
+    db.edges <- lapply(pwys, edges)
+    db.edges <- do.call(rbind, db.edges)
+    db.edges <- as.matrix(db.edges)
+    db.edges <- unique(db.edges)
+    
+    if(act.inh) db.edges <- .filterEdges(db.edges, db=d, act.inh=act.inh)
+    else
+    {
+        db.edges <- db.edges[,c("src", "dest")]
+        db.edges <- unique(db.edges)
+    }    
+
+    colnames(db.edges)[1:2] <- c("FROM", "TO")
+    colnames(db.edges) <- toupper(colnames(db.edges))
+
+    # map to ENTREZ IDs necessary?
+    if(!(d %in% c("kegg", "biocarta")))
+    {
+        org <- tolower(substring(gorg, 1, 3))
+        ids <- unique(as.vector(db.edges[,1:2]))
+        x <- .idmap(ids, org, from="UNIPROT", to="ENTREZID")
+        for(i in 1:2) db.edges[,i] <- x[db.edges[,i]]
+        ind.na <- apply(db.edges, 1, function(e) any(is.na(e)))
+        db.edges <- db.edges[!ind.na,]
+        db.edges <- unique(db.edges)
+    }    
+    rownames(db.edges) <- NULL
+    return(db.edges)
+}
+
+.filterEdges <- function(db.edges, db, act.inh)
+{
+    if(db=="kegg")
+    {
+        rel.types <- c("activation", "inhibition", "expression", "repression")
+        rel.types <- paste0("Process(", rel.types, ")")
+        db.edges <- db.edges[db.edges[,"type"] %in% rel.types,]
+        db.edges[,"type"] <- ifelse(db.edges[,"type"] %in% rel.types[c(1,3)], "+", "-")
+    }
+    else if(db=="reactome")
+    {
+            
+    }
+    else if(db=="biocarta")
+    {
+            
+    }    
+    else if(db=="humancyc")
+    {
+        # no information on act/inh
+    }    
+    else if(db=="nci")
+    {
+
+    }
+    # panther
+    else
+    {
+        # no information on act/inh 
+        # ID mapping UNIPROT -> ENTREZID fails greatly
+    }    
+    db.edges <- db.edges[, c("src", "dest", "type")]
+    db.edges <- unique(db.edges)
+    return(db.edges)
+}
+
+compileGRNFromKEGG <- function(pwys, out.file=NULL)
 {
     kegg.rels <- unique(.getKEGGRels(pwys)[,1:3])
     kegg.rels[,"TYPE"] <- ifelse(kegg.rels[,"TYPE"] == "-->", "+", "-") 

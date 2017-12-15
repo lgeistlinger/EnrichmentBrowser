@@ -23,10 +23,21 @@ map.ids <- function(eset, org=NA, from="ENSEMBL", to="ENTREZID")
 
     if(is.na(org)) org <- metadata(eset)$annotation
     if(!length(org)) stop("Organism under investigation not annotated")
+    ids <- rownames(eset)
+    x <- .idmap(ids, org, from, to) 
+    eset <- eset[names(x), ]
+    names(x) <- NULL
+    rownames(eset) <- x
+    if(!length(metadata(eset)$annotation)) metadata(eset)$annotation <- org
+    return(eset)
+}
+
+.idmap <- function(ids, org, from, to)
+{
     org.pkg <- .org2pkg(org)
     .isAvailable(org.pkg)
     org.pkg <- get(org.pkg) 
-    x <- mapIds(org.pkg, keys=rownames(eset), keytype=from, column=to)
+    x <- mapIds(org.pkg, keys=ids, keytype=from, column=to)
     nr.na <- sum(is.na(x))
     if(nr.na)
     { 
@@ -41,9 +52,5 @@ map.ids <- function(eset, org=NA, from="ENSEMBL", to="ENTREZID")
             "(a single to.ID was chosen for each of them)"))
         x <- x[!duplicated(x)]
     }
-    eset <- eset[rownames(eset) %in% names(x), ]
-    names(x) <- NULL
-    rownames(eset) <- x
-    if(!length(metadata(eset)$annotation)) metadata(eset)$annotation <- org
-    return(eset)
-}
+    return(x)
+}    

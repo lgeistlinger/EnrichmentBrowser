@@ -308,7 +308,7 @@
 .approxPval <- function(res.tbl, grn.cons)
 {
     normalmixEM <- NULL
-    .isAvailable("mixtools", type="software")
+    isAvailable("mixtools", type="software")
     mixmdl <- normalmixEM(grn.cons)
     l <- mixmdl$lambda
     m <- mixmdl$mu

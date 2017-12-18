@@ -15,10 +15,7 @@ compileGRN <- function(org, mode=c("kegg", "graphite"), act.inh=TRUE)
 
 compileGRNFromGraphite <- function(org, dbs=c("kegg", "reactome"), act.inh=TRUE)
 {
-    pathways <- pathwayDatabases <- NULL
-    .isAvailable("graphite", type="software")
-
-    all.dbs <- as.matrix(pathwayDatabases())
+    all.dbs <- as.matrix(graphite::pathwayDatabases())
 
     # valid org?
     org.ind <- grep(org, all.dbs[,"species"])
@@ -52,7 +49,7 @@ compileGRNFromGraphite <- function(org, dbs=c("kegg", "reactome"), act.inh=TRUE)
 .processDB <- function(d, gorg, act.inh)
 {    
     message(paste("Processing", d, "...")) 
-    pwys <- pathways(gorg, d)
+    pwys <- graphite::pathways(gorg, d)
     db.edges <- lapply(pwys, edges)
     db.edges <- do.call(rbind, db.edges)
     db.edges <- as.matrix(db.edges)

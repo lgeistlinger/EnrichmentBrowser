@@ -34,7 +34,7 @@ get.go.genesets <- function(org,
     else
     {
         useMart <- listDatasets <- useDataset <- getBM <- NULL
-        .isAvailable("biomaRt", type="software")
+        isAvailable("biomaRt", type="software")
         # setting mart
         ensembl <- useMart("ensembl")
         ds <- listDatasets(ensembl)[,"dataset"]

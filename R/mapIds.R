@@ -10,7 +10,7 @@
 id.types <- function(org)
 {
     org.pkg <- .org2pkg(org)
-    .isAvailable(org.pkg)
+    isAvailable(org.pkg)
     org.pkg <- get(org.pkg) 
     return(keytypes(org.pkg))
 }
@@ -35,7 +35,7 @@ map.ids <- function(eset, org=NA, from="ENSEMBL", to="ENTREZID")
 .idmap <- function(ids, org, from, to)
 {
     org.pkg <- .org2pkg(org)
-    .isAvailable(org.pkg)
+    isAvailable(org.pkg)
     org.pkg <- get(org.pkg) 
     x <- mapIds(org.pkg, keys=ids, keytype=from, column=to)
     nr.na <- sum(is.na(x))

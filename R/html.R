@@ -552,7 +552,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
 {
     # load org pkg
     org.pkg <- .org2pkg(org)
-    .isAvailable(org.pkg)
+    isAvailable(org.pkg)
     org.pkg <- get(org.pkg)
 
     # (1) gene identification 
@@ -564,7 +564,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
 	if(biotype)
 	{
 		useMart <- listDatasets <- useDataset <- getBM <- NULL
-		.isAvailable("biomaRt", type="software")
+		isAvailable("biomaRt", type="software")
 		
 		id.type <- "entrezgene"
         message("Connecting to BioMart ...")
@@ -597,7 +597,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
 {
     # load org pkg
     org.pkg <- .org2pkg(org)
-    .isAvailable(org.pkg)
+    isAvailable(org.pkg)
     org.pkg <- get(org.pkg)
 
     # (1) gene identification 

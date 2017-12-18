@@ -7,13 +7,17 @@
 # 
 ############################################################
 
-.isAvailable <- function(pkg, type="annotation")
+isAvailable <- function(pkg, type=c("annotation", "software", "data"))
 {
+    type <- match.arg(type)
     if(!(pkg %in% .packages(all.available=TRUE)))
     {   
         message(paste0("Corresponding ", type,  " package not found: ", 
             pkg, "\nMake sure that you have it installed."))
-        choice <- readline("Install it now? (y/n): ")
+
+        if(interactive()) choice <- readline("Install it now? (y/n): ")
+        else choice <- "y"
+        
         if(choice == "y")
         {   
             biocLite <- NULL
@@ -22,7 +26,7 @@
         }   
         else stop(paste("Package", pkg, "is not available"))
     }   
-    require(pkg, character.only = TRUE)
+    require(pkg, character.only=TRUE)
 }
 
 .autoDetectGeneIdType <- function(id)

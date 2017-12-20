@@ -36,6 +36,7 @@ export(
     get.kegg.genesets,
     get.go.genesets,
     parse.genesets.from.GMT,
+    writeGMT,
     sbea.methods,
     sbea, 
     gs.ranking,

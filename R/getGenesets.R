@@ -141,7 +141,7 @@ get.kegg.genesets <- function(pwys, cache=TRUE, gmt.file=NULL)
     }
     names(gs) <- .makeGSNames(names(pwys), pwys)
     if(is.org) .cacheResource(gs, gsc.name)
-    if(!is.null(gmt.file)) .writeGMT(gs, gmt.file=gmt.file)
+    if(!is.null(gmt.file)) writeGMT(gs, gmt.file=gmt.file)
     return(gs)
 }
 
@@ -168,7 +168,7 @@ get.kegg.genesets <- function(pwys, cache=TRUE, gmt.file=NULL)
 
     names(gs) <- .makeGSNames(nn, tt)
     
-    if(!is.null(gmt.file)) .writeGMT(gs, gmt.file=gmt.file)
+    if(!is.null(gmt.file)) writeGMT(gs, gmt.file=gmt.file)
     return(gs)
 }
 
@@ -210,7 +210,7 @@ get.kegg.genesets <- function(pwys, cache=TRUE, gmt.file=NULL)
 }
 
 # write genesets to file in GMT format
-.writeGMT <- function(gs, gmt.file)
+writeGMT <- function(gs, gmt.file)
 {
     ## collapse geneset members to one tab separated string 
     gs.strings <- vapply(gs, 

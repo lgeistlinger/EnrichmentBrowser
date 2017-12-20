@@ -1,22 +1,14 @@
 \name{get.kegg.genesets}
 \alias{get.kegg.genesets}
-\alias{parse.genesets.from.GMT}
 \title{
     Definition of gene sets according to KEGG pathways for a specified organism
 }
 \description{
-    To perform a gene set enrichment analysis on KEGG pathways,
-    it is necessary to build up the gene set database in a format
-    that the GSEA method can read. 
-    Parsing a list of gene sets from a flat text file in GMT format.
-    This function performs the necessary steps, 
-    including the retrieval of the participating gene IDs
-    for each pathway and the conversion to GMT format.
+    This function retrieves KEGG gene sets for an organism under investigation
+    either via download from the KEGG REST server.
 }
 \usage{
     get.kegg.genesets( pwys, cache = TRUE, gmt.file = NULL )
-
-    parse.genesets.from.GMT( gmt.file )
 }
 \arguments{
     \item{pwys}{
@@ -73,8 +65,4 @@
     # pwys <- download.kegg.pathways("hsa")
     pwys <- system.file("extdata/hsa_kegg_pwys.zip", package="EnrichmentBrowser")
     gs <- get.kegg.genesets(pwys)
-
-    # (3) parsing gene sets from GMT
-    gmt.file <- system.file("extdata/hsa_kegg_gs.gmt", package="EnrichmentBrowser")
-    gs <- parse.genesets.from.GMT(gmt.file)     
 }

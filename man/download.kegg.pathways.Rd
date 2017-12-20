@@ -8,12 +8,17 @@
     KEGG XML format for a specified organism.
 }
 \usage{
-    download.kegg.pathways( org, out.dir = NULL, zip = FALSE )
+    download.kegg.pathways( org, cache=TRUE, out.dir = NULL, zip = FALSE )
 }
 \arguments{
     \item{org}{
         Organism in KEGG three letter code, 
         e.g. \sQuote{hsa} for \sQuote{homo sapiens}.
+    }
+    \item{cache}{
+        Logical.
+        Should a locally cached version used if available?
+        Defaults to \code{TRUE}.
     }
     \item{out.dir}{
         Output directory. 

@@ -116,7 +116,7 @@ compileGRNFromGraphite <- function(org, dbs=c("kegg", "reactome"), act.inh=TRUE)
     return(db.edges)
 }
 
-compile.grn.from.kegg <- function(pwys, cache=TRUE, out.file=NULL)
+compile.grn.from.kegg <- function(pwys, out.file=NULL)
 {
     kegg.rels <- unique(.getKEGGRels(pwys)[,1:3])
     kegg.rels[,"TYPE"] <- ifelse(kegg.rels[,"TYPE"] == "-->", "+", "-") 

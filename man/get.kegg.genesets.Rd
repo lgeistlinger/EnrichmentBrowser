@@ -14,7 +14,7 @@
     for each pathway and the conversion to GMT format.
 }
 \usage{
-    get.kegg.genesets( pwys, gmt.file = NULL )
+    get.kegg.genesets( pwys, cache = TRUE, gmt.file = NULL )
 
     parse.genesets.from.GMT( gmt.file )
 }
@@ -25,6 +25,11 @@
         in KGML format. 
         Alternatively, an organism in KEGG three letter code, 
         e.g. \sQuote{hsa} for \sQuote{Homo sapiens}.
+    }
+    \item{cache}{
+        Logical.
+        Should a locally cached version used if available?
+        Defaults to \code{TRUE}.
     }
     \item{gmt.file}{
         Gene set file in GMT format. See details.

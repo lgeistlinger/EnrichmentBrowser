@@ -17,11 +17,19 @@
 # (1) GO
 #
 get.go.genesets <- function(org, 
-    onto=c("BP", "MF", "CC"), mode=c("GO.db","biomart"))
+    onto=c("BP", "MF", "CC"), mode=c("GO.db","biomart"), cache=TRUE)
 {
     onto <- match.arg(onto)
-    mode <- match.arg(mode)
+    gsc.name <- paste(org, "go", tolower(onto), "gs", sep=".") 
+    # should a cached version be used?
+    if(cache)
+    {
+        gs <- .getResourceFromCache(gsc.name)
+        if(!is.null(gs)) return(gs)
+    }
 
+    # from GO.db or from biomart?
+    mode <- match.arg(mode)
     if(mode=="GO.db")
     {
         gs <- topGO::annFUN.org(whichOnto=onto, mapping=.org2pkg(org))
@@ -66,28 +74,39 @@ get.go.genesets <- function(org,
         gs <- lapply(gs, function(s) as.character(sort(s)))
         names(gs) <- paste(GO2descr[,1], gsub(" ", "_", GO2descr[,2]), sep="_")
     }
+    .cacheResource(gs, gsc.name)
     return(gs)
 }
 
 #
 # (2) KEGG
 #
-get.kegg.genesets <- function(pwys, gmt.file=NULL)
+get.kegg.genesets <- function(pwys, cache=TRUE, gmt.file=NULL)
 {
     if(class(pwys) == "character")
     {
         if(length(pwys) == 1 && file.exists(pwys)) pwys <- .extractPwys(pwys)
-        else return(.dwnldKeggGS(pwys, gmt.file=gmt.file))
+        else return(.dwnldKeggGS(pwys, cache=cache, gmt.file=gmt.file))
     }
     return(.extractKeggGS(pwys, gmt.file=gmt.file))
 }
 
-.dwnldKeggGS <- function(pwys, gmt.file=NULL)
+
+
+.dwnldKeggGS <- function(pwys, cache=TRUE, gmt.file=NULL)
 {
     # download all gs of organism
-    if(length(pwys) == 1 && length(grep("^[a-z]{3}$", pwys)))
+    is.org <- length(pwys) == 1 && grepl("^[a-z]{3}$", pwys)
+    if(is.org)
     {   
         org <- pwys
+        gsc.name <- paste(org, "kegg", "gs", sep=".") 
+        # should a cached version be used?
+        if(cache)
+        {
+            gs <- .getResourceFromCache(gsc.name)
+            if(!is.null(gs)) return(gs)
+        }
         pwys <- keggList("pathway", org)
         pwy2gene <- keggLink(org, "pathway")
 
@@ -121,6 +140,7 @@ get.kegg.genesets <- function(pwys, gmt.file=NULL)
         pwys <- titles
     }
     names(gs) <- .makeGSNames(names(pwys), pwys)
+    if(is.org) .cacheResource(gs, gsc.name)
     if(!is.null(gmt.file)) .writeGMT(gs, gmt.file=gmt.file)
     return(gs)
 }

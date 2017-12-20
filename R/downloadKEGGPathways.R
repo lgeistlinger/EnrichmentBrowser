@@ -13,8 +13,15 @@
 # USING KEGGREST
 #
 
-download.kegg.pathways <- function(org, out.dir=NULL, zip=FALSE)
+download.kegg.pathways <- function(org, cache=TRUE, out.dir=NULL, zip=FALSE)
 {
+    # should a cached version be used?
+    pwys.name <- paste(org, "kegg", "pwys", sep=".") 
+    if(cache)
+    {   
+        pwys <- .getResourceFromCache(pwys.name)
+        if(!is.null(pwys)) return(pwys)
+    }   
     pwys <- keggList("pathway", org)
     message("download:")
     kgmls <- vapply(names(pwys), 
@@ -30,6 +37,7 @@ download.kegg.pathways <- function(org, out.dir=NULL, zip=FALSE)
     if(is.null(out.dir))
     {
         pwys <- sapply(kgmls, parseKGML)
+        .cacheResource(pwys, pwys.name)
         return(pwys)
     }
 

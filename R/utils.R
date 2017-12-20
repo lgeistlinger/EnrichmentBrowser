@@ -29,6 +29,50 @@ isAvailable <- function(pkg, type=c("annotation", "software", "data"))
     require(pkg, character.only=TRUE)
 }
 
+.cacheResource <- function(res, rname, ucdir="EnrichmentBrowser")
+{
+    # are we running interactively?
+    cache.dir <- ifelse(interactive(), 
+                    rappdirs::user_cache_dir(ucdir),
+                    tempdir())
+
+    bfc <- BiocFileCache::BiocFileCache(cache.dir)
+    
+    # replace existing version if necessary 
+    qgsc <-  BiocFileCache::bfcquery(bfc, rname)
+    if(BiocFileCache::bfccount(qgsc)) BiocFileCache::bfcremove(bfc, qgsc$rid) 
+    
+    cache.file <- BiocFileCache::bfcnew(bfc, rname)
+    saveRDS(res, file=cache.file)
+}
+
+.getResourceFromCache <- function(rname, 
+    update.value=7, update.unit="days", ucdir="EnrichmentBrowser")
+{
+    # are we running interactively?
+    cache.dir <- ifelse(interactive(), 
+                    rappdirs::user_cache_dir(ucdir),
+                    tempdir())
+
+    bfc <- BiocFileCache::BiocFileCache(cache.dir)
+    qgsc <-  BiocFileCache::bfcquery(bfc, rname)
+
+    # is there already a cached version?
+    res <- NULL
+    if(BiocFileCache::bfccount(qgsc))
+    {
+        # is the cached version outdated?
+        dt <- difftime(Sys.time(), qgsc$create_time, units=update.unit)   
+        if(dt < update.value)
+        {
+            if(interactive())
+                message(paste("Using cached version from", qgsc$create_time))
+            res <- readRDS(BiocFileCache::bfcrpath(bfc, rname))
+        }
+    }
+    return(res)   
+}
+
 .autoDetectGeneIdType <- function(id)
 {
     type <- NA

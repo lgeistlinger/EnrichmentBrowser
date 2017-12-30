@@ -10,7 +10,7 @@
 global.SAMGS <- function(cmat, u, ...)
 {
     # SparseM::as.matrix
-    .isAvailable("SparseM", type="software")
+    isAvailable("SparseM", type="software")
     #pos <- grep("SparseM", search())
     am <- getMethod("as.matrix", signature="matrix.csr")#, where=pos)
     cmat <- t(am(cmat))
@@ -43,8 +43,8 @@ local.t.SAM <- function (X.mat, y.vec, ...)
     }
     return(function(data, vec = y.vec, ...) 
     {
-        C1 <- which(vec==0)
-        C2 <- which(vec==1)
+        C1 <- which(vec==1) # cases
+        C2 <- which(vec==0) # controls
         nb.Genes    <- nrow(data)
         nb.Samples  <- ncol(data)
         C1.size     <- length(C1)
@@ -108,9 +108,8 @@ sam.TlikeStat <- function(DATA,
    
    if(!is.null(cl))
    {
-        cl <- as.factor(cl)
-        C1 <- which(as.numeric(cl)==1)
-        C2 <- which(as.numeric(cl)==2)
+        C1 <- which(cl==1) # cases
+        C2 <- which(cl==0) # controls
    }
    if(is.null(C1) | is.null(C2))
        stop("Error -  sam.TlikeStat : classes 1 and 2 are undefined.")
@@ -211,7 +210,7 @@ SAMGS <- function(GS,
     nb.Samples  <- ncol(DATA)
     nb.GeneSets <- length(GS)   # nb of gene sets
     GeneSets.sizes <- sapply(GS,length) # size of each gene set
-    C1.size <- table(cl)[1]  # nb of samples in class 1
+    C1.size <- table(cl)[2]  # nb of samples in class 1
 
     # finding constant s0 for SAM-like test
     tmp     <- sam.TlikeStat(DATA,cl=cl)
@@ -235,7 +234,7 @@ SAMGS <- function(GS,
         C1.permut <-  permut.C1[i,] <- sample(nb.Samples,C1.size)
         C2.permut <-  seq_len(nb.Samples)[-C1.permut]
         cl.permut[C1.permut] <- 1
-        cl.permut[C2.permut] <- 2
+        cl.permut[C2.permut] <- 0
         samT.permut <- sam.TlikeStat(DATA,cl=cl.permut,s0=s0)$TlikeStat         
         sam.sumsquareT.permut[i,] <- 
             sapply(GS,function(z) sum(samT.permut[z]^2)) 

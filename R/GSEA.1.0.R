@@ -28,7 +28,7 @@ local.s2n <- function (X.mat, y.vec, ...)
 
         A <- data + 0.00000001
 
-        ind1 <- which(vec==0)
+        ind1 <- which(vec==1) # cases
         n1 <- length(ind1)    
         M1 <- rowMeans(A[,ind1])
         A2 <- A*A    
@@ -36,7 +36,7 @@ local.s2n <- function (X.mat, y.vec, ...)
         S1 <- S1 - M1*M1    
         S1 <- sqrt(abs((n1/(n1-1)) * S1))   
             
-        ind2 <- which(vec==1)
+        ind2 <- which(vec==0) # controls
         n2 <- length(ind2)
         M2 <- rowMeans(A[,ind2])
         S2 <- rowMeans(A2[,ind2])   
@@ -226,11 +226,11 @@ random.seed = 123456)
     CLS <- input.cls
     class.labels <- CLS$class.v
     class.phen <- CLS$phen
-    phen1 <- class.phen[1]
-    phen2 <- class.phen[2]
+    phen1 <- class.phen[2] # cases
+    phen2 <- class.phen[1] # controls
   
     # sort samples according to phenotype
-    col.index <- order(class.labels, decreasing=FALSE)
+    col.index <- order(class.labels, decreasing=TRUE)
     class.labels <- class.labels[col.index]
     sample.names <- sample.names[col.index]
     A <- A[, col.index]
@@ -665,8 +665,8 @@ GSEA.GeneRanking <- function(A, class.labels, gene.labels, nperm)
     #    obs.gene.symbols <- vector(length = N, mode="character")
     M1 <- M2 <- S1 <- S2 <- matrix(0, nrow = N, ncol = nperm)
     C <- split(class.labels, class.labels)
-    class1.size <- length(C[[1]])
-    class2.size <- length(C[[2]])
+    class1.size <- length(C[[2]])
+    class2.size <- length(C[[1]])
     class1.index <- seq_len(class1.size)
     class2.index <- (class1.size + 1):(class1.size + class2.size)
 

@@ -47,7 +47,7 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
 	if(data.type == "rseq")
 	{
 		# filter low-expressed genes
-		rs <- rowSums(edgeR::cpm(assay(eset)) > min.cpm)
+		rs <- rowSums(edgeR::cpm(expr) > min.cpm)
 		keep <-  rs >= ncol(expr) / 2
 		nr.low <- sum(!keep)
 		if(nr.low)

@@ -133,7 +133,7 @@ sbea <- function(
                     samt.file <- file.path(out.dir, "samt.RData")
                     GRP.COL <- config.ebrowser("GRP.COL")
                     gs.ps <- SAMGS(GS=as.data.frame(cmat), DATA=assay(eset), 
-                        cl=as.factor(as.integer(eset[[GRP.COL]]) + 1), 
+                        cl=as.factor(as.integer(eset[[GRP.COL]])), 
                         nbPermutations=perm, 
                         tstat.file=samt.file)
                 }

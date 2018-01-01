@@ -10,7 +10,7 @@
 global.SAMGS <- function(cmat, u, ...)
 {
     # SparseM::as.matrix
-    isAvailable("SparseM", type="software")
+    .isAvailable("SparseM", type="software")
     #pos <- grep("SparseM", search())
     am <- getMethod("as.matrix", signature="matrix.csr")#, where=pos)
     cmat <- t(am(cmat))

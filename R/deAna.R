@@ -70,7 +70,7 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
     if(de.method == "edgeR")
     {
         # TODO: wait for edgeR_3.18.1 to remove this
-        isAvailable("edgeR", type="software")
+        .isAvailable("edgeR", type="software")
 
         y <- edgeR::DGEList(counts=expr,group=group)
         y <- edgeR::calcNormFactors(y)

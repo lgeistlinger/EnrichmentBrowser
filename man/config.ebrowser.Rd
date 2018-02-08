@@ -54,7 +54,7 @@
     Default output directory:
     \itemize{
         \item EBROWSER.HOME: \code{rappdirs::user_data_dir("EnrichmentBrowser")}
-        \item OUTDIR.DEFAULT: \coder{file.path(EBROWSER.HOME, "results")\}    
+        \item OUTDIR.DEFAULT: \code{file.path(EBROWSER.HOME, "results")}    
     }
 
     Gene set size:

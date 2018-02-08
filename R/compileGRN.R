@@ -7,8 +7,133 @@
 #
 ############################################################
 
+compileGRN <- function(org, mode=c("kegg", "graphite"), act.inh=TRUE)
+{
+    mode <- match.arg(mode)    
+    grn <- ifelse(mode == "kegg", 
+                    compile.grn.from.kegg(org),
+                    compileGRNFromGraphite(org, act.inh=act.inh)) 
+    return(grn)
+}    
+
+compileGRNFromGraphite <- function(org, dbs=c("kegg", "reactome"), act.inh=TRUE)
+{
+    pathways <- pathwayDatabases <- NULL
+    isAvailable("graphite", type="software")
+    all.dbs <- as.matrix(pathwayDatabases())
+
+    # valid org?
+    org.ind <- grep(org, all.dbs[,"species"])
+    if(!length(org.ind)) 
+        stop(paste0("No graphite data for organism \"", org, "\"")) 
+
+    # which DBs are available for this org?
+    gorg <- all.dbs[org.ind[1], "species"]
+    org.dbs <- all.dbs[org.ind, "database"]
+
+    db.csv <- paste(org.dbs, collapse=", ")
+    message(paste("Found data from", db.csv, "for", gorg, "in graphite"))
+
+    # any invalid user dbs?
+    na.dbs <- setdiff(dbs, org.dbs)
+    if(length(na.dbs)) for(n in na.dbs) warning(paste("Ignoring", n)) 
+
+    dbs <- intersect(org.dbs, dbs)
+    db.csv <- paste(dbs, collapse=", ")
+    message(paste("Constructing GRN from", db.csv))
+
+    # construct
+    edge.coll <- lapply(dbs, function(d) .processDB(pathways(gorg, d), act.inh))
+    grn <- do.call(rbind, edge.coll)
+    grn <- unique(grn)
+    grn <- grn[do.call(order, as.data.frame(grn)),]
+    return(grn)
+}    
+
+.processDB <- function(pwys, act.inh)
+{    
+    d <- pwys@name
+    gorg <- pwys@species
+    message(paste("Processing", d, "...")) 
+    db.edges <- lapply(pwys, edges)
+    db.edges <- do.call(rbind, db.edges)
+    db.edges <- as.matrix(db.edges)
+    db.edges <- unique(db.edges)
+    
+    if(act.inh) db.edges <- .filterEdges(db.edges, db=d)
+    else
+    {
+        db.edges <- db.edges[,c("src", "dest")]
+        colnames(db.edges) <- c("FROM", "TO")
+    }    
+
+    # map to ENTREZ IDs necessary?
+    if(!(d %in% c("kegg", "biocarta")))
+    {
+        org <- tolower(substring(gorg, 1, 3))
+        ids <- unique(as.vector(db.edges[,1:2]))
+        x <- .idmap(ids, org, from="UNIPROT", to="ENTREZID")
+        for(i in 1:2) db.edges[,i] <- x[db.edges[,i]]
+        ind.na <- apply(db.edges, 1, function(e) any(is.na(e)))
+        db.edges <- db.edges[!ind.na,]
+        db.edges <- unique(db.edges)
+    }    
+    rownames(db.edges) <- NULL
+    return(db.edges)
+}
+
+.filterEdges <- function(db.edges, db)
+{
+    if(db=="kegg")
+    {
+        rel.types <- c("activation", "expression", "inhibition", "repression")
+        rel.types <- paste0("Process(", rel.types, ")")
+    }
+    else if(db=="reactome")
+    {
+        rel.types <- paste0( "Control(Out: ",
+                                rep(c("ACTIVATION", "INHIBITION"), each=3),
+                                " of ",
+                                rep(c("BiochemicalReaction", "TemplateReaction",
+                                        "ACTIVATION"), 2),
+                                ")")
+    }
+    else if(db=="biocarta")
+    {
+            
+    }    
+    else if(db=="humancyc")
+    {
+        # no information on act/inh
+    }    
+    else if(db=="nci")
+    {
+
+    }
+    # panther
+    else
+    {
+        # no information on act/inh 
+        # ID mapping UNIPROT -> ENTREZID fails greatly
+    }    
+    db.edges <- db.edges[db.edges[,"type"] %in% rel.types,]
+    n <- length(rel.types) / 2
+    ind <- seq_len(n)
+    db.edges[,"type"] <- ifelse(db.edges[,"type"] %in% rel.types[ind], "+", "-")
+    db.edges <- db.edges[, c("src", "dest", "type")]
+    colnames(db.edges) <- c("FROM", "TO", "TYPE")
+    db.edges <- unique(db.edges)
+    return(db.edges)
+}
 
 compile.grn.from.kegg <- function(pwys, out.file=NULL)
+#{
+#    .Deprecated(new="compileGRNFromKEGG", package="EnrichmentBrowser",
+#        msg="\'compile.grn.from.kegg\' is deprecated - use 'compileGRNFromKEGG' instead")
+#    compileGRNFromKEGG(pwys, out.file)
+#}
+#
+#compileGRNFromKEGG <- function(pwys, out.file=NULL)
 {
     kegg.rels <- unique(.getKEGGRels(pwys)[,1:3])
     kegg.rels[,"TYPE"] <- ifelse(kegg.rels[,"TYPE"] == "-->", "+", "-") 
@@ -36,7 +161,7 @@ compile.grn.from.kegg <- function(pwys, out.file=NULL)
     {
         no.out <- TRUE
         out.dir <- config.ebrowser("OUTDIR.DEFAULT")
-        if(!file.exists(out.dir)) dir.create(out.dir)
+        if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)
         out.file <- file.path(out.dir, paste(org, "rels.txt", sep="_"))
     }
 

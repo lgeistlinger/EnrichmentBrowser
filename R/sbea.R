@@ -129,7 +129,7 @@ sbea <- function(
                 {
                     if(is.null(out.file)) out.dir <- config.ebrowser("OUTDIR.DEFAULT")
                     else out.dir <- sub("\\.[a-z]+$","_files", out.file)
-                    if(!file.exists(out.dir)) dir.create(out.dir)
+                    if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)
                     samt.file <- file.path(out.dir, "samt.RData")
                     GRP.COL <- config.ebrowser("GRP.COL")
                     gs.ps <- SAMGS(GS=as.data.frame(cmat), DATA=assay(eset), 
@@ -413,7 +413,7 @@ local.de.ana <- function (X.mat, y.vec, args.local)
     if(perm==0)
     {
         npGSEA <- pTwoSided <- NULL
-        .isAvailable("npGSEA", type="software")
+        isAvailable("npGSEA", type="software")
         gsc <- .gsList2Collect(gs.gmt)
         res <- npGSEA(x=assay(eset), y=eset[[GRP.COL]], set=gsc)
         ps <- sapply(res, pTwoSided)
@@ -429,7 +429,7 @@ local.de.ana <- function (X.mat, y.vec, args.local)
     if(is.null(out.file)) 
         out.dir <- config.ebrowser("OUTDIR.DEFAULT") 
     else out.dir <- sub("\\.[a-z]+$", "_files", out.file)
-    if(!file.exists(out.dir)) dir.create(out.dir)
+    if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)
         
     # run GSEA
     res <- GSEA(input.ds=as.data.frame(assay(eset)), 
@@ -445,7 +445,7 @@ local.de.ana <- function (X.mat, y.vec, args.local)
 .ebm <- function(eset, cmat)
 {
     empiricalBrownsMethod <- NULL
-    .isAvailable("EmpiricalBrownsMethod", type="software")
+    isAvailable("EmpiricalBrownsMethod", type="software")
     pcol <-  rowData(eset, use.names=TRUE)[, config.ebrowser("ADJP.COL")]
     e <- assay(eset)
     gs.ps <- apply(cmat, 2, function(s) empiricalBrownsMethod(e[s,], pcol[s]))
@@ -457,7 +457,7 @@ local.de.ana <- function (X.mat, y.vec, args.local)
 .gsa <- function(eset, gs, perm=1000)
 {  
     GSA <- NULL
-    .isAvailable("GSA", type="software")
+    isAvailable("GSA", type="software")
  
     minsize <- config.ebrowser("GS.MIN.SIZE")
     maxsize <- config.ebrowser("GS.MAX.SIZE")
@@ -492,7 +492,7 @@ local.de.ana <- function (X.mat, y.vec, args.local)
 global.GSA <- function(cmat, u, ...)
 {
     # SparseM::as.matrix
-    .isAvailable("SparseM", type="software")
+    isAvailable("SparseM", type="software")
     #pos <- grep("SparseM", search())
     am <- getMethod("as.matrix", signature="matrix.csr")#, where=pos)
     tcmat <- t(am(cmat))
@@ -522,7 +522,7 @@ global.GSA <- function(cmat, u, ...)
 .padog <- function(eset, gs, perm=1000)
 {
     padog <- NULL
-    .isAvailable("PADOG", type="software")
+    isAvailable("PADOG", type="software")
 
     grp <- eset[[config.ebrowser("GRP.COL")]]
     grp <- ifelse(grp == 0, "c", "d") 
@@ -568,7 +568,7 @@ global.GSA <- function(cmat, u, ...)
 global.PADOG <- function(cmat, u, args.global)
 {
     # SparseM::as.matrix
-    .isAvailable("SparseM", type="software")
+    isAvailable("SparseM", type="software")
     #pos <- grep("SparseM", search())
     am <- getMethod("as.matrix", signature="matrix.csr")#, where=pos)
     cmat <- t(am(cmat))
@@ -587,7 +587,7 @@ global.PADOG <- function(cmat, u, args.global)
 .mgsa <- function(eset, gs, alpha=0.05, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
 {
     mgsa <- setsResults <- NULL
-    .isAvailable("mgsa", type="software")
+    isAvailable("mgsa", type="software")
     
     # extract significant (DE) genes
     isig <- .isSig(rowData(eset, use.names=TRUE), alpha, beta, sig.stat)
@@ -606,7 +606,7 @@ global.PADOG <- function(cmat, u, args.global)
 .globaltest <- function(eset, gs, perm=1000)
 {
     gt <- NULL
-    .isAvailable("globaltest", type="software")
+    isAvailable("globaltest", type="software")
 
     grp <- colData(eset)[, config.ebrowser("GRP.COL")]
     eset <- as(eset, "ExpressionSet")
@@ -675,7 +675,7 @@ global.PADOG <- function(cmat, u, args.global)
 .gsva <- function(eset, gs, rseq=FALSE)
 {
      gsva <- NULL
-    .isAvailable("GSVA", type="software")
+    isAvailable("GSVA", type="software")
   
     # compute GSVA per sample enrichment scores
     kcdf <- ifelse(rseq, "Poisson", "Gaussian")

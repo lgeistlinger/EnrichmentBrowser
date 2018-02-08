@@ -55,7 +55,7 @@
     }
     \item{gs}{
         Gene sets.
-        Either a list of gene sets (vectors of KEGG gene IDs) or a text file 
+        Either a list of gene sets (character vectors of gene IDs) or a text file 
         in GMT format storing all gene sets under investigation.
     }
     \item{alpha}{

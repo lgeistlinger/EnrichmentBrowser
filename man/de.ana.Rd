@@ -41,7 +41,7 @@
     }
     \item{padj.method}{
         Method for adjusting p-values to multiple testing.
-        For available methods see the man of page the of the 
+        For available methods see the man page of the 
         stats function \code{\link{p.adjust}}.
         Defaults to 'BH'.
     }

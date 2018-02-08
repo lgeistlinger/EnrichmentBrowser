@@ -243,7 +243,7 @@ nbea <- function(
     alpha=0.05, perm=100, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
 {
     nea <- NULL
-    .isAvailable("neaGUI", type="software")
+   isAvailable("neaGUI", type="software")
 
     #if(perm > 100) perm <- 100
     isig <- .isSig(rowData(eset, use.names=TRUE), alpha, beta, sig.stat)
@@ -275,7 +275,7 @@ nbea <- function(
 .pathnet <- function(eset, gs, grn, alpha=0.05, perm=1000)
 {
     PathNet <- NULL
-    .isAvailable("PathNet", type="software")
+    isAvailable("PathNet", type="software")
     
     ADJP.COL <- config.ebrowser("ADJP.COL")
     GSP.COL <- config.ebrowser("GSP.COL")
@@ -371,7 +371,7 @@ nbea <- function(
 .netgsa <- function(eset, gs, grn)
 {
      NetGSA <- covsel <- edgelist2adj <- NULL
-    .isAvailable("netgsa", type="software")
+    isAvailable("netgsa", type="software")
 
     x <- assay(eset)
     y <- colData(eset)[,config.ebrowser("GRP.COL")] + 1
@@ -388,7 +388,7 @@ nbea <- function(
 
     # prepare network
     out.dir <- config.ebrowser("OUTDIR.DEFAULT")
-    if(!file.exists(out.dir)) dir.create(out.dir)
+    if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)
     out.file <- file.path(out.dir, "grn.txt")
     write.table(grn[,1:2], file=out.file, row.names=FALSE)
     adjm <- edgelist2adj(out.file, vertex.names=unique(as.vector(grn[,1:2])))
@@ -421,7 +421,7 @@ nbea <- function(
 .ganpa <- function(eset, gs, grn, perm=1000)
 {
     GSE.Test.Main <- NULL
-    .isAvailable("GANPA", type="software")
+    isAvailable("GANPA", type="software")
 
     # configure
     GRP.COL <- config.ebrowser("GRP.COL")
@@ -431,7 +431,7 @@ nbea <- function(
     GS.MAX.SIZE <- config.ebrowser("GS.MAX.SIZE")
     GSP.COL <- config.ebrowser("GSP.COL")
     
-    if(!file.exists(OUT.DIR)) dir.create(OUT.DIR)
+    if(!file.exists(OUT.DIR)) dir.create(OUT.DIR, recursive=TRUE)
     out.prefix <- file.path(OUT.DIR, "ganpa")
 
     # expression data
@@ -471,7 +471,7 @@ nbea <- function(
 .cepa <- function(eset, gs, grn, perm=1000)
 {
     cepa.all <- set.pathway.catalogue <- sampleLabel <- NULL
-    .isAvailable("CePa", type="software")
+    isAvailable("CePa", type="software")
 
     # define sample groups
     GRP.COL <- config.ebrowser("GRP.COL")
@@ -511,7 +511,7 @@ nbea <- function(
 .degraph <- function(eset, gs, grn)
 {    
     testOneGraph <- NULL
-    .isAvailable("DEGraph", type="software")
+    isAvailable("DEGraph", type="software")
 
     grp <- colData(eset)[,config.ebrowser("GRP.COL")]
             
@@ -545,13 +545,13 @@ nbea <- function(
     # original topologyGSA: deprecated
     # does not terminate on particular gs, eg. hsa04060_Cytokine-cytokine_receptor_interaction
     pathway.mean.test <- pathway.var.test <- NULL
-    .isAvailable("topologyGSA", type="software")
+    isAvailable("topologyGSA", type="software")
   
     is.DAG <- NULL
-    .isAvailable("gRbase", type="software")
+    isAvailable("gRbase", type="software")
     
     graph_from_graphnel <- mst <- NULL
-     .isAvailable("igraph", type="software")
+     isAvailable("igraph", type="software")
  
     grp <- colData(eset)[,config.ebrowser("GRP.COL")]
     y1 <- t(assay(eset)[, grp == 0])
@@ -589,13 +589,13 @@ nbea <- function(
 .clipper <- function(eset, gs, grn, alpha=0.05, perm=1000)
 {    
     pathQ <- NULL
-    .isAvailable("clipper", type="software")
+    isAvailable("clipper", type="software")
   
     is.DAG <- NULL
-    .isAvailable("gRbase", type="software")
+    isAvailable("gRbase", type="software")
     
     graph_from_graphnel <- mst <- NULL
-     .isAvailable("igraph", type="software")
+     isAvailable("igraph", type="software")
  
     grp <- colData(eset)[,config.ebrowser("GRP.COL")] + 1
 

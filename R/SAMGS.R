@@ -10,7 +10,7 @@
 global.SAMGS <- function(cmat, u, ...)
 {
     # SparseM::as.matrix
-    .isAvailable("SparseM", type="software")
+    isAvailable("SparseM", type="software")
     #pos <- grep("SparseM", search())
     am <- getMethod("as.matrix", signature="matrix.csr")#, where=pos)
     cmat <- t(am(cmat))
@@ -244,9 +244,112 @@ SAMGS <- function(GS,
 
     GeneSets.pval <- apply(
         t(sam.sumsquareT.permut) >= sam.sumsquareT.ok, 1, sum) / nbPermutations
+    
     #GeneSets.qval <- qvalue::qvalue(GeneSets.pval)$qvalues
     #GeneSets.pval <- GeneSets.qval
-    norm.stat <- sam.sumsquareT.ok / sapply(GS, length)
+    norm.stat <- sam.sumsquareT.ok / lengths(GS)
+    res.tbl <- cbind(sam.sumsquareT.ok, norm.stat, GeneSets.pval)
+    colnames(res.tbl) <- c("SUMSQ.STAT", "NSUMSQ.STAT", config.ebrowser("GSP.COL")) 
+    rownames(res.tbl) <- names(GS)
+    
+    return(res.tbl)
+}
+
+# adapt SAMGS to 
+## restandardization (Efron and Tibshirani, 2007), and 
+## non-zero permutation p-values (Phipson and Smith, 2010)  
+SAMGS2 <- function(GS,
+                 DATA,
+                 cl,
+                 nbPermutations=1000,
+                 silent=FALSE,
+                 tstat.file=NULL,
+                 restand=TRUE,
+                 exact.p=TRUE)
+{
+
+# GS : gene sets
+#      -> a dataframe with rows=genes,
+#                        columns= gene sets,
+#                        GS[i,j]=1 if gene i in gene set j
+#                        GS[i,j]=0 otherwise
+#         OR
+#         a list with each element corresponding 
+#           to a gene set = a vector of strings (genes identifiers)
+#
+# DATA : expression data
+#     -> a dataframe with  rows=genes,
+#                        columns=samples
+#
+# cl : a factor defining a bipartition of the 
+#           samples IN THE SAME ORDER AS IN DATA
+#
+    genes <- rownames(DATA)
+    GS <-  GS.format.dataframe.to.list(GS)
+    GS <-  lapply(GS,function(z) which(genes %in% z))
+
+    nb.Samples  <- ncol(DATA)
+    nb.GeneSets <- length(GS)   # nb of gene sets
+    GeneSets.sizes <- sapply(GS,length) # size of each gene set
+    C1.size <- table(cl)[2]  # nb of samples in class 1
+
+    # finding constant s0 for SAM-like test
+    tmp     <- sam.TlikeStat(DATA,cl=cl)
+    s0      <- tmp$s0
+
+    # stats obtained on 'true' data
+    # SAM T-like statistic for each gene
+
+    samT.ok <- tmp$TlikeStat                        
+    if(!is.null(tstat.file)) save(samT.ok, file=tstat.file)    
+    
+    ######
+    ## modification 1: scale DE t-stat
+    samT.ok <- scale(samT.ok)
+    # SAMGS statitic for each gene set
+
+    ######
+    ## modification 2: mean GS-stat instead sum
+    sam.sumsquareT.ok <- sapply(GS,function(z) mean(samT.ok[z]^2))  
+
+    ######
+    ## modification 3: mean 
+    mu.samT <- mean(samT.ok)
+    sd.samT <- sd(samT.ok)
+
+
+
+
+    # stats obtained on 'permuted' data
+    permut.C1 <- matrix(NA,nbPermutations,C1.size)
+    sam.sumsquareT.permut <- matrix(NA,nbPermutations,nb.GeneSets)
+    cl.permut=cl #initial group values
+    
+    for(i in seq_len(nbPermutations)) 
+    {
+        C1.permut <-  permut.C1[i,] <- sample(nb.Samples,C1.size)
+        C2.permut <-  seq_len(nb.Samples)[-C1.permut]
+        cl.permut[C1.permut] <- 1
+        cl.permut[C2.permut] <- 0
+        samT.permut <- sam.TlikeStat(DATA,cl=cl.permut,s0=s0)$TlikeStat         
+        sam.sumsquareT.permut[i,] <- 
+            sapply(GS,function(z) sum(samT.permut[z]^2)) 
+        # SAMGS statitic for each gene set  - for current permutation
+        if(!silent && (i%%50 == 0)) message(paste(i," permutations done."))
+    }
+
+    ### Modification to original code to avoid perm p-values of zero 
+    ### (see Phipson and Smith, 2010) 
+    sumf <- ifelse(exact.p, function(x) sum(x) + 1, sum)
+    if(exact.p) nbPermutations <- nbPermutations + 1
+    ###    
+
+    GeneSets.pval <- apply(
+        t(sam.sumsquareT.permut) >= sam.sumsquareT.ok, 1, sumf) / nbPermutations
+    
+    #GeneSets.qval <- qvalue::qvalue(GeneSets.pval)$qvalues
+    #GeneSets.pval <- GeneSets.qval
+    norm.stat <- sam.sumsquareT.ok / lengths(GS)
     res.tbl <- cbind(sam.sumsquareT.ok, norm.stat, GeneSets.pval)
     colnames(res.tbl) <- c("SUMSQ.STAT", "NSUMSQ.STAT", config.ebrowser("GSP.COL")) 
     rownames(res.tbl) <- names(GS)

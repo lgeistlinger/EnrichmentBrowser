@@ -42,19 +42,19 @@
     
     Important URLs (all read-only):
     \itemize{
-        \item NCBI.URL: http://www.ncbi.nlm.nih.gov/
-        \item PUBMED.URL: http://www.ncbi.nlm.nih.gov/pubmed/
-        \item GENE.URL: http://www.ncbi.nlm.nih.gov/gene/
-        \item KEGG.URL: http://www.genome.jp/dbget-bin/
-        \item KEGG.GENE.URL: http://www.genome.jp/dbget-bin/www_bget?
-        \item KEGG.SHOW.URL: http://www.genome.jp/dbget-bin/show_pathway?
-        \item GO.SHOW.URL: http://amigo.geneontology.org/amigo/term/
+        \item NCBI.URL: \url{http://www.ncbi.nlm.nih.gov/}
+        \item PUBMED.URL: \url{http://www.ncbi.nlm.nih.gov/pubmed/}
+        \item GENE.URL: \url{http://www.ncbi.nlm.nih.gov/gene/}
+        \item KEGG.URL: \url{http://www.genome.jp/dbget-bin/}
+        \item KEGG.GENE.URL: \url{http://www.genome.jp/dbget-bin/www_bget?}
+        \item KEGG.SHOW.URL: \url{http://www.genome.jp/dbget-bin/show_pathway?}
+        \item GO.SHOW.URL: \url{http://amigo.geneontology.org/amigo/term/}
     }
 
     Default output directory:
     \itemize{
-        \item EBROWSER.HOME: system.file(package="EnrichmentBrowser")
-        \item OUTDIR.DEFAULT: file.path(EBROWSER.HOME, "results")    
+        \item EBROWSER.HOME: \code{rappdirs::user_data_dir("EnrichmentBrowser")}
+        \item OUTDIR.DEFAULT: \code{file.path(EBROWSER.HOME, "results")}    
     }
 
     Gene set size:

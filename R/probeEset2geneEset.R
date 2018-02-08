@@ -81,7 +81,7 @@ probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
     anno.pkg <- paste0(anno, ".db")
     
     # check whether annotation package is installed
-    .isAvailable(anno.pkg)
+    isAvailable(anno.pkg)
     anno.pkg <- get(anno.pkg)  
  
     # determine mapping

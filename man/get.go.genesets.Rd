@@ -8,7 +8,8 @@
     either via download from BioMart or based on BioC annotation packages.
 }
 \usage{
-    get.go.genesets( org, onto = c("BP", "MF", "CC"), mode = c("GO.db","biomart") )
+    get.go.genesets( org, onto = c("BP", "MF", "CC"), 
+                        mode = c("GO.db", "biomart"), cache = TRUE )
 }
 \arguments{
     \item{org}{
@@ -31,6 +32,11 @@
         time consuming, but allows to select from a larger range of organisms
         and contains the latest mappings.
         Defaults to 'GO.db'.
+    }
+    \item{cache}{
+        Logical.
+        Should a locally cached version used if available?
+        Defaults to \code{TRUE}.
     }
 }
 \value{

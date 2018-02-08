@@ -161,7 +161,7 @@ compile.grn.from.kegg <- function(pwys, out.file=NULL)
     {
         no.out <- TRUE
         out.dir <- config.ebrowser("OUTDIR.DEFAULT")
-        if(!file.exists(out.dir)) dir.create(out.dir)
+        if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)
         out.file <- file.path(out.dir, paste(org, "rels.txt", sep="_"))
     }
 

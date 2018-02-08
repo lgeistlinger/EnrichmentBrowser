@@ -21,7 +21,8 @@
                         basePath=out.dir, reportDirectory="reports")
     
     res.files <- list.files(out.dir, pattern="txt|png|html$")
-    file.rename(from=res.files, to=file.path("reports", res.files))
+    file.rename(from=file.path(out.dir, res.files), 
+                    to=file.path(out.dir, "reports", res.files))
 
     vcol <- "global_sview.html"
     de.plot <- hwriteImage(sub("sview.html", "volc.png", vcol),
@@ -57,7 +58,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     
     # create out dir
     out.dir <- config.ebrowser("OUTDIR.DEFAULT")
-    if(!file.exists(out.dir)) dir.create(out.dir)
+    if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)
     rep.dir <- file.path(out.dir, "reports")
     
     # how many gene sets to show in the output?

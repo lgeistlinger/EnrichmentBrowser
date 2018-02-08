@@ -72,7 +72,7 @@ ebrowser <- function(
             stop("\'grn\' must be not null")
   
     out.dir <- config.ebrowser("OUTDIR.DEFAULT")
-    .checkOutDir(out.dir)    
+    if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)    
 
     # execution
     # read expression data

@@ -38,7 +38,8 @@
         "http://amigo.geneontology.org/amigo/term/"
     
     # (3) file paths
-    .ebrowser_config_cache[["EBROWSER.HOME"]] <- system.file(package="EnrichmentBrowser")
+    .ebrowser_config_cache[["EBROWSER.HOME"]] <- 
+        rappdirs::user_data_dir("EnrichmentBrowser")
     .ebrowser_config_cache[["OUTDIR.DEFAULT"]] <- 
         file.path(.ebrowser_config_cache[["EBROWSER.HOME"]], "results")
     

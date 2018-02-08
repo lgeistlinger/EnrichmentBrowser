@@ -388,7 +388,7 @@ nbea <- function(
 
     # prepare network
     out.dir <- config.ebrowser("OUTDIR.DEFAULT")
-    if(!file.exists(out.dir)) dir.create(out.dir)
+    if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)
     out.file <- file.path(out.dir, "grn.txt")
     write.table(grn[,1:2], file=out.file, row.names=FALSE)
     adjm <- edgelist2adj(out.file, vertex.names=unique(as.vector(grn[,1:2])))
@@ -431,7 +431,7 @@ nbea <- function(
     GS.MAX.SIZE <- config.ebrowser("GS.MAX.SIZE")
     GSP.COL <- config.ebrowser("GSP.COL")
     
-    if(!file.exists(OUT.DIR)) dir.create(OUT.DIR)
+    if(!file.exists(OUT.DIR)) dir.create(OUT.DIR, recursive=TRUE)
     out.prefix <- file.path(OUT.DIR, "ganpa")
 
     # expression data

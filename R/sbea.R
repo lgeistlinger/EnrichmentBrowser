@@ -129,7 +129,7 @@ sbea <- function(
                 {
                     if(is.null(out.file)) out.dir <- config.ebrowser("OUTDIR.DEFAULT")
                     else out.dir <- sub("\\.[a-z]+$","_files", out.file)
-                    if(!file.exists(out.dir)) dir.create(out.dir)
+                    if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)
                     samt.file <- file.path(out.dir, "samt.RData")
                     GRP.COL <- config.ebrowser("GRP.COL")
                     gs.ps <- SAMGS(GS=as.data.frame(cmat), DATA=assay(eset), 
@@ -429,7 +429,7 @@ local.de.ana <- function (X.mat, y.vec, args.local)
     if(is.null(out.file)) 
         out.dir <- config.ebrowser("OUTDIR.DEFAULT") 
     else out.dir <- sub("\\.[a-z]+$", "_files", out.file)
-    if(!file.exists(out.dir)) dir.create(out.dir)
+    if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)
         
     # run GSEA
     res <- GSEA(input.ds=as.data.frame(assay(eset)), 

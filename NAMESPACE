@@ -1,8 +1,6 @@
 import("GSEABase")
 import("graph")
 import("KEGGgraph")
-import("pathview")
-import("KEGGREST")
 import("SummarizedExperiment")
 
 importMethodsFrom("AnnotationDbi", mapIds, keys, keytypes, select)

@@ -22,10 +22,10 @@ pathview2 <- function(
 
     bods <- get(data("bods", package="pathview"))
     gene.idtype.list <- get(data("gene.idtype.list", package="pathview"))
-    species.data=kegg.species.code(species, na.rm=T, code.only=FALSE)
+    species.data <- pathview::kegg.species.code(species, na.rm=TRUE, code.only=FALSE)
   
-    species=species.data["kegg.code"]
-    entrez.gnodes=species.data["entrez.gnodes"]==1
+    species <- species.data["kegg.code"]
+    entrez.gnodes <- species.data["entrez.gnodes"]==1
     if(is.na(species.data["ncbi.geneid"])){
         if(!is.na(species.data["kegg.geneid"])){
             msg.fmt="Only native KEGG gene ID is supported for this species,\nmake sure it looks like \"%s\"!"
@@ -39,18 +39,18 @@ pathview2 <- function(
     if(length(grep("ENTREZ|KEGG", gene.idtype))<1){
         if(is.na(gene.annotpkg)) stop("No proper gene annotation package available!")
         if(!gene.idtype %in% gene.idtype.list) stop("Wrong input gene ID type!")
-        gene.idmap=id2eg(gd.names, category=gene.idtype, pkg.name=gene.annotpkg)
-        gene.data=mol.sum(gene.data, gene.idmap)
+        gene.idmap=pathview::id2eg(gd.names, category=gene.idtype, pkg.name=gene.annotpkg)
+        gene.data=pathview::mol.sum(gene.data, gene.idmap)
         gene.idtype="ENTREZ"
     }
     if(gene.idtype=="ENTREZ" & !entrez.gnodes){
         message("Info: Getting gene ID data from KEGG...")
-        gene.idmap=keggConv("ncbi-geneid", species)
+        gene.idmap=KEGGREST::keggConv("ncbi-geneid", species)
         message("Info: Done with data retrieval!")
         kegg.ids=gsub(paste(species, ":", sep=""), "", names(gene.idmap))
         ncbi.ids=gsub("ncbi-geneid:", "", gene.idmap)
         gene.idmap=cbind(ncbi.ids, kegg.ids)
-        gene.data=mol.sum(gene.data, gene.idmap)
+        gene.data=pathview::mol.sum(gene.data, gene.idmap)
         gene.idtype="KEGG"
     }
 
@@ -60,7 +60,7 @@ pathview2 <- function(
     kfiles=list.files(path=kegg.dir, pattern="[.]xml|[.]png")
     tfiles=paste(pathway.name, c("xml","png"), sep=".")
     if(!all(tfiles %in% kfiles)){
-        dstatus=download.kegg(pathway.id = pathway.id, species = species, kegg.dir=kegg.dir)
+        dstatus=pathview::download.kegg(pathway.id = pathway.id, species = species, kegg.dir=kegg.dir)
         if(dstatus=="failed") {
         warn.fmt="Failed to download KEGG xml/png files, %s skipped!"
         warn.msg=sprintf(warn.fmt, pathway.name)
@@ -71,7 +71,7 @@ pathview2 <- function(
     
     xml.file <- file.path(kegg.dir, paste(pathway.name, "xml", sep="."))
     gR1=try(pathview:::parseKGML2Graph2(xml.file, genes=F, expand=FALSE, split.group=FALSE), silent=TRUE)
-    node.data=try(node.info(gR1), silent=T)
+    node.data=try(pathview::node.info(gR1), silent=T)
     if(class(node.data)=="try-error"){
       warn.msg=sprintf(warn.fmt, xml.file)
       message("Warning: ", warn.msg)
@@ -79,7 +79,7 @@ pathview2 <- function(
     }
 
     gene.node.type="gene"
-    plot.data.gene=node.map(gene.data, node.data, 
+    plot.data.gene=pathview::node.map(gene.data, node.data, 
         node.types=gene.node.type, node.sum=node.sum, entrez.gnodes=entrez.gnodes)
     kng=plot.data.gene$kegg.names
     kng.char=gsub("[0-9]", "", unlist(kng))
@@ -90,13 +90,13 @@ pathview2 <- function(
                 warn.msg=sprintf(warn.fmt, species)
                 message("Warning: ", warn.msg)
               } else {
-                plot.data.gene$labels <- eg2id(as.character(
+                plot.data.gene$labels <- pathview::eg2id(as.character(
                     plot.data.gene$kegg.names), category="SYMBOL", pkg.name=gene.annotpkg)[,2]
                 mapped.gnodes <- rownames(plot.data.gene)
                 node.data$labels[mapped.gnodes] <- plot.data.gene$labels
               }
     }
-    cols.ts.gene <- node.color(plot.data.gene, limit, bins, both.dirs=both.dirs,
+    cols.ts.gene <- pathview::node.color(plot.data.gene, limit, bins, both.dirs=both.dirs,
         discrete=FALSE, low=low, mid=mid, high=high, na.col=na.col)
            
     #group nodes mapping and merge
@@ -120,7 +120,7 @@ pathview2 <- function(
         }
         rownames(sub2grp)=sub2grp[,1]
         for(gn in names(grp.idx)[grp.idx])
-            gR1=combineKEGGnodes(node.data$component[[gn]], gR1, gn)
+            gR1=pathview::combineKEGGnodes(node.data$component[[gn]], gR1, gn)
     } else sub2grp=NULL
     nNames=nodes(gR1)
     nSizes=node.data$size[nNames]
@@ -226,8 +226,8 @@ pathview2 <- function(
     xloc.nd=c(xloc,loc[[1]][nSizes==1 & rect.idx])
     yloc.nd=c(yloc,loc[[2]][nSizes==1 & rect.idx])
     labs=node.data$labels
-    labs[nNames[map.idx]]=sapply(labs[nNames[map.idx]],wordwrap,width=text.width, break.word=F)
-    labs[nNames[cpd.idx]]=sapply(labs[nNames[cpd.idx]],wordwrap,width=text.width, break.word=T)
+    labs[nNames[map.idx]]=sapply(labs[nNames[map.idx]],pathview::wordwrap,width=text.width, break.word=F)
+    labs[nNames[cpd.idx]]=sapply(labs[nNames[cpd.idx]],pathview::wordwrap,width=text.width, break.word=T)
 
     cols.ts.gene=cbind(cols.ts.gene)
     nc.gene=max(ncol(cols.ts.gene),0)

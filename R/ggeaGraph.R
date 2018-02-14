@@ -155,7 +155,7 @@ ggea.graph <- function(gs, grn, eset,
 
 .getKEGGDisplayName <- function(gene.id, org)
 {
-    entry <- keggList(paste(org, gene.id, sep=":"))
+    entry <- KEGGREST::keggList(paste(org, gene.id, sep=":"))
     dnames <- vapply(entry, 
         function(e) unlist(strsplit(e, "[,;] "))[1],
         character(1))

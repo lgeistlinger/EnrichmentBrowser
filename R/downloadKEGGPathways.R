@@ -22,14 +22,14 @@ download.kegg.pathways <- function(org, cache=TRUE, out.dir=NULL, zip=FALSE)
         pwys <- .getResourceFromCache(pwys.name)
         if(!is.null(pwys)) return(pwys)
     }   
-    pwys <- keggList("pathway", org)
+    pwys <- KEGGREST::keggList("pathway", org)
     message("download:")
     kgmls <- vapply(names(pwys), 
         function(pwy)
         {
             message(pwy)
             pwy <- sub("^path:", "", pwy)
-            kgml <- keggGet(pwy, "kgml")
+            kgml <- KEGGREST::keggGet(pwy, "kgml")
             return(kgml)
         }, character(1))
     names(kgmls) <- sub("^path:", "", names(kgmls))

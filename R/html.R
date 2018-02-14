@@ -130,6 +130,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     if(is.kegg)
     { 
         message("Creating kegg view ...")
+        isAvailable("pathview", type="software")
         vcol <- sapply(gsc, function(s) 
             .viewPath(setName(s), eset[geneIds(s),], out.prefix[setName(s)]))
         vcol <- hwriteImage(sub("kview.html", "kpath.png", vcol),
@@ -399,7 +400,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     # run pathview for getting native overplotted image
     out.dir <- dirname(img.file)
     #suppressWarnings(suppressMessages(
-    pathview(gene.data=fc, 
+    pathview::pathview(gene.data=fc, 
         pathway.id=pwy.id, species=org, kegg.dir=out.dir, out.suffix="kpath")
     # ))
     pv.out <- file.path(getwd(), paste0(org, pwy.id, ".kpath.png"))
@@ -422,11 +423,10 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     out.dir <- dirname(img.file)
     png(img.file, width=width, height=height)
     par(mai=rep(0,4))
-    gr <- 
-        suppressWarnings(suppressMessages(
-        pathview2(gene.data=fc, 
-        pathway.id=pwy.id, species=org, kegg.dir=out.dir)
-         ))
+    suppressWarnings(suppressMessages(
+        gr <- pathview2(gene.data=fc, 
+            pathway.id=pwy.id, species=org, kegg.dir=out.dir)
+    ))
     dev.off()   
  
     # 2: make the html

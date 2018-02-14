@@ -107,8 +107,8 @@ get.kegg.genesets <- function(pwys, cache=TRUE, gmt.file=NULL)
             gs <- .getResourceFromCache(gsc.name)
             if(!is.null(gs)) return(gs)
         }
-        pwys <- keggList("pathway", org)
-        pwy2gene <- keggLink(org, "pathway")
+        pwys <- KEGGREST::keggList("pathway", org)
+        pwy2gene <- KEGGREST::keggLink(org, "pathway")
 
         gs <- lapply(names(pwys), 
             function(pwy)
@@ -126,7 +126,7 @@ get.kegg.genesets <- function(pwys, cache=TRUE, gmt.file=NULL)
         gs <- lapply(pwys, 
             function(pwy)
             { 
-                info <- keggLink(paste0("path:", pwy))
+                info <- KEGGREST::keggLink(paste0("path:", pwy))
                 genes <- grep(paste0("^", 
                     substring(pwy, 1, 3), ":"), info, value=TRUE)
                 genes <- sub("^[a-z]{3}:", "", genes)
@@ -135,7 +135,7 @@ get.kegg.genesets <- function(pwys, cache=TRUE, gmt.file=NULL)
                 return(genes)
             })
         titles <- vapply(pwys, function(pwy) 
-            keggList(paste0("map", sub("^[a-z]{3}", "", pwy))), character(1))
+            KEGGREST::keggList(paste0("map", sub("^[a-z]{3}", "", pwy))), character(1))
         names(titles) <- pwys
         pwys <- titles
     }
@@ -252,9 +252,9 @@ parse.genesets.from.GMT <- function(gmt.file)
 # prepare gene sets as gene set collection from a variety of input formats
 .prepGS <- function(gsets)
 {
-    if(class(gsets) != "GeneSetCollection")
+    if(!is(gsets, "GeneSetCollection"))
 	{	
-        if(class(gsets) != "list")
+        if(!is.list(gsets))
         {
 		    # gmt file or char vector of set names/ids
 		    if(class(gsets) != "character")

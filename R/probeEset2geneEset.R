@@ -98,7 +98,7 @@ probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
 
         # check whether EntrezID is used by KEGG
         first.nna <- p2g.map[!is.na(p2g.map)][1]
-        first.keggid <- keggConv("genes", 
+        first.keggid <- KEGGREST::keggConv("genes", 
             paste("ncbi-geneid", first.nna, sep=":"))
         kegg.uses.entrez <- sub(org.start, "", first.keggid) == first.nna
 
@@ -107,7 +107,7 @@ probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
 #        {
 #            message("KEGG does not use EntrezIDs for your organism")
 #            message("Downloading mapping Entrez -> KEGG & converting accordingly")
-#            map.e2k <- keggConv(org, "ncbi-geneid")
+#            map.e2k <- KEGGREST::keggConv(org, "ncbi-geneid")
 #            names(map.e2k) <- sub("^ncbi-geneid:", "", names(map.e2k))
 #            map.e2k <- sub(org.start, "", map.e2k)
 #            p2g.map <- map.e2k[p2g.map]
@@ -119,7 +119,7 @@ probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
         message(paste("Did not found mapping: probe -> EntrezID in", anno, ".db"))
         message("Try to find mapping: probe -> KEGGID")
         avail.maps <-  keytypes(anno.pkg)
-        kegg.ids <- keggLink(paste0("path:", org, "00010"))
+        kegg.ids <- KEGGREST::keggLink(paste0("path:", org, "00010"))
         kegg.ids <- grep(org.start, kegg.ids[,2], value=TRUE)[1:3]
         kegg.ids <- sub(org.start, "", kegg.ids)
         is.map <- sapply(avail.maps, 

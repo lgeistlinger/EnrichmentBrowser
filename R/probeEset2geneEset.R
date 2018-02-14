@@ -87,7 +87,7 @@ probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
     # determine mapping
     org <- AnnotationDbi::species(anno.pkg) 
     data(korg, package="pathview")
-    org <- pathview::kegg.species.code(org)
+    suppressMessages(org <- pathview::kegg.species.code(org))
     org.start <- paste0("^", org, ":")
     # check whether there is a mapping to Entrez (= NCBI gene-ID)
     if(EZ.COL %in% keytypes(anno.pkg))

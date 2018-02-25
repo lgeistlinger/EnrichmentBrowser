@@ -92,9 +92,9 @@ sbea <- function(
         else
         { 
             # gsea
-            if(method == "gsea") gs.ps <- .gsea(eset, gs, perm)
+            if(method == "gsea") gs.ps <- .gsea(eset, gs, perm, padj.method)
             # gsa
-            else if(method == "gsa") gs.ps <- .gsa(eset, gs, perm)
+            else if(method == "gsa") gs.ps <- .gsa(eset, gs, perm, padj.method)
             # padog
 	        else if(method == "padog") gs.ps <- .padog(eset, gs, perm)
 	        # mgsa
@@ -119,9 +119,11 @@ sbea <- function(
                 eset <- eset[rownames(cmat),]
 
                 # ora
-                if(method == "ora") gs.ps <- .ora(1, eset, cmat, perm, alpha, ...)
+                if(method == "ora") 
+                    gs.ps <- .ora(1, eset, cmat, perm, alpha, padj.method, ...)
                 #safe
-                else if(method == "safe") gs.ps <- .ora(2, eset, cmat, perm, alpha)
+                else if(method == "safe") 
+                    gs.ps <- .ora(2, eset, cmat, perm, alpha, padj.method)
                 # ebm
                 else if(method == "ebm") gs.ps <- .ebm(eset, cmat)
                 # samgs
@@ -151,7 +153,10 @@ sbea <- function(
     else colnames(res.tbl)[1] <- GSP.COL 
     res.tbl <- res.tbl[do.call(order, as.data.frame(sorting.df)), , drop=FALSE]
 
-    res.tbl[,GSP.COL] <- p.adjust(res.tbl[,GSP.COL], method=padj.method)
+    # use built-in FDR control for safe, gsea, gsa
+    fdr.methods <- c("gsea", "safe", "gsa") 
+    if(is.function(method) || !(method %in% fdr.methods))
+        res.tbl[,GSP.COL] <- p.adjust(res.tbl[,GSP.COL], method=padj.method)
 
     res.tbl <- DataFrame(rownames(res.tbl), res.tbl)
     colnames(res.tbl)[1] <- config.ebrowser("GS.COL")
@@ -366,8 +371,8 @@ local.de.ana <- function (X.mat, y.vec, args.local)
 #   mode=2 ... safe default (wilcoxon)
 #
 #
-.ora <- function(mode=2, eset, cmat, perm=1000, 
-    alpha=0.05, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
+.ora <- function(mode=2, eset, cmat, perm=1000, alpha=0.05, 
+    padj.method="none", beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
 {
     GRP.COL <- config.ebrowser("GRP.COL")
     ADJP.COL <- config.ebrowser("ADJP.COL")
@@ -380,21 +385,31 @@ local.de.ana <- function (X.mat, y.vec, args.local)
     if(perm == 0) res.tbl <- .oraHypergeom(fdat, cmat, alpha, beta, sig.stat)
     # else do resampling using functionality of SAFE
     else{
+        # use built-in p-adjusting?
+        padj <- switch(padj.method,
+                        BH = "FDR.BH",
+                        fdr = "FDR.BH",
+                        bonferroni = "FWER.Bonf",
+                        holm = "FWER.Holm",
+                        BY = "FDR.YB",
+                        "none")
+
         # resampl ORA
         if(mode == 1){
             nr.sigs <- sum(.isSig(fdat, alpha, beta, sig.stat))
             args <- list(one.sided=FALSE, genelist.length=nr.sigs)
 
             gs.ps <- safe::safe(X.mat=x, y.vec=y, global="Fisher", C.mat=cmat, 
-                 Pi.mat=perm, alpha=alpha, error="none", args.global=args)
+                 Pi.mat=perm, alpha=alpha, error=padj, args.global=args)
         } 
         # SAFE default                  
         else gs.ps <- safe::safe(X.mat=x, y.vec=y, 
-            C.mat=cmat, Pi.mat=perm, alpha=alpha, error="none")
+            C.mat=cmat, Pi.mat=perm, alpha=alpha, error=padj)
+        pval <- if(padj == "none") gs.ps@global.pval else gs.ps@global.error
         res.tbl <- cbind(
             gs.ps@global.stat, 
             gs.ps@global.stat / colSums(cmat), 
-            gs.ps@global.pval)
+            pval)
         colnames(res.tbl) <- c("GLOB.STAT", "NGLOB.STAT", config.ebrowser("GSP.COL"))
     }
     return(res.tbl)
@@ -404,7 +419,8 @@ local.de.ana <- function (X.mat, y.vec, args.local)
 .gsea <- function(
     eset, 
     gs.gmt, 
-    perm=1000, 
+    perm=1000,
+    padj.method="none", 
     out.file=NULL)
 {        
     GRP.COL <- config.ebrowser("GRP.COL")
@@ -430,10 +446,20 @@ local.de.ana <- function (X.mat, y.vec, args.local)
         out.dir <- config.ebrowser("OUTDIR.DEFAULT") 
     else out.dir <- sub("\\.[a-z]+$", "_files", out.file)
     if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)
-        
+     
+    # use built-in p-adjusting?
+    padj.method <- switch(padj.method,
+                        BH = "fdr",
+                        fdr = "fdr",
+                        bonferroni = "fwer",
+                        holm = "fwer",
+                        BY = "fdr",
+                        "none")
+   
     # run GSEA
     res <- GSEA(input.ds=as.data.frame(assay(eset)), 
-        input.cls=cls, gs.db=gs.gmt, output.directory=out.dir, nperm=perm)
+                input.cls=cls, gs.db=gs.gmt, nperm=perm,
+                padj.method=padj.method, output.directory=out.dir)
       
     gs.ps <- S4Vectors::as.matrix(res[,3:5])
     rownames(gs.ps) <- res[,1]
@@ -454,7 +480,7 @@ local.de.ana <- function (X.mat, y.vec, args.local)
 
 
 # 6 GSA
-.gsa <- function(eset, gs, perm=1000)
+.gsa <- function(eset, gs, perm=1000, padj.method="none")
 {  
     GSA <- NULL
     isAvailable("GSA", type="software")
@@ -479,7 +505,26 @@ local.de.ana <- function (X.mat, y.vec, args.local)
    
     # format output
     ps <- cbind(res$pvalues.lo, res$pvalues.hi)
-    ps <- 2 * apply(ps, 1, min)
+    is.fdr <- tolower(padj.method) %in% c("bh", "fdr")
+    if(is.fdr)
+    {
+        lo <- cut(res$pvalues.lo, 
+                    breaks = c(res$fdr.lo[,"pv cutpoint"], 1), 
+                    labels = res$fdr.lo[,"FDR"])
+        lo <- as.numeric(as.vector(lo))
+        lo[is.na(lo)] <- res$fdr.lo[1,"FDR"]
+        hi <- cut(res$pvalues.hi, 
+                    breaks = c(res$fdr.hi[,"pv cutpoint"], 1), 
+                    labels = res$fdr.hi[,"FDR"])
+        hi <- as.numeric(as.vector(hi))
+        lo[is.na(lo)] <- res$fdr.lo[1,"FDR"]
+        ps <- cbind(lo, hi) 
+    }
+    ps <- apply(ps, 1, min)
+    # technically this would need to be corrected for multiple testing
+    # via
+    # ps <- 2 * ps
+    # ps <- vapply(ps, function(p) if(p > 1) 1 else p, numeric(1))
     scores <- res$GSA.scores
     res.tbl <- cbind(scores, ps)
     colnames(res.tbl) <- c("SCORE", config.ebrowser("GSP.COL"))
@@ -674,7 +719,7 @@ global.PADOG <- function(cmat, u, args.global)
 # 11 GSVA
 .gsva <- function(eset, gs, rseq=FALSE)
 {
-     gsva <- NULL
+    gsva <- NULL
     isAvailable("GSVA", type="software")
   
     # compute GSVA per sample enrichment scores

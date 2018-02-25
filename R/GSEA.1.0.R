@@ -200,6 +200,7 @@ gs.db,
 output.directory = "", 
 reshuffling.type = "sample.labels", 
 nperm = 1000, 
+padj.method=c("none", "fdr", "fwer"),
 weighted.score.type = 1, 
 #gs.size.threshold.min = 25, 
 #gs.size.threshold.max = 500, 
@@ -404,7 +405,12 @@ random.seed = 123456)
         }
     }
     # Compute 3 types of p-values
-    # Find nominal p-values       
+    padj.method <- match.arg(padj.method)    
+
+
+    #
+    # Find nominal p-values
+    #
     p.vals <- matrix(0, nrow = Ng, ncol = 2)
     for (i in seq_len(Ng)) 
     {
@@ -430,106 +436,122 @@ random.seed = 123456)
         }
         Obs.ES.norm[i] <- Obs.ES[i] / ifelse(Obs.ES[i] >= 0, pos.m, neg.m)
     }
-    
+
+    #
+    #
+    #    
+
     # Compute FWER p-vals
-#    max.ES.vals.p <- NULL
-#    max.ES.vals.n <- NULL
-#    for (j in seq_len(nperm)) 
-#    {
-#        ind <- phi.norm[,j] >= 0
-#        pos.phi <- phi.norm[ind, j]
-#        neg.phi <- phi[!ind, j] 
-#
-#        if (length(pos.phi)) max.ES.vals.p <- c(max.ES.vals.p, max(pos.phi))
-#        if (length(neg.phi)) max.ES.vals.n <- c(max.ES.vals.n, min(neg.phi))
-#    }
-#
-#    for (i in seq_len(Ng)) 
-#    {
-#        ES.value <- Obs.ES.norm[i]
-#        p.vals[i, 2] <- signif(ifelse(ES.value >= 0, 
-#                            sum(max.ES.vals.p >= ES.value),
-#                            sum(max.ES.vals.n <= ES.value)) / 
-#                            length(max.ES.vals.p), digits=5)
-#    }
-#
-#    # Compute FDRs 
-#    NES <- phi.norm.mean <- obs.phi.norm.mean <- phi.norm.median <- 
-#        obs.phi.norm.median <- phi.norm.mean <- obs.phi.mean <- 
-#        FDR.mean <- FDR.median <- phi.norm.median.d <- 
-#        obs.phi.norm.median.d <- vector(length=Ng, mode="numeric")
-#
-#    Obs.ES.index <- order(Obs.ES.norm, decreasing=TRUE)
-#    Orig.index <- seq(1, Ng)
-#    Orig.index <- Orig.index[Obs.ES.index]
-#    Orig.index <- order(Orig.index, decreasing=FALSE)
-#    Obs.ES.norm.sorted <- Obs.ES.norm[Obs.ES.index]
-#    gs.names.sorted <- gs.names[Obs.ES.index]
-#
-#    NES <- Obs.ES.norm.sorted
-#    for (k in seq_len(Ng)) 
-#    {
-#        ES.value <- NES[k]
-#        count.col <- obs.count.col <- vector(length=nperm, mode="numeric")
-#        for (i in seq_len(nperm)) 
-#        {
-#            phi.vec <- phi.norm[,i]
-#            obs.phi.vec <- obs.phi.norm[,i]
-#            if (ES.value >= 0) 
-#            {
-#                count.col.norm <- sum(phi.vec >= 0)
-#                obs.count.col.norm <- sum(obs.phi.vec >= 0)
-#                count.col[i] <- ifelse(count.col.norm > 0, 
-#                    sum(phi.vec >= ES.value)/count.col.norm, 0)
-#                obs.count.col[i] <- ifelse(obs.count.col.norm > 0, 
-#                    sum(obs.phi.vec >= ES.value)/obs.count.col.norm, 0)
-#            } 
-#            else 
-#            {
-#                count.col.norm <- sum(phi.vec < 0)
-#                obs.count.col.norm <- sum(obs.phi.vec < 0)
-#                count.col[i] <- ifelse(count.col.norm > 0, 
-#                    sum(phi.vec <= ES.value)/count.col.norm, 0)
-#                obs.count.col[i] <- ifelse(obs.count.col.norm > 0, 
-#                    sum(obs.phi.vec <= ES.value)/obs.count.col.norm, 0)
-#            }
-#        }
-#        phi.norm.mean[k] <- mean(count.col)
-#        obs.phi.norm.mean[k] <- mean(obs.count.col)
-#        phi.norm.median[k] <- median(count.col)
-#        obs.phi.norm.median[k] <- median(obs.count.col)
-#        FDR.mean[k] <- ifelse(phi.norm.mean[k]/obs.phi.norm.mean[k] < 1, 
-#            phi.norm.mean[k]/obs.phi.norm.mean[k], 1)
-#        FDR.median[k] <- ifelse(phi.norm.median[k]/obs.phi.norm.median[k] < 1, 
-#            phi.norm.median[k]/obs.phi.norm.median[k], 1)
-#    }
-#
-#    # adjust q-values
-#    if (adjust.FDR.q.val ==TRUE) 
-#    {
-#        pos.nes <- sum(NES >= 0)
-#        min.FDR.mean <- FDR.mean[pos.nes]
-#        min.FDR.median <- FDR.median[pos.nes]
-#        for(k in seq(pos.nes - 1, 1, -1)) 
-#        {
-#            if(FDR.mean[k] < min.FDR.mean) min.FDR.mean <- FDR.mean[k]
-#            if(min.FDR.mean < FDR.mean[k]) FDR.mean[k] <- min.FDR.mean
-#        }
-#        neg.nes <- pos.nes + 1
-#        min.FDR.mean <- FDR.mean[neg.nes]
-#        min.FDR.median <- FDR.median[neg.nes]
-#        for (k in seq(neg.nes + 1, Ng)) 
-#        {
-#             if(FDR.mean[k] < min.FDR.mean) min.FDR.mean <- FDR.mean[k]
-#             if (min.FDR.mean < FDR.mean[k]) FDR.mean[k] <- min.FDR.mean
-#        }
-#    }   
-#
-#    obs.phi.norm.mean.sorted <- obs.phi.norm.mean[Orig.index]
-#    phi.norm.mean.sorted <- phi.norm.mean[Orig.index]
-#    FDR.mean.sorted <- FDR.mean[Orig.index]
-#    FDR.median.sorted <- FDR.median[Orig.index]
-#    
+    if(padj.method == "fwer")
+    {
+    max.ES.vals.p <- NULL
+    max.ES.vals.n <- NULL
+    for (j in seq_len(nperm)) 
+    {
+        ind <- phi.norm[,j] >= 0
+        pos.phi <- phi.norm[ind, j]
+        neg.phi <- phi[!ind, j] 
+
+        if (length(pos.phi)) max.ES.vals.p <- c(max.ES.vals.p, max(pos.phi))
+        if (length(neg.phi)) max.ES.vals.n <- c(max.ES.vals.n, min(neg.phi))
+    }
+
+    for (i in seq_len(Ng)) 
+    {
+        ES.value <- Obs.ES.norm[i]
+        p.vals[i, 2] <- signif(ifelse(ES.value >= 0, 
+                            sum(max.ES.vals.p >= ES.value),
+                            sum(max.ES.vals.n <= ES.value)) / 
+                            length(max.ES.vals.p), digits=5)
+    }
+    p.vals <- p.vals[,2]
+    }
+
+
+    # Compute FDRs
+    if(padj.method == "fdr")
+    { 
+    NES <- phi.norm.mean <- obs.phi.norm.mean <- phi.norm.median <- 
+        obs.phi.norm.median <- phi.norm.mean <- obs.phi.mean <- 
+        FDR.mean <- FDR.median <- phi.norm.median.d <- 
+        obs.phi.norm.median.d <- vector(length=Ng, mode="numeric")
+
+    Obs.ES.index <- order(Obs.ES.norm, decreasing=TRUE)
+    Orig.index <- seq(1, Ng)
+    Orig.index <- Orig.index[Obs.ES.index]
+    Orig.index <- order(Orig.index, decreasing=FALSE)
+    Obs.ES.norm.sorted <- Obs.ES.norm[Obs.ES.index]
+    gs.names.sorted <- gs.names[Obs.ES.index]
+
+    NES <- Obs.ES.norm.sorted
+    for (k in seq_len(Ng)) 
+    {
+        ES.value <- NES[k]
+        count.col <- obs.count.col <- vector(length=nperm, mode="numeric")
+        for (i in seq_len(nperm)) 
+        {
+            phi.vec <- phi.norm[,i]
+            obs.phi.vec <- obs.phi.norm[,i]
+            if (ES.value >= 0) 
+            {
+                count.col.norm <- sum(phi.vec >= 0)
+                obs.count.col.norm <- sum(obs.phi.vec >= 0)
+                count.col[i] <- ifelse(count.col.norm > 0, 
+                    sum(phi.vec >= ES.value)/count.col.norm, 0)
+                obs.count.col[i] <- ifelse(obs.count.col.norm > 0, 
+                    sum(obs.phi.vec >= ES.value)/obs.count.col.norm, 0)
+            } 
+            else 
+            {
+                count.col.norm <- sum(phi.vec < 0)
+                obs.count.col.norm <- sum(obs.phi.vec < 0)
+                count.col[i] <- ifelse(count.col.norm > 0, 
+                    sum(phi.vec <= ES.value)/count.col.norm, 0)
+                obs.count.col[i] <- ifelse(obs.count.col.norm > 0, 
+                    sum(obs.phi.vec <= ES.value)/obs.count.col.norm, 0)
+            }
+        }
+        phi.norm.mean[k] <- mean(count.col)
+        obs.phi.norm.mean[k] <- mean(obs.count.col)
+        phi.norm.median[k] <- median(count.col)
+        obs.phi.norm.median[k] <- median(obs.count.col)
+        FDR.mean[k] <- ifelse(phi.norm.mean[k]/obs.phi.norm.mean[k] < 1, 
+            phi.norm.mean[k]/obs.phi.norm.mean[k], 1)
+        FDR.median[k] <- ifelse(phi.norm.median[k]/obs.phi.norm.median[k] < 1, 
+            phi.norm.median[k]/obs.phi.norm.median[k], 1)
+    }
+
+    # adjust q-values
+    adjust.FDR.q.val <- FALSE
+    if (adjust.FDR.q.val) 
+    {
+        pos.nes <- sum(NES >= 0)
+        min.FDR.mean <- FDR.mean[pos.nes]
+        min.FDR.median <- FDR.median[pos.nes]
+        for(k in seq(pos.nes - 1, 1, -1)) 
+        {
+            if(FDR.mean[k] < min.FDR.mean) min.FDR.mean <- FDR.mean[k]
+            if(min.FDR.mean < FDR.mean[k]) FDR.mean[k] <- min.FDR.mean
+        }
+        neg.nes <- pos.nes + 1
+        min.FDR.mean <- FDR.mean[neg.nes]
+        min.FDR.median <- FDR.median[neg.nes]
+        for (k in seq(neg.nes + 1, Ng)) 
+        {
+             if(FDR.mean[k] < min.FDR.mean) min.FDR.mean <- FDR.mean[k]
+             if (min.FDR.mean < FDR.mean[k]) FDR.mean[k] <- min.FDR.mean
+        }
+    }   
+
+    obs.phi.norm.mean.sorted <- obs.phi.norm.mean[Orig.index]
+    phi.norm.mean.sorted <- phi.norm.mean[Orig.index]
+    FDR.mean.sorted <- FDR.mean[Orig.index]
+    FDR.median.sorted <- FDR.median[Orig.index]
+    
+    p.vals <- FDR.mean.sorted
+    }
+
+
 #    #   Compute global statistic
 #    glob.p.vals <- vector(length=Ng, mode="numeric")
 #    NULL.pass <- OBS.pass <- vector(length=nperm, mode="numeric")
@@ -574,8 +596,8 @@ random.seed = 123456)
 #    FDR.median.sorted <-  signif(FDR.median.sorted, digits=5)
 #    glob.p.vals.sorted <- signif(glob.p.vals.sorted, digits=5)
 
-    report <- DataFrame(gs.names, size.G, Obs.ES, Obs.ES.norm, p.vals[,1])
-#            , FDR.mean.sorted, p.vals[,2], tag.frac, 
+    report <- DataFrame(gs.names, size.G, Obs.ES, Obs.ES.norm, p.vals)
+#       p.vals[,1], FDR.mean.sorted, p.vals[,2], tag.frac, 
 #         gene.frac, signal.strength, FDR.median.sorted, glob.p.vals.sorted))
     colnames(report) <- c("GS", "SIZE", "ES", "NES", config.ebrowser("GSP.COL"))#, 
     rownames(report) <- NULL

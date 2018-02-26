@@ -67,7 +67,7 @@
     Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \seealso{
-    \code{\link{read.eset}} for reading expression data from file;
+    \code{\link{readSE}} for reading expression data from file;
 
     \code{\link{normalizeWithinArrays}} and
     \code{\link{normalizeBetweenArrays}} for normalization of microarray data;

@@ -32,7 +32,7 @@
     Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \seealso{
-    \code{\link{read.eset}} for reading expression data from file,
+    \code{\link{readSE}} for reading expression data from file,
     \code{\link{de.ana}} for differential expression analysis. 
 }
 \examples{
@@ -40,6 +40,6 @@
     exprs.file <- system.file("extdata/exprs.tab", package="EnrichmentBrowser")
     pdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
     fdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
-    probe.eset <- read.eset(exprs.file, pdat.file, fdat.file)
+    probe.eset <- readSE(exprs.file, pdat.file, fdat.file)
     gene.eset <- probe.2.gene.eset(probe.eset) 
 }

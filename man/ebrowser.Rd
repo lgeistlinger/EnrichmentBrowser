@@ -153,7 +153,7 @@
     None, opens the browser to explore results.
 }
 \seealso{
-    \code{\link{read.eset}} to read expression data from file; 
+    \code{\link{readSE}} to read expression data from file; 
     \code{\link{probe.2.gene.eset}} to transform probe to gene level expression;
     \code{\link{kegg.species.code}} maps species name to KEGG code.
     \code{\link{get.kegg.genesets}} to retrieve gene set definitions from KEGG;

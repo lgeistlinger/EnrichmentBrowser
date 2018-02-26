@@ -22,6 +22,7 @@ importFrom("utils", "available.packages", "browseURL", "capture.output",
 
 export( 
     read.eset, 
+    readSE,
     id.types,
     isAvailable,
     map.ids,

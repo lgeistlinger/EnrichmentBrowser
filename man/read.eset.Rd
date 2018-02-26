@@ -1,4 +1,5 @@
-\name{read.eset}
+\name{readSE}
+\alias{readSE}
 \alias{read.eset}
 \title{ 
     Reading gene expression data from file
@@ -8,19 +9,19 @@
     annotation requirements for the colData and rowData slots. 
 }
 \usage{
-    read.eset( exprs.file, pdat.file, fdat.file, 
+    readSE( assay.file, cdat.file, rdat.file, 
         data.type = c(NA, "ma", "rseq"), NA.method = c("mean", "rm", "keep") )
 }
 \arguments{
-    \item{exprs.file}{
+    \item{assay.file}{
         Expression matrix.
         A tab separated text file containing expression values. 
         Columns = samples/subjects; rows = features/probes/genes; 
         NO headers, row or column names.
         See details.
     }
-    \item{pdat.file}{
-        Phenotype data.
+    \item{cdat.file}{
+        Column (phenotype) data.
         A tab separated text file containing annotation information 
         for the samples in either *two or three* columns. 
         NO headers, row or column names.
@@ -33,8 +34,8 @@
         For paired samples or sample blocks a third column is expected that
         defines the blocks. 
     }
-    \item{fdat.file}{
-        Feature data.
+    \item{rdat.file}{
+        Row (feature) data.
         A tab separated text file containing annotation information 
         for the features.
         In case of probe level data: exactly *TWO* columns; 
@@ -82,7 +83,7 @@
     for definition and normalization of the different expression data types.        
     
     In case of microarry data the feature IDs typically correspond to probe IDs.
-    Thus, the fdat.file should define a mapping from probe ID (1st column) to
+    Thus, the \code{rdat.file} should define a mapping from probe ID (1st column) to
     corresponding KEGG gene ID (2nd column).
     The mapping can be defined automatically by providing the ID of a 
     recognized platform such as 'hgu95av2' (Affymetrix Human Genome U95 chip).
@@ -94,7 +95,7 @@
     (e.g. for E. coli and S. cerevisae). In these cases probe identifiers are mapped
      twice (probe ID -> Entrez ID -> KEGG ID), which almost always results in loss
     of information. Thus, mapping quality should always be checked and in case
-    properly defined with a 2-column fdat.file.
+    properly defined with a 2-column \code{rdat.file}.
 }
 \author{
     Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
@@ -104,9 +105,9 @@
 }
 \examples{
     # reading the expression data from file
-    exprs.file <- system.file("extdata/exprs.tab", package="EnrichmentBrowser")
-    pdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
-    fdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
-    eset <- read.eset(exprs.file, pdat.file, fdat.file)
+    assay.file <- system.file("extdata/exprs.tab", package="EnrichmentBrowser")
+    cdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
+    rdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
+    se <- readSE(assay.file, cdat.file, rdat.file)
 }
 

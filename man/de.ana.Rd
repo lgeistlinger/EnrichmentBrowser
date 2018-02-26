@@ -70,7 +70,7 @@
     Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \seealso{
-    \code{\link{read.eset}} for reading expression data from file,
+    \code{\link{readSE}} for reading expression data from file,
     \code{\link{normalize}} for normalization of expression data,
     \code{\link{voom}} for preprocessing of RNA-seq data,
     \code{\link{p.adjust}} for multiple testing correction,

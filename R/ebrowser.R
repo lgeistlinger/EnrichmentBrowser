@@ -80,8 +80,8 @@ ebrowser <- function(
     if(is.character(exprs))
     {
         message("Read expression data ...")
-        eset <- read.eset( exprs.file=exprs, 
-            pdat.file=pdat, fdat.file=fdat, data.type=data.type )
+        eset <- readSE( assay.file=exprs, 
+            cdat.file=pdat, rdat.file=fdat, data.type=data.type )
     }
     else
     { 

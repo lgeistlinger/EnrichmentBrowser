@@ -10,53 +10,63 @@
 read.eset <- function(exprs.file, pdat.file, fdat.file, 
     data.type=c(NA, "ma", "rseq"), NA.method=c("mean", "rm", "keep"))
 {
+    res <- readSE(assay.file=exprs.file, cdat.file=pdat.file,
+        rdat.file=fdat.file, data.type=data.type, NA.method=NA.method)
+    message("\'read.eset\' is deprecated.")
+    message("Use \'readSE\' instead.")
+    return(res)
+}
+
+readSE <- function(assay.file, cdat.file, rdat.file, 
+    data.type=c(NA, "ma", "rseq"), NA.method=c("mean", "rm", "keep"))
+{
     data.type <- match.arg(data.type)
     NA.method <- match.arg(NA.method)
 
     # read features
-    anno <- ifelse(file.exists(fdat.file), NA, fdat.file)
+    anno <- ifelse(file.exists(rdat.file), NA, rdat.file)
     if(is.na(anno))
     {
-        ncol.fdat <- length(scan(fdat.file, what="character", nlines=1, quiet=TRUE))
-        fDat <- scan(fdat.file, what="character", quiet=TRUE)
-        nr.features <- length(fDat) / ncol.fdat
-        fDat <- matrix(fDat, nrow=nr.features, ncol=ncol.fdat, byrow=TRUE)
-        fDat <- as.data.frame(fDat, stringsAsFactors=FALSE)
+        ncol.rdat <- length(scan(rdat.file, what="character", nlines=1, quiet=TRUE))
+        rdat <- scan(rdat.file, what="character", quiet=TRUE)
+        nr.features <- length(rdat) / ncol.rdat
+        rdat <- matrix(rdat, nrow=nr.features, ncol=ncol.rdat, byrow=TRUE)
+        rdat <- as.data.frame(rdat, stringsAsFactors=FALSE)
     }
     else 
     {
-        fDat <- .annoP2G(fdat.file)
-        ncol.fdat <- ncol(fDat)
-        nr.features <- nrow(fDat)
+        rdat <- .annoP2G(rdat.file)
+        ncol.rdat <- ncol(rdat)
+        nr.features <- nrow(rdat)
     }
 
     # read samples
-    ncol.pdat <- length(scan(pdat.file, what="character", nlines=1, quiet=TRUE))
-    pDat <- scan(pdat.file, what="character", quiet=TRUE)
-    nr.samples <- length(pDat) / ncol.pdat
-    pDat <- matrix(pDat, nrow=nr.samples, ncol=ncol.pdat, byrow=TRUE)
-    pDat <- as.data.frame(pDat, stringsAsFactors=FALSE)    
-    pDat[,2] <- as.integer(pDat[,2])
+    ncol.cdat <- length(scan(cdat.file, what="character", nlines=1, quiet=TRUE))
+    cdat <- scan(cdat.file, what="character", quiet=TRUE)
+    nr.samples <- length(cdat) / ncol.cdat
+    cdat <- matrix(cdat, nrow=nr.samples, ncol=ncol.cdat, byrow=TRUE)
+    cdat <- as.data.frame(cdat, stringsAsFactors=FALSE)    
+    cdat[,2] <- as.integer(cdat[,2])
     
     # read expression values
-    expr <- matrix(scan(exprs.file, quiet=TRUE), 
+    expr <- matrix(scan(assay.file, quiet=TRUE), 
         nrow=nr.features, ncol=nr.samples, byrow=TRUE)
-    rownames(expr) <- fDat[,1]
-    colnames(expr) <- pDat[,1]
+    rownames(expr) <- rdat[,1]
+    colnames(expr) <- cdat[,1]
 
     # deal with NAs
     expr <- .naTreat(expr, NA.method) 
-    if(NA.method=="rm") fDat <- fDat[fDat[,1] %in% rownames(expr),]
+    if(NA.method=="rm") rdat <- rdat[rdat[,1] %in% rownames(expr),]
    
     # create the eset
     eset <- SummarizedExperiment(assays=list(exprs=expr))
     if(!is.na(anno)) metadata(eset)$annotation <- anno
-    colData(eset) <- DataFrame(pDat, row.names=colnames(eset))
-    rowData(eset) <- DataFrame(fDat, row.names=rownames(eset))
+    colData(eset) <- DataFrame(cdat, row.names=colnames(eset))
+    rowData(eset) <- DataFrame(rdat, row.names=rownames(eset))
     
     colnames(colData(eset))[1:2] <- sapply(c("SMPL.COL", "GRP.COL"), config.ebrowser)
-    if(ncol.pdat > 2) colnames(colData(eset))[3] <- config.ebrowser("BLK.COL")
-    if(ncol.fdat == 1) colnames(rowData(eset))[1] <- config.ebrowser("EZ.COL") 
+    if(ncol.cdat > 2) colnames(colData(eset))[3] <- config.ebrowser("BLK.COL")
+    if(ncol.rdat == 1) colnames(rowData(eset))[1] <- config.ebrowser("EZ.COL") 
     else colnames(rowData(eset))[1:2] <- sapply(c("PRB.COL", "EZ.COL"), config.ebrowser)
    
     # ma or rseq?

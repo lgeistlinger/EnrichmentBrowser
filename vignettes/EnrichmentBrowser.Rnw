@@ -84,7 +84,7 @@ library(limma)
 \section{Reading expression data from file}
 Typically, the expression data is not already available in \R{} but 
 rather has to be read in from file. 
-This can be done using the function \Rfunction{read.eset}, which reads 
+This can be done using the function \Rfunction{readSE}, which reads 
 the expression data (\Rfunction{exprs}) along with the phenotype data 
 (\Rfunction{colData}) and feature data (\Rfunction{rowData}) into a
 \Biocpkg{SummarizedExperiment}. 
@@ -92,16 +92,16 @@ the expression data (\Rfunction{exprs}) along with the phenotype data
 library(EnrichmentBrowser)
 data.dir <- system.file("extdata", package="EnrichmentBrowser")
 exprs.file <- file.path(data.dir, "exprs.tab")
-pdat.file <- file.path(data.dir, "colData.tab")
-fdat.file <- file.path(data.dir, "rowData.tab")
-eset <- read.eset(exprs.file, pdat.file, fdat.file)
+cdat.file <- file.path(data.dir, "colData.tab")
+rdat.file <- file.path(data.dir, "rowData.tab")
+se <- readSE(exprs.file, cdat.file, rdat.file)
 @
 
 The man pages provide details on file format and the
 \Rclass{SummarizedExperiment} data structure.
 
 <<help, eval=FALSE>>=
-?read.eset
+?readSE
 ?SummarizedExperiment
 @
 
@@ -122,13 +122,13 @@ Furthermore, users can always coerce from \Rclass{SummarizedExperiment} to
  \Rclass{ExpressionSet} via
 
 <<sexp2eset>>=
-eset <- as(eset, "ExpressionSet")
+eset <- as(se, "ExpressionSet")
 @
 
 and vice versa
 
 <<eset2sexp>>=
-eset <- as(eset, "RangedSummarizedExperiment")
+se <- as(eset, "RangedSummarizedExperiment")
 @
 
 \section{Types of expression data}
@@ -195,7 +195,7 @@ as you have the corresponding annotation package, here the
 defined in the \Rfunction{rowData} slot.
 
 <<show-probe2gene>>=
-rowData(eset, use.names=TRUE)
+rowData(se, use.names=TRUE)
 @
 
 \subsection{RNA-seq data}

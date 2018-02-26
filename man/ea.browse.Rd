@@ -60,7 +60,7 @@
     exprs.file <- system.file("extdata/exprs.tab", package="EnrichmentBrowser")
     pdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
     fdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
-    probe.eset <- read.eset(exprs.file, pdat.file, fdat.file)
+    probe.eset <- readSE(exprs.file, pdat.file, fdat.file)
     gene.eset <- probe.2.gene.eset(probe.eset) 
     gene.eset <- de.ana(gene.eset)
     metadata(gene.eset)$annotation <- "hsa"

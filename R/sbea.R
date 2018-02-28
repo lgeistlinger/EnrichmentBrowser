@@ -8,8 +8,8 @@
 ############################################################
 
 sbea.methods <- function() 
-    c("ora", "safe", "gsea", "samgs", "ebm", "mgsa", 
-        "gsa", "padog", "globaltest", "roast", "camera", "gsva")
+    c("ora", "safe", "gsea", "gsa", "padog", "globaltest", 
+        "roast", "camera", "gsva", "samgs", "ebm", "mgsa")
 
 # INPUT FASSADE - wrapping & delegation
 sbea <- function(   
@@ -490,13 +490,22 @@ local.de.ana <- function (X.mat, y.vec, args.local)
 
     blk <- NULL
     BLK.COL <- config.ebrowser("BLK.COL")
-    if(BLK.COL %in% colnames(colData(eset))) blk <- colData(eset)[,BLK.COL] 
+    if(BLK.COL %in% colnames(colData(eset))) blk <- eset[[BLK.COL]] 
     paired <- !is.null(blk)
     resp.type <- ifelse(paired, "Two class paired", "Two class unpaired")
 
     # prepare input
     x <- assay(eset)
     y <- eset[[config.ebrowser("GRP.COL")]] + 1
+   
+    # response vector y need to differently coded for 2-class paired   
+    if(paired)
+    {
+        y <- blk
+        ublk <- unique(blk)
+        for(i in seq_along(ublk)) y[blk==ublk[i]] <- c(i,-i)
+        y <- as.integer(y)
+    }
     genenames <- rownames(eset)
 
     # run GSA

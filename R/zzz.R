@@ -54,6 +54,13 @@
     .ebrowser_config_cache[["PLOT.HEIGHT"]] <- 500
         
     # (6) misc
+    sbea.pkgs <- c("GSA", "PADOG", "globaltest", 
+                    "GSVA", "EmpiricalBrownsMethod", "mgsa")
+    names(sbea.pkgs) <- c("gsa", "padog", "globaltest", "gsva", "ebm", "mgsa")
+    .ebrowser_config_cache[["SBEA.PKGS"]] <- sbea.pkgs
+    nbea.pkgs <- c("PathNet", "DEGraph", "CePa", "GANPA", "NetGSA", "neaGUI")
+    names(nbea.pkgs) <- c("pathnet", "degraph", "cepa", "ganpa", "netgsa", "nea")
+    .ebrowser_config_cache[["NBEA.PKGS"]] <- nbea.pkgs
 }
 
 

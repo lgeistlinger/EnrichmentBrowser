@@ -12,7 +12,7 @@
 
 nbea.methods <- function() 
     c("ggea", "spia", "pathnet", "degraph", 
-		"topologygsa", "ganpa", "cepa", "netgsa", "nea")
+		"ganpa", "cepa", "topologygsa", "netgsa", "nea")
 
 nbea <- function(
     method=EnrichmentBrowser::nbea.methods(), 

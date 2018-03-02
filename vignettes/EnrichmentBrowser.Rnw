@@ -88,7 +88,7 @@ This can be done using the function \Rfunction{readSE}, which reads
 the expression data (\Rfunction{exprs}) along with the phenotype data 
 (\Rfunction{colData}) and feature data (\Rfunction{rowData}) into a
 \Biocpkg{SummarizedExperiment}. 
-<<read-eset>>=
+<<readSE>>=
 library(EnrichmentBrowser)
 data.dir <- system.file("extdata", package="EnrichmentBrowser")
 exprs.file <- file.path(data.dir, "exprs.tab")
@@ -181,12 +181,12 @@ dim(all.eset)
 exprs(all.eset)[1:4,1:4]
 @
 
-As we often have more than one probe per gene, we compute gene expression values
+As we often have more than one probe per gene, we summarize gene expression values
 as the average of the corresponding probe values.
 
 <<probe2gene>>=
-all.eset <- probe.2.gene.eset(all.eset)
-head(rownames(all.eset))
+allSE <- probe2gene(all.eset)
+head(rownames(allSE))
 @
 
 Note, that the mapping from probe to gene is done automatically as long as 
@@ -215,10 +215,10 @@ For further analysis, we remove genes with very low read counts and
 measurements that are not mapped to an ENSEMBL gene ID.
 
 <<preproc-airway>>=
-air.eset <- airway[grep("^ENSG", rownames(airway)),]
-air.eset <- air.eset[rowMeans(assay(air.eset)) > 10,]
-dim(air.eset)
-assay(air.eset)[1:4,1:4]
+airSE <- airway[grep("^ENSG", rownames(airway)),]
+airSE <- airSE[rowMeans(assay(airSE)) > 10,]
+dim(airSE)
+assay(airSE)[1:4,1:4]
 @
 
 \section{Normalization}
@@ -241,9 +241,9 @@ A default quantile normalization based on
 \Rfunction{normalizeBetweenArrays} from \Biocpkg{limma} can be carried out via
 
 <<norm-ma>>=
-before.norm <- assay(all.eset)
-all.eset <- normalize(all.eset, norm.method="quantile")
-after.norm <- assay(all.eset)
+before.norm <- assay(allSE)
+allSE <- normalize(allSE, norm.method="quantile")
+after.norm <- assay(allSE)
 @
 
 \begin{center}
@@ -269,7 +269,7 @@ In case normalization is desired, between-lane normalization to adjust for
 sequencing depth can be carried out as demonstrated for microarray data.
 
 <<norm-rseq>>=
-norm.air <- normalize(air.eset, norm.method="quantile")
+norm.air <- normalize(airSE, norm.method="quantile")
 @
 
 Within-lane normalization to adjust for gene-specific effects such as gene 
@@ -279,7 +279,7 @@ Both modes are implemented in the \Biocpkg{EDASeq} function
 \Rfunction{getGeneLengthAndGCContent}.
 
 <<lgc, eval=FALSE>>=
-ids <- rownames(air.eset)
+ids <- rownames(airSE)
 lgc <- EDASeq::getGeneLengthAndGCContent(ids, org="hsa", mode="biomart") 
 @
 
@@ -288,8 +288,8 @@ carried out via
 
 <<norm2-rseq>>=
 lgc.file <- file.path(data.dir, "air_lgc.tab")
-rowData(air.eset) <- read.delim(lgc.file)
-norm.air <- normalize(air.eset, within=TRUE)
+rowData(airSE) <- read.delim(lgc.file)
+norm.air <- normalize(airSE, within=TRUE)
 @
 
 \section{Differential expression}
@@ -319,16 +319,16 @@ For the ALL dataset, the \textbf{GROUP} variable indicates whether the BCR-ABL
 gene fusion is present (1) or not (0). 
 
 <<sample-groups-ALL>>=
-all.eset$GROUP <- ifelse(all.eset$mol.biol == "BCR/ABL", 1, 0)
-table(all.eset$GROUP)
+allSE$GROUP <- ifelse(allSE$mol.biol == "BCR/ABL", 1, 0)
+table(allSE$GROUP)
 @
 
 For the airway dataset, it indicates whether the cell lines have been treated 
 with dexamethasone (1) or not (0).
 
 <<sample-groups-airway>>=
-air.eset$GROUP <- ifelse(airway$dex == "trt", 1, 0)
-table(air.eset$GROUP)
+airSE$GROUP <- ifelse(airway$dex == "trt", 1, 0)
+table(airSE$GROUP)
 @
 
 Paired samples, or in general sample batches/blocks, can be defined via a 
@@ -337,8 +337,8 @@ For the airway dataset, the sample blocks correspond to the four different cell
 lines.
 
 <<sample-blocks>>=
-air.eset$BLOCK <- airway$cell
-table(air.eset$BLOCK)
+airSE$BLOCK <- airway$cell
+table(airSE$BLOCK)
 @
 
 For microarray expression data, the \Rfunction{de.ana} function carries 
@@ -348,8 +348,8 @@ Resulting fold changes and $t$-test derived $p$-values for each gene are
 appended to the \Robject{rowData} slot.
 
 <<DE-ana-ALL>>=
-all.eset <- de.ana(all.eset)
-rowData(all.eset, use.names=TRUE)
+allSE <- de.ana(allSE)
+rowData(allSE, use.names=TRUE)
 @
  
 Raw $p$-values are already corrected for multiple testing 
@@ -362,8 +362,8 @@ plot (fold change against $p$-value).
 \begin{center}
 <<plot-DE, fig.width=12, fig.height=6>>=
 par(mfrow=c(1,2))
-pdistr(rowData(all.eset)$ADJ.PVAL)
-volcano(rowData(all.eset)$FC, rowData(all.eset)$ADJ.PVAL)
+pdistr(rowData(allSE)$ADJ.PVAL)
+volcano(rowData(allSE)$FC, rowData(allSE)$ADJ.PVAL)
 @
 \end{center}
 
@@ -371,8 +371,8 @@ The expression change of highest statistical significance is observed for the
 ENTREZ gene \verb=7525=. 
 
 <<DE-exmpl>>=
-ind.min <- which.min( rowData(all.eset)$ADJ.PVAL )
-rowData(all.eset, use.names=TRUE)[ ind.min, ]
+ind.min <- which.min( rowData(allSE)$ADJ.PVAL )
+rowData(allSE, use.names=TRUE)[ ind.min, ]
 @
 
 This turns out to be the YES proto-oncogene 1 
@@ -386,8 +386,8 @@ alternatively, the popular \Biocpkg{edgeR} or \Biocpkg{DESeq2} package.
 Here, we use the analysis based on \Biocpkg{edgeR} for demonstration.
 
 <<DE-ana-airway>>=
-air.eset <- de.ana(air.eset, de.method="edgeR")
-rowData(air.eset, use.names=TRUE)
+airSE <- de.ana(airSE, de.method="edgeR")
+rowData(airSE, use.names=TRUE)
 @
 
 \section{ID mapping}
@@ -412,9 +412,9 @@ ID mapping for the airway dataset (from ENSEMBL to ENTREZ gene ids) can then be
 carried out using the function \Rfunction{map.ids}.
 
 <<idmap-airway>>=
-head(rownames(air.eset))
-air.eset <- map.ids(air.eset, org="hsa", from="ENSEMBL", to="ENTREZID")
-head(rownames(air.eset))
+head(rownames(airSE))
+airSE <- map.ids(airSE, org="hsa", from="ENSEMBL", to="ENTREZID")
+head(rownames(airSE))
 @
 
 Now, we subject the ALL and the airway gene expression data to the enrichment 
@@ -519,7 +519,7 @@ statistical concepts.
 For demonstration, we perform a basic ORA choosing a significance level 
 $\alpha$ of 0.1
 <<sbea>>=
-sbea.res <- sbea(method="ora", eset=all.eset, gs=hsa.gs, perm=0, alpha=0.1)
+sbea.res <- sbea(method="ora", eset=allSE, gs=hsa.gs, perm=0, alpha=0.1)
 gs.ranking(sbea.res)
 @
 
@@ -579,7 +579,7 @@ dummy.sbea <- function(eset, gs, alpha, perm)
 We can plug this method into \Rfunction{sbea} as before.
 
 <<sbea2>>=
-sbea.res2 <- sbea(method=dummy.sbea, eset=all.eset, gs=hsa.gs)
+sbea.res2 <- sbea(method=dummy.sbea, eset=allSE, gs=hsa.gs)
 gs.ranking(sbea.res2)
 @ 
 
@@ -664,7 +664,7 @@ nbea.methods()
 For demonstration, we perform GGEA using the compiled KEGG regulatory network.
 
 <<nbea>>=
-nbea.res <- nbea(method="ggea", eset=all.eset, gs=hsa.gs, grn=hsa.grn)
+nbea.res <- nbea(method="ggea", eset=allSE, gs=hsa.gs, grn=hsa.grn)
 gs.ranking(nbea.res)
 @
 
@@ -686,7 +686,7 @@ observed expression of both interaction partners.
 par(mfrow=c(1,2))
 ggea.graph(
     gs=hsa.gs[["hsa05217_Basal_cell_carcinoma"]], 
-    grn=hsa.grn, eset=all.eset)
+    grn=hsa.grn, eset=allSE)
 ggea.graph.legend()
 @
 \end{center}

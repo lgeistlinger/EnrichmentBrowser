@@ -11,27 +11,32 @@
 #
 ###############################################################################
 
-
-### FUNCTIONS
-
-# fast conversion of probe 2 gene expression
 probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
 {
+    res <- probe2gene(probe.eset, use.mean=use.mean)
+    message("\'probe.2.gene.eset\' is deprecated.")
+    message("Use \'probe2gene\' instead.")
+    return(res)
+}
+
+# fast conversion of probe 2 gene expression
+probe2gene <- function(probeSE, use.mean=TRUE)
+{
     ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
-    if(is(probe.eset, "ExpressionSet")) 
-        probe.eset <- as(probe.eset, "RangedSummarizedExperiment")
+    if(is(probeSE, "ExpressionSet")) 
+        probeSE <- as(probeSE, "RangedSummarizedExperiment")
     ### 
 
     EZ.COL <- config.ebrowser("EZ.COL")
-    eset <- probe.eset
-    if(!(EZ.COL %in% colnames(rowData(eset)))) eset <- .annoP2G(eset)
+    se <- probeSE
+    if(!(EZ.COL %in% colnames(rowData(se)))) se <- .annoP2G(se)
     
     # remove probes without gene annotation
-    not.na <- !is.na(rowData(eset)[, EZ.COL])
-    if(sum(not.na) < nrow(eset)) eset <- eset[not.na,]
+    not.na <- !is.na(rowData(se)[, EZ.COL])
+    if(sum(not.na) < nrow(se)) se <- se[not.na,]
 
-    probe.exprs <- assay(eset)
-    probe2gene <- as.vector(rowData(eset)[, EZ.COL])
+    probe.exprs <- assay(se)
+    probe2gene <- as.vector(rowData(se)[, EZ.COL])
     
     # determine unique genes
     genes <- unique(probe2gene)
@@ -51,33 +56,33 @@ probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
                 else
                 { 
                     FC.COL <- config.ebrowser("FC.COL") 
-                    if(!(FC.COL %in% colnames(rowData(eset))))
+                    if(!(FC.COL %in% colnames(rowData(se))))
                         stop(paste("use.mean=FALSE, but did not find differential", 
                             "expression in rowData. Run de.ana first."))
                     curr.exprs <- curr.exprs[
-                        which.max(abs(rowData(eset)[curr.probes, FC.COL])),]
+                        which.max(abs(rowData(se)[curr.probes, FC.COL])),]
                 }
             }
             return(curr.exprs)
         })) 
-    colnames(gene.exprs) <- colnames(eset)
+    colnames(gene.exprs) <- colnames(se)
     rownames(gene.exprs) <- genes
 
-    # create new eset
-    gene.eset <- SummarizedExperiment(assays=list(exprs=gene.exprs), 
-        colData=colData(eset), metadata=metadata(eset))  
+    # create new SE
+    geneSE <- SummarizedExperiment(assays=list(exprs=gene.exprs), 
+        colData=colData(se), metadata=metadata(se))  
     
-    return(gene.eset)
+    return(geneSE)
 }
 
-.annoP2G <- function(eset) 
+.annoP2G <- function(se) 
 {
     PRB.COL <- config.ebrowser("PRB.COL")
     EZ.COL <- config.ebrowser("EZ.COL")
 
-    is.eset <- is(eset, "SummarizedExperiment")
-    if(is.eset) anno <- metadata(eset)$annotation
-    else anno <- eset
+    is.se <- is(se, "SummarizedExperiment")
+    if(is.se) anno <- metadata(se)$annotation
+    else anno <- se
     anno.pkg <- paste0(anno, ".db")
     
     # check whether annotation package is installed
@@ -134,13 +139,13 @@ probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
         p2g.map <- mapIds(anno.pkg, 
             keys=keys(anno.pkg), keytype=PRB.COL, column=rel.map)
     }
-    if(is.eset)
+    if(is.se)
     {
-        p2g.map <- p2g.map[rownames(eset)]
-        rowData(eset)[,PRB.COL] <- names(p2g.map)
-        rowData(eset)[,EZ.COL] <- p2g.map
-        metadata(eset)$annotation <- org
-        return(eset)
+        p2g.map <- p2g.map[rownames(se)]
+        rowData(se)[,PRB.COL] <- names(p2g.map)
+        rowData(se)[,EZ.COL] <- p2g.map
+        metadata(se)$annotation <- org
+        return(se)
     }
     fDat <- cbind(names(p2g.map), p2g.map)
     return(fDat)

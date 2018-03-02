@@ -51,7 +51,6 @@
         Alternatively, this can also be the ID of a recognized platform
         such as 'hgu95av2' (Affymetrix Human Genome U95 chip) or 'ecoli2'
         (Affymetrix E. coli Genome 2.0 Array). 
-        See details.
     }
     \item{data.type}{
         Expression data type.
@@ -76,26 +75,6 @@
 }
 \value{
     An object of class \code{\linkS4class{SummarizedExperiment}}.
-}
-\details{
-    See the limma's user guide 
-    \url{http://www.bioconductor.org/packages/limma}
-    for definition and normalization of the different expression data types.        
-    
-    In case of microarry data the feature IDs typically correspond to probe IDs.
-    Thus, the \code{rdat.file} should define a mapping from probe ID (1st column) to
-    corresponding KEGG gene ID (2nd column).
-    The mapping can be defined automatically by providing the ID of a 
-    recognized platform such as 'hgu95av2' (Affymetrix Human Genome U95 chip).
-    This requires that a corresponding '.db' package exists (see 
-    \url{http://www.bioconductor.org/packages/release/BiocViews.html#___ChipName}
-    for all available chips/packages) and that you have it installed.
-    *However, this option should be used with care*. Existing mappings might
-    be outdated and sometimes the KEGG gene ID does not correspond to the Entrez ID 
-    (e.g. for E. coli and S. cerevisae). In these cases probe identifiers are mapped
-     twice (probe ID -> Entrez ID -> KEGG ID), which almost always results in loss
-    of information. Thus, mapping quality should always be checked and in case
-    properly defined with a 2-column \code{rdat.file}.
 }
 \author{
     Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>

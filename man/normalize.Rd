@@ -51,11 +51,14 @@
     exhibit typically distinct features that need to be normalized for.
     For specific needs that deviate from these standard normalizations, the user
     should always refer to more specific functions/packages.        
+    See also the limma's user guide 
+    \url{http://www.bioconductor.org/packages/limma}
+    for definition and normalization of the different expression data types.
 
     Microarray data is expected to be single-channel.
     For two-color arrays, it is expected here that normalization within arrays
     has been already carried out, e.g. using \code{\link{normalizeWithinArrays}}
-    from limma.
+    from limma.     
 
     RNA-seq data is expected to be raw read counts.
     Please note that normalization for downstream DE analysis, e.g. with edgeR 

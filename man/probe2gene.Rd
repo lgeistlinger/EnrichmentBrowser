@@ -1,4 +1,5 @@
-\name{probe.2.gene.eset}
+\name{probe2gene}
+\alias{probe2gene}
 \alias{probe.2.gene.eset}
 \title{
     Transformation of probe level expression to gene level expression 
@@ -8,13 +9,21 @@
     by summarizing all probes that are annotated to a particular gene. 
 }
 \usage{
-    probe.2.gene.eset( probe.eset, use.mean = TRUE )
+    probe2gene( probeSE, use.mean = TRUE )
 }
 \arguments{
-    \item{probe.eset}{
-        Probe expression data of class \code{\linkS4class{SummarizedExperiment}}.
-        The \code{rowData} slot of the expression dataset must contain 
-        a 'GENE' column that lists for each probe the corresponding KEGG gene ID.
+    \item{probeSE}{
+        Probe expression data. 
+        An object of class \code{\linkS4class{SummarizedExperiment}}.
+        Make sure that the \code{metadata} contains an element named
+        \code{annotation} that provides the corresponding ID of a 
+        recognized platform such as 'hgu95av2' (Affymetrix Human Genome 
+        U95 chip).
+        This requires that a corresponding '.db' package exists (see 
+        \url{http://www.bioconductor.org/packages/release/BiocViews.html#___ChipName}
+        for available chips/packages) and that you have it installed.
+        Alternatively, The mapping from probe to gene can also be defined in the
+        \code{rowData} slot via two columns named \code{PROBE} and \code{GENE}.
     }
     \item{use.mean}{
         Logical.
@@ -40,6 +49,6 @@
     exprs.file <- system.file("extdata/exprs.tab", package="EnrichmentBrowser")
     pdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
     fdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
-    probe.eset <- readSE(exprs.file, pdat.file, fdat.file)
-    gene.eset <- probe.2.gene.eset(probe.eset) 
+    probeSE <- readSE(exprs.file, pdat.file, fdat.file)
+    geneSE <- probe2gene(probeSE) 
 }

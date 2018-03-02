@@ -10,11 +10,9 @@
 read.eset <- function(exprs.file, pdat.file, fdat.file, 
     data.type=c(NA, "ma", "rseq"), NA.method=c("mean", "rm", "keep"))
 {
-    res <- readSE(assay.file=exprs.file, cdat.file=pdat.file,
+    .Deprecated("readSE")
+    readSE(assay.file=exprs.file, cdat.file=pdat.file,
         rdat.file=fdat.file, data.type=data.type, NA.method=NA.method)
-    message("\'read.eset\' is deprecated.")
-    message("Use \'readSE\' instead.")
-    return(res)
 }
 
 readSE <- function(assay.file, cdat.file, rdat.file, 

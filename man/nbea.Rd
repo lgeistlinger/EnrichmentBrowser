@@ -194,7 +194,7 @@
 }
 \seealso{
     Input:    
-    \code{\link{readSE}}, \code{\link{probe.2.gene.eset}}, 
+    \code{\link{readSE}}, \code{\link{probe2gene}}, 
     \code{\link{get.kegg.genesets}} to retrieve gene set definitions from KEGG.
     \code{\link{compile.grn.from.kegg}} to construct a GRN from KEGG pathways.
   

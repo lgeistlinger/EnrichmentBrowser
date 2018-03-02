@@ -13,10 +13,8 @@
 
 probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
 {
-    res <- probe2gene(probe.eset, use.mean=use.mean)
-    message("\'probe.2.gene.eset\' is deprecated.")
-    message("Use \'probe2gene\' instead.")
-    return(res)
+    .Deprecated("probe2gene")
+    probe2gene(probe.eset, use.mean=use.mean)
 }
 
 # fast conversion of probe 2 gene expression

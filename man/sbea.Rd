@@ -184,7 +184,7 @@
 }
 \seealso{
     Input:    
-    \code{\link{readSE}}, \code{\link{probe.2.gene.eset}}
+    \code{\link{readSE}}, \code{\link{probe2gene}}
       \code{\link{get.kegg.genesets}} to retrieve gene sets from KEGG.
 
     Output:

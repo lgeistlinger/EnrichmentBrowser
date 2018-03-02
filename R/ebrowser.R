@@ -112,7 +112,7 @@ ebrowser <- function(
         if(has.pcol || has.anno)
         {
             message("Transform probe expression to gene expression ...")    
-            gene.eset <- probe.2.gene.eset(eset)
+            gene.eset <- probe2gene(eset)
         }
         else gene.eset <- eset
     }

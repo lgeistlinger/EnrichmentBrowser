@@ -58,16 +58,16 @@
     # real data
     # (1) reading the expression data from file
     exprs.file <- system.file("extdata/exprs.tab", package="EnrichmentBrowser")
-    pdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
-    fdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
-    probe.eset <- readSE(exprs.file, pdat.file, fdat.file)
-    gene.eset <- probe.2.gene.eset(probe.eset) 
-    gene.eset <- de.ana(gene.eset)
-    metadata(gene.eset)$annotation <- "hsa"
+    cdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
+    rdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
+    probeSE <- readSE(exprs.file, cdat.file, rdat.file)
+    geneSE <- probe2gene(probeSE) 
+    geneSE <- de.ana(geneSE)
+    metadata(geneSE)$annotation <- "hsa"
 
     # artificial enrichment analysis results
-    gs <- make.example.data(what="gs", gnames=names(gene.eset))
-    ea.res <- make.example.data(what="ea.res", method="ora", eset=gene.eset, gs=gs)
+    gs <- make.example.data(what="gs", gnames=names(geneSE))
+    ea.res <- make.example.data(what="ea.res", method="ora", eset=geneSE, gs=gs)
 
     # (5) result visualization and exploration
     gs.ranking(ea.res)

@@ -34,15 +34,15 @@ probe2gene <- function(probeSE, use.mean=TRUE)
     if(sum(not.na) < nrow(se)) se <- se[not.na,]
 
     probe.exprs <- assay(se)
-    probe2gene <- as.vector(rowData(se)[, EZ.COL])
+    p2g <- as.vector(rowData(se)[, EZ.COL])
     
     # determine unique genes
-    genes <- unique(probe2gene)
+    genes <- unique(p2g)
     
     # compute gene expression
-    gene.grid <- seq_len(length(genes))
+    gene.grid <- seq_along(genes)
     names(gene.grid) <- genes
-    gene.int.map <- gene.grid[probe2gene]
+    gene.int.map <- gene.grid[p2g]
     gene.exprs <- t(sapply(gene.grid, 
         function(g)
         {
@@ -56,7 +56,7 @@ probe2gene <- function(probeSE, use.mean=TRUE)
                     FC.COL <- config.ebrowser("FC.COL") 
                     if(!(FC.COL %in% colnames(rowData(se))))
                         stop(paste("use.mean=FALSE, but did not find differential", 
-                            "expression in rowData. Run de.ana first."))
+                            "expression in rowData. Run deAna first."))
                     curr.exprs <- curr.exprs[
                         which.max(abs(rowData(se)[curr.probes, FC.COL])),]
                 }

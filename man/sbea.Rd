@@ -13,7 +13,7 @@
     resulting gene set rankings. 
 }
 \usage{
-    sbea( method = EnrichmentBrowser::sbea.methods(), eset, gs, alpha = 0.05, 
+    sbea( method = EnrichmentBrowser::sbea.methods(), se, gs, alpha = 0.05, 
         perm = 1000, padj.method = "none", out.file = NULL, browse = FALSE, ... )
 
     sbea.methods()
@@ -30,7 +30,7 @@
         This can also be the name of a user-defined function implementing 
         set-based enrichment. See Details. 
     } 
-    \item{eset}{
+    \item{se}{
         Expression dataset. 
         An object of class \code{\linkS4class{SummarizedExperiment}}. 
         Mandatory minimal annotations:
@@ -159,7 +159,7 @@
 	implemented in the mgsa package.
 
     It is also possible to use additional set-based enrichment methods.
-    This requires to implement a function that takes 'eset', 'gs', 'alpha', and
+    This requires to implement a function that takes 'se', 'gs', 'alpha', and
     'perm' as arguments and returns a numeric vector 'ps' storing the resulting
     p-value for each gene set in 'gs'. This vector must be named accordingly 
     (i.e. names(ps) == names(gs)). See examples. 
@@ -205,26 +205,26 @@
     # (1) expression data: 
     # simulated expression values of 100 genes
     # in two sample groups of 6 samples each
-    eset <- make.example.data(what="eset")
-    eset <- de.ana(eset)
+    se <- makeExampleData(what="SE")
+    se <- deAna(se)
 
     # (2) gene sets:
     # draw 10 gene sets with 15-25 genes
-    gs <- make.example.data(what="gs", gnames=names(eset))
+    gs <- makeExampleData(what="gs", gnames=names(se))
 
     # (3) make 2 artificially enriched sets:
-    sig.genes <- names(eset)[rowData(eset)$ADJ.PVAL < 0.1]
+    sig.genes <- names(se)[rowData(se)$ADJ.PVAL < 0.1]
     gs[[1]] <- sample(sig.genes, length(gs[[1]])) 
     gs[[2]] <- sample(sig.genes, length(gs[[2]]))   
 
     # (4) performing the enrichment analysis
-    ea.res <- sbea(method="ora", eset=eset, gs=gs, perm=0)
+    ea.res <- sbea(method="ora", se=se, gs=gs, perm=0)
 
     # (5) result visualization and exploration
     gs.ranking(ea.res)
 
     # using your own tailored function as enrichment method
-    dummy.sbea <- function(eset, gs, alpha, perm)
+    dummy.sbea <- function(se, gs, alpha, perm)
     {
         sig.ps <- sample(seq(0, 0.05, length=1000), 5)
         nsig.ps <- sample(seq(0.1, 1, length=1000), length(gs)-5)
@@ -233,7 +233,7 @@
         return(ps)
     }
 
-    ea.res2 <- sbea(method=dummy.sbea, eset=eset, gs=gs)
+    ea.res2 <- sbea(method=dummy.sbea, se=se, gs=gs)
     gs.ranking(ea.res2) 
 }
 

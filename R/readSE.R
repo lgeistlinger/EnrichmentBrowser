@@ -56,23 +56,23 @@ readSE <- function(assay.file, cdat.file, rdat.file,
     expr <- .naTreat(expr, NA.method) 
     if(NA.method=="rm") rdat <- rdat[rdat[,1] %in% rownames(expr),]
    
-    # create the eset
-    eset <- SummarizedExperiment(assays=list(exprs=expr))
-    if(!is.na(anno)) metadata(eset)$annotation <- anno
-    colData(eset) <- DataFrame(cdat, row.names=colnames(eset))
-    rowData(eset) <- DataFrame(rdat, row.names=rownames(eset))
+    # create the se
+    se <- SummarizedExperiment(assays=list(exprs=expr))
+    if(!is.na(anno)) metadata(se)$annotation <- anno
+    colData(se) <- DataFrame(cdat, row.names=colnames(se))
+    rowData(se) <- DataFrame(rdat, row.names=rownames(se))
     
-    colnames(colData(eset))[1:2] <- sapply(c("SMPL.COL", "GRP.COL"), config.ebrowser)
-    if(ncol.cdat > 2) colnames(colData(eset))[3] <- config.ebrowser("BLK.COL")
-    if(ncol.rdat == 1) colnames(rowData(eset))[1] <- config.ebrowser("EZ.COL") 
-    else colnames(rowData(eset))[1:2] <- sapply(c("PRB.COL", "EZ.COL"), config.ebrowser)
+    colnames(colData(se))[1:2] <- sapply(c("SMPL.COL", "GRP.COL"), config.ebrowser)
+    if(ncol.cdat > 2) colnames(colData(se))[3] <- config.ebrowser("BLK.COL")
+    if(ncol.rdat == 1) colnames(rowData(se))[1] <- config.ebrowser("EZ.COL") 
+    else colnames(rowData(se))[1:2] <- sapply(c("PRB.COL", "EZ.COL"), config.ebrowser)
    
     # ma or rseq?
     if(!(data.type %in% c("ma", "rseq"))) 
         data.type <- .detectDataType(expr)
-    metadata(eset)$dataType <- data.type
+    metadata(se)$dataType <- data.type
  
-    return(eset)
+    return(se)
 }
 
 .naTreat <- function(expr, NA.method=c("mean", "rm", "keep"))

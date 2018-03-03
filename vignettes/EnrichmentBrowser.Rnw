@@ -302,7 +302,7 @@ Alternatively, differential expression analysis for RNA-seq data can also be
 carried out based on the negative binomial distribution with \Biocpkg{edgeR}
 and \Biocpkg{DESeq2}.
 
-This can be performed using the function \Rfunction{de.ana}
+This can be performed using the function \Rfunction{deAna}
 and assumes some standardized variable names:
 
 \begin{itemize}
@@ -341,14 +341,14 @@ airSE$BLOCK <- airway$cell
 table(airSE$BLOCK)
 @
 
-For microarray expression data, the \Rfunction{de.ana} function carries 
+For microarray expression data, the \Rfunction{deAna} function carries 
 out a differential expression analysis between the two groups based on 
 functionality from the \Biocpkg{limma} package.
 Resulting fold changes and $t$-test derived $p$-values for each gene are 
 appended to the \Robject{rowData} slot.
 
 <<DE-ana-ALL>>=
-allSE <- de.ana(allSE)
+allSE <- deAna(allSE)
 rowData(allSE, use.names=TRUE)
 @
  
@@ -378,7 +378,7 @@ rowData(allSE, use.names=TRUE)[ ind.min, ]
 This turns out to be the YES proto-oncogene 1 
 (\href{http://www.genome.jp/dbget-bin/www_bget?hsa:7525}{hsa:7525@KEGG}).
   
-For RNA-seq data, the \Rfunction{de.ana} function carries out a differential 
+For RNA-seq data, the \Rfunction{deAna} function carries out a differential 
 expression analysis between the two groups either based on functionality from
 \Biocpkg{limma} (that includes the \Rfunction{voom} transformation), or 
 alternatively, the popular \Biocpkg{edgeR} or \Biocpkg{DESeq2} package. 
@@ -386,7 +386,7 @@ alternatively, the popular \Biocpkg{edgeR} or \Biocpkg{DESeq2} package.
 Here, we use the analysis based on \Biocpkg{edgeR} for demonstration.
 
 <<DE-ana-airway>>=
-airSE <- de.ana(airSE, de.method="edgeR")
+airSE <- deAna(airSE, de.method="edgeR")
 rowData(airSE, use.names=TRUE)
 @
 
@@ -519,7 +519,7 @@ statistical concepts.
 For demonstration, we perform a basic ORA choosing a significance level 
 $\alpha$ of 0.1
 <<sbea>>=
-sbea.res <- sbea(method="ora", eset=allSE, gs=hsa.gs, perm=0, alpha=0.1)
+sbea.res <- sbea(method="ora", se=allSE, gs=hsa.gs, perm=0, alpha=0.1)
 gs.ranking(sbea.res)
 @
 
@@ -555,7 +555,7 @@ frequently used enrichment methods. However, it is also possible to exploit
 its visualization capabilities with user-defined set-based enrichment methods.
 
 This requires to implement a function that takes the characteristic arguments
-\Robject{eset} (expression data), \Robject{gs} (gene sets), \Robject{alpha}
+\Robject{se} (expression data), \Robject{gs} (gene sets), \Robject{alpha}
 (significance level), and \Robject{perm} (number of permutations). 
 
 In addition, it must return a numeric vector \Robject{ps} storing the resulting
@@ -566,7 +566,7 @@ Let us consider the following dummy enrichment method, which randomly renders
 five gene sets significant and the remaining insignificant.
 
 <<dummy-sbea>>=
-dummy.sbea <- function(eset, gs, alpha, perm)
+dummy.sbea <- function(se, gs, alpha, perm)
 {
         sig.ps <- sample(seq(0,0.05, length=1000),5)
         insig.ps <- sample(seq(0.1,1, length=1000), length(gs)-5)
@@ -579,7 +579,7 @@ dummy.sbea <- function(eset, gs, alpha, perm)
 We can plug this method into \Rfunction{sbea} as before.
 
 <<sbea2>>=
-sbea.res2 <- sbea(method=dummy.sbea, eset=allSE, gs=hsa.gs)
+sbea.res2 <- sbea(method=dummy.sbea, se=allSE, gs=hsa.gs)
 gs.ranking(sbea.res2)
 @ 
 
@@ -664,7 +664,7 @@ nbea.methods()
 For demonstration, we perform GGEA using the compiled KEGG regulatory network.
 
 <<nbea>>=
-nbea.res <- nbea(method="ggea", eset=allSE, gs=hsa.gs, grn=hsa.grn)
+nbea.res <- nbea(method="ggea", se=allSE, gs=hsa.gs, grn=hsa.grn)
 gs.ranking(nbea.res)
 @
 
@@ -684,10 +684,10 @@ observed expression of both interaction partners.
 \begin{center}
 <<ggea-graph, fig.width=12, fig.height=6>>=
 par(mfrow=c(1,2))
-ggea.graph(
+ggeaGraph(
     gs=hsa.gs[["hsa05217_Basal_cell_carcinoma"]], 
-    grn=hsa.grn, eset=allSE)
-ggea.graph.legend()
+    grn=hsa.grn, se=allSE)
+ggeaGraphLegend()
 @
 \end{center}
 

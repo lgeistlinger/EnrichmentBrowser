@@ -8,11 +8,11 @@
     normalization and from EDASeq for RNA-seq normalization.
 }
 \usage{
-    normalize( eset, 
-        norm.method = "quantile", within = FALSE, data.type = c(NA, "ma", "rseq") )
+    normalize( se, norm.method = "quantile", 
+                within = FALSE, data.type = c(NA, "ma", "rseq") )
 }
 \arguments{
-    \item{eset}{
+    \item{se}{
         An object of class \code{\linkS4class{SummarizedExperiment}}.
     }
     \item{norm.method}{
@@ -35,7 +35,7 @@
         Expression data type.
         Use 'ma' for microarray and 'rseq' for RNA-seq data.
         If NA, data.type is automatically guessed. 
-        If the expression values in 'eset' are decimal numbers 
+        If the expression values in 'se' are decimal numbers 
         they are assumed to be microarray intensities.
         Whole numbers are assumed to be RNA-seq read counts. 
         Defaults to NA.
@@ -84,25 +84,25 @@
     #
     
     # (a) microarray data: intensity measurements
-    ma.eset <- make.example.data(what="eset", type="ma")
+    maSE <- makeExampleData(what="SE", type="ma")
     
     # (b) RNA-seq data: read counts
-    rseq.eset <- make.example.data(what="eset", type="rseq")
+    rseqSE <- makeExampleData(what="SE", type="rseq")
 
     #
     # (2) Normalization
     #
     
     # (a) microarray ... 
-    norm.eset <- normalize(ma.eset) 
+    normSE <- normalize(maSE) 
 
     # (b) RNA-seq ... 
-    norm.eset <- normalize(rseq.eset) 
+    normSE <- normalize(rseqSE) 
 
     # ... normalize also for GC content
     gc.content <- rnorm(100, 0.5, sd=0.1)
-    rowData(rseq.eset)$gc <- gc.content 
+    rowData(rseqSE)$gc <- gc.content 
 
-    norm.eset <- normalize(rseq.eset, within=TRUE)
+    normSE <- normalize(rseqSE, within=TRUE)
 }
 

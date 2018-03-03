@@ -2,19 +2,19 @@
 \alias{map.ids}
 \alias{id.types}
 \title{ 
-    Mapping between gene ID types for feature names of an expression set 
+    Mapping between gene ID types for the rownames of a SummarizedExperiment 
 }
 \description{
-    Functionality to map feature names of an expression set between common gene ID
-    types such as ENSEMBL and ENTREZ.
+    Functionality to map the rownames of a SummarizedExperiment between common 
+    gene ID types such as ENSEMBL and ENTREZ.
 }
 \usage{
     id.types( org )
 
-    map.ids( eset, org=NA, from="ENSEMBL", to="ENTREZID" )
+    map.ids( se, org=NA, from="ENSEMBL", to="ENTREZID" )
 }
 \arguments{
-    \item{eset}{
+    \item{se}{
         An object of class \code{\linkS4class{SummarizedExperiment}}.
         Expects the names to be of gene ID type given in argument 'from'.
     }
@@ -25,12 +25,12 @@
     }
     \item{from}{
         Gene ID type from which should be mapped.
-        Corresponds to the gene ID type of the featureNames of argument 'eset'.
+        Corresponds to the gene ID type of the featureNames of argument 'se'.
         Defaults to 'ENSEMBL'.
     }
     \item{to}{
         Gene ID type to which should be mapped.
-        Corresponds to the gene ID type the featuresNames of argument 'eset' should
+        Corresponds to the gene ID type the featuresNames of argument 'se' should
         be updated with.
         Defaults to 'ENTREZID'. 
     }
@@ -58,8 +58,8 @@
 }
 \examples{
     # create an expression dataset with 3 genes and 3 samples
-    eset <- make.example.data("eset", nfeat=3, nsmpl=3)
-    names(eset) <- paste0("ENSG00000000", c("003","005", "419"))
-    eset <- map.ids(eset, org="hsa")
+    se <- makeExampleData("SE", nfeat=3, nsmpl=3)
+    names(se) <- paste0("ENSG00000000", c("003","005", "419"))
+    se <- map.ids(se, org="hsa")
 }
 

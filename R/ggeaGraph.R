@@ -7,11 +7,11 @@
 #
 ############################################################
 
-ggea.graph <- function(gs, grn, eset, 
+ggeaGraph <- function(gs, grn, se, 
     alpha=0.05, beta=1, max.edges=50, cons.thresh=0.7)
 {
     sgrn <- .queryGRN(gs, grn, index=FALSE)
-    g <- .constructGGEAGraph(grn=sgrn, eset=eset,
+    g <- .constructGGEAGraph(grn=sgrn, se=se,
         alpha=alpha, beta=beta, max.edges=max.edges, cons.thresh=cons.thresh)
     .plotGGEAGraph(g)
 }
@@ -50,15 +50,15 @@ ggea.graph <- function(gs, grn, eset,
 ##
 ## function construct and renders a graph of a gene regulatory network
 ##
-.constructGGEAGraph <- function(grn, eset, 
+.constructGGEAGraph <- function(grn, se, 
     alpha=0.05, beta=1, max.edges=50, cons.thresh=0.7)
 {
     ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
-    if(is(eset, "ExpressionSet")) eset <- as(eset, "RangedSummarizedExperiment")
+    if(is(se, "ExpressionSet")) se <- as(se, "RangedSummarizedExperiment")
     ###   
 
     # consistency
-    nodes <- intersect(names(eset), grn[,1:2]) 
+    nodes <- intersect(names(se), grn[,1:2]) 
     nr.nodes <- length(nodes)
     
     node.grid <- seq_len(nr.nodes)
@@ -67,7 +67,7 @@ ggea.graph <- function(gs, grn, eset,
     grn <- .transformGRN(grn, node.grid)
 	if(nrow(grn) < 2) return(NULL)
 
-    fDat <- as.matrix(rowData(eset, use.names=TRUE)[nodes, 
+    fDat <- as.matrix(rowData(se, use.names=TRUE)[nodes, 
         sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)])
     de <- .compDE(fDat, alpha=alpha, beta=beta)
     grn.de <- cbind(de[grn[,1]], de[grn[,2]])
@@ -86,7 +86,7 @@ ggea.graph <- function(gs, grn, eset,
         grn <- head(grn, max.edges)
     }
 
-    # reset to restricted representation
+    # rse to restricted representation
     ind <- unique(as.vector(grn[,1:2]))
     node.grid <- node.grid[ind]
     nodes <- names(node.grid)
@@ -117,7 +117,7 @@ ggea.graph <- function(gs, grn, eset,
     nColor <- apply(fDat, 1, .determineNodeColor)
     nLwd <- rep(3, nr.nodes)
     names(nLwd) <- nodes
-    org <- metadata(eset)$annotation
+    org <- metadata(se)$annotation
     if(!length(org)) nLabel <- nodes
     else nLabel <- .getKEGGDisplayName(nodes, org=org)
     names(nLabel) <- nodes
@@ -203,11 +203,11 @@ ggea.graph <- function(gs, grn, eset,
 
 
 ##
-## ggea.graph.legend
+## ggeaGraphLegend
 ##
-## function plots the legend for a ggea.graph
+## function plots the legend for a ggeaGraph
 ##
-ggea.graph.legend <- function() 
+ggeaGraphLegend <- function() 
 {
     opar <- par(mar=c(0,0,3,0), mgp=c(0,0,0))
     on.exit(par(opar))

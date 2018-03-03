@@ -7,13 +7,13 @@
 # 
 ############################################################
 
-make.example.data <- function(
-    what=c("eset", "gs", "grn", "ea.res"), ...)
+makeExampleData <- function(
+    what=c("SE", "gs", "grn", "ea.res"), ...)
 {
     what <- match.arg(what)
     res <- NULL
 
-    if(what=="eset") res <- .makeExmplEset(...)
+    if(what=="SE") res <- .makeExmplSE(...)
     else if(what=="gs") res <- .makeExmplGS(...)
     else if(what=="grn") res <- .makeExmplGRN(...)
     else if(what=="ea.res") res <- .makeExmplRes(...)
@@ -22,7 +22,7 @@ make.example.data <- function(
     return(res)
 }
 
-.makeExmplEset <- function(type=c("ma", "rseq"), 
+.makeExmplSE <- function(type=c("ma", "rseq"), 
     nfeat=100, nsmpl=12, blk=TRUE, norm=FALSE, de.ana=FALSE)
 {
     type <- match.arg(type)
@@ -49,18 +49,18 @@ make.example.data <- function(
     }
     rownames(exmpl.exprs) <- paste0("g", seq_len(nfeat))
     colnames(exmpl.exprs) <- paste0("s", seq_len(nsmpl))
-    eset <- SummarizedExperiment(assays=list(exprs=exmpl.exprs))
+    se <- SummarizedExperiment(assays=list(exprs=exmpl.exprs))
     
     # sample binary group assignment, e.g. two different treatments
-    eset$GROUP <- c(rep(0, nr.controls), rep(1, nr.cases))
+    se$GROUP <- c(rep(0, nr.controls), rep(1, nr.cases))
 
     # sample batch effects: 3 sample blocks
-    if(blk) eset$BLOCK <- sample(rep(c(1,2,3), ceiling(nsmpl/3)))[seq_len(nsmpl)]
+    if(blk) se$BLOCK <- sample(rep(c(1,2,3), ceiling(nsmpl/3)))[seq_len(nsmpl)]
     
-    if(norm) eset <- normalize(eset)
-    if(de.ana) eset <- de.ana(eset) 
+    if(norm) se <- normalize(se)
+    if(de.ana) se <- deAna(se) 
     
-    return(eset)
+    return(se)
 }
 
 .makeExmplGS <- function(gnames=NULL, n=10, min.size=15, max.size=25)
@@ -81,10 +81,10 @@ make.example.data <- function(
     return(grn)
 }
 
-.makeExmplRes <- function(eset=NULL, gs=NULL, method="ora", alpha=0.05)
+.makeExmplRes <- function(se=NULL, gs=NULL, method="ora", alpha=0.05)
 {
-    if(is.null(eset)) eset <- .makeExmplEset()
-    if(is.null(gs)) gs <- .makeExmplGS(gnames=rownames(eset))
+    if(is.null(se)) se <- .makeExmplSE()
+    if(is.null(gs)) gs <- .makeExmplGS(gnames=rownames(se))
     # (3) make artificial enrichment analysis results:
     # 2 ea methods with 5 significantly enriched gene sets each
     gs.res <- sample(names(gs))
@@ -99,6 +99,6 @@ make.example.data <- function(
     colnames(res.tbl) <- c(config.ebrowser("GS.COL"), config.ebrowser("GSP.COL"))
 
     ea.res <- list(method=method,
-        res.tbl=res.tbl, nr.sigs=nr.sigs, eset=eset, gs=gs, alpha=alpha)
+        res.tbl=res.tbl, nr.sigs=nr.sigs, se=se, gs=gs, alpha=alpha)
 
 }

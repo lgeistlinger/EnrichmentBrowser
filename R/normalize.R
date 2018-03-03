@@ -7,72 +7,72 @@
 # 
 ############################################################
 
-normalize <- function(eset, norm.method="quantile", within=FALSE, data.type=c(NA, "ma", "rseq"))
+normalize <- function(se, norm.method="quantile", within=FALSE, data.type=c(NA, "ma", "rseq"))
 {
-    # dealing with an eset?
-    if(is(eset, "ExpressionSet")) eset <- as(eset, "RangedSummarizedExperiment")
+    # dealing with an se?
+    if(is(se, "ExpressionSet")) se <- as(se, "RangedSummarizedExperiment")
     
-    if(!is(eset, "SummarizedExperiment")) 
+    if(!is(se, "SummarizedExperiment")) 
     {
-        if(is.matrix(eset)) 
-            eset <- new("SummarizedExperiment", assays=list(exprs=eset))
-        else stop(paste("\'eset\' must be either",
+        if(is.matrix(se)) 
+            se <- new("SummarizedExperiment", assays=list(exprs=se))
+        else stop(paste("\'se\' must be either",
             "a matrix, a SummarizedExperiment, or an ExpressionSet"))
     }
 
     # ma or rseq data?
-    if("dataType" %in% names(metadata(eset)))
-            data.type <- metadata(eset)$dataType
+    if("dataType" %in% names(metadata(se)))
+            data.type <- metadata(se)$dataType
     else
     {
         data.type <- match.arg(data.type)
-        if(is.na(data.type)) data.type <- .detectDataType(assay(eset))
-        metadata(eset)$dataType <- data.type  
+        if(is.na(data.type)) data.type <- .detectDataType(assay(se))
+        metadata(se)$dataType <- data.type  
     }
 
     # rseq normalization with EDASeq
     if(data.type == "rseq")
     {
         # remove genes with low read count
-	    is.too.low <- rowSums(assay(eset)) < ncol(eset)
+	    is.too.low <- rowSums(assay(se)) < ncol(se)
 	    nr.too.low <- sum(is.too.low)
         if(nr.too.low > 0) message(paste("Removing",
         	nr.too.low, "genes with low read count ..."))
-	    eset <- eset[!is.too.low,]
+	    se <- se[!is.too.low,]
  
         if(norm.method == "quantile") norm.method <- "full"
         
         # also within lane? -> gc content normalization
         if(within)
         {
-            gc.col <- grep("^[gG][cC]$", colnames(rowData(eset)), value=TRUE)
+            gc.col <- grep("^[gG][cC]$", colnames(rowData(se)), value=TRUE)
             if(length(gc.col) == 0)
             {
-                org <- metadata(eset)$annotation
+                org <- metadata(se)$annotation
                 if(!length(org)) stop(paste("Please provide organism under", 
                     "investigation in the annotation slot. See man page for details."))
                 MODEL.ORGS <- c("cel", "dme", "hsa", "mmu", "rno",  "sce")
                 mode <- ifelse(org %in% MODEL.ORGS, "org.db", "biomart") 
                 lgc <- EDASeq::getGeneLengthAndGCContent(
-                        id=rownames(eset), org=org, mode=mode)
-                rowData(eset)$gc <- lgc
+                        id=rownames(se), org=org, mode=mode)
+                rowData(se)$gc <- lgc
                 gc.col <- "gc"
             }
             message("Normalizing for GC content ...")
-            na.gc <- is.na(rowData(eset)[,gc.col])
+            na.gc <- is.na(rowData(se)[,gc.col])
             nr.na.gc <- sum(na.gc)
             if(nr.na.gc > 0) message(paste("Removing", 
                 nr.na.gc, "genes due to missing GC content ..."))
-            eset <- eset[!na.gc,]
-            assay(eset) <- EDASeq::withinLaneNormalization(
-                assay(eset), rowData(eset)[,gc.col], which=norm.method)
+            se <- se[!na.gc,]
+            assay(se) <- EDASeq::withinLaneNormalization(
+                assay(se), rowData(se)[,gc.col], which=norm.method)
         }
-        assay(eset) <- EDASeq::betweenLaneNormalization(assay(eset), which=norm.method)
+        assay(se) <- EDASeq::betweenLaneNormalization(assay(se), which=norm.method)
     } 
     # ma normalization with limma
-    else assay(eset) <- limma::normalizeBetweenArrays(assay(eset), method=norm.method)
+    else assay(se) <- limma::normalizeBetweenArrays(assay(se), method=norm.method)
     
-    return(eset)
+    return(se)
 }
 
 

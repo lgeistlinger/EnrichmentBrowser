@@ -23,7 +23,9 @@
         \url{http://www.bioconductor.org/packages/release/BiocViews.html#___ChipName}
         for available chips/packages) and that you have it installed.
         Alternatively, The mapping from probe to gene can also be defined in the
-        \code{rowData} slot via two columns named \code{PROBE} and \code{GENE}.
+        \code{rowData} slot via two columns named (i) \code{PROBEID} for the 
+        platform-specific probe ID, and (ii) \code{ENTREZID} for the corresponding
+        NCBI Entrez Gene ID.
     }
     \item{use.mean}{
         Logical.
@@ -42,7 +44,7 @@
 }
 \seealso{
     \code{\link{readSE}} for reading expression data from file,
-    \code{\link{de.ana}} for differential expression analysis. 
+    \code{\link{deAna}} for differential expression analysis. 
 }
 \examples{
     # (1) reading the expression data from file

@@ -1,26 +1,36 @@
 de.ana <- function(expr, grp=NULL, blk=NULL, 
-    de.method=c("limma", "edgeR", "DESeq"), padj.method="BH", stat.only=FALSE, min.cpm=2)
+                    de.method=c("limma", "edgeR", "DESeq"), 
+                    padj.method="BH", stat.only=FALSE, min.cpm=2)
+{
+    .Deprecated("deAna")
+    deAna(expr=expr, grp=grp, blk=blk, de.method=de.method,
+            padj.method=padj.method, stat.only=stat.only, min.cpm=min.cpm)
+}
+
+deAna <- function(expr, grp=NULL, blk=NULL, 
+                    de.method=c("limma", "edgeR", "DESeq"), 
+                    padj.method="BH", stat.only=FALSE, min.cpm=2)
 {
     ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
     if(is(expr, "ExpressionSet")) expr <- as(expr, "RangedSummarizedExperiment")
     ###
 
-    is.eset <- is(expr, "SummarizedExperiment")
-    if(is.eset) 
+    isSE <- is(expr, "SummarizedExperiment")
+    if(isSE) 
     { 
         GRP.COL <- config.ebrowser("GRP.COL")    
         BLK.COL <- config.ebrowser("BLK.COL")
 
-        eset <- expr
-        expr <- assay(eset)
+        se <- expr
+        expr <- assay(se)
         
         # check for group annotation
-        if(!(GRP.COL %in% colnames(colData(eset))))
+        if(!(GRP.COL %in% colnames(colData(se))))
             stop("Group assignment must be specified")
-		grp <- colData(eset)[,GRP.COL]
+		grp <- colData(se)[,GRP.COL]
 
         # check for block annotation
-        if(BLK.COL %in% colnames(colData(eset))) blk <- colData(eset)[,BLK.COL] 
+        if(BLK.COL %in% colnames(colData(se))) blk <- colData(se)[,BLK.COL] 
     }
     if(!is.matrix(expr))
         stop(paste("Expression data in \'expr\' must be either", 
@@ -55,7 +65,7 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
 			message(paste("Excluding", nr.low, 
                 "genes not satisfying min.cpm threshold")) 
 			expr <- expr[keep,]	
-			if(is.eset) eset <- eset[keep,]
+			if(isSE) se <- se[keep,]
 		}	
 	}
 	else
@@ -96,9 +106,11 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
     {
         colData <- data.frame(group=group)
         if(paired) colData$block <- block
-        dds <- suppressMessages(DESeq2::DESeqDataSetFromMatrix(
-            countData=expr, colData=colData, design=f))
-        dds <- suppressMessages(DESeq2::DESeq(dds))
+        suppressMessages({
+            dds <- DESeq2::DESeqDataSetFromMatrix(
+                countData=expr, colData=colData, design=f)
+            dds <- DESeq2::DESeq(dds)
+        })
         res <- DESeq2::results(dds, pAdjustMethod="none")
         if(stat.only) return(res[,"stat"])
         de.tbl <- data.frame(res[,c("log2FoldChange","pvalue","stat")])
@@ -122,17 +134,18 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
         de.tbl <- aT1[, c("logFC", "P.Value", "t")]
         colnames(de.tbl)[3] <- "limma.STAT"
     }
-    else stop(paste(de.method, "is not supported. See man page for supported de.method."))
+    else stop(paste(de.method, "is not supported.", 
+                    "See man page for supported de.method."))
 
     de.tbl[,2] <- p.adjust(de.tbl[,2], method=padj.method)
     colnames(de.tbl)[1:2] <- sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)
 
-    if(is.eset)
+    if(isSE)
     {
-        i <- grep("STAT$", colnames(rowData(eset)))
-        if(length(i)) rowData(eset) <- rowData(eset)[,-i]
-        rowData(eset)[,colnames(de.tbl)] <- DataFrame(de.tbl)
-        return(eset)
+        i <- grep("STAT$", colnames(rowData(se)))
+        if(length(i)) rowData(se) <- rowData(se)[,-i]
+        rowData(se)[,colnames(de.tbl)] <- DataFrame(de.tbl)
+        return(se)
     }
     return(de.tbl)
 }

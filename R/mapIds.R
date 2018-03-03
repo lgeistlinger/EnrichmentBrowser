@@ -15,21 +15,21 @@ id.types <- function(org)
     return(keytypes(org.pkg))
 }
 
-map.ids <- function(eset, org=NA, from="ENSEMBL", to="ENTREZID")
+map.ids <- function(se, org=NA, from="ENSEMBL", to="ENTREZID")
 {
     ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
-    if(is(eset, "ExpressionSet")) eset <- as(eset, "RangedSummarizedExperiment")
+    if(is(se, "ExpressionSet")) se <- as(se, "RangedSummarizedExperiment")
     ###
 
-    if(is.na(org)) org <- metadata(eset)$annotation
+    if(is.na(org)) org <- metadata(se)$annotation
     if(!length(org)) stop("Organism under investigation not annotated")
-    ids <- rownames(eset)
+    ids <- rownames(se)
     x <- .idmap(ids, org, from, to) 
-    eset <- eset[names(x), ]
+    se <- se[names(x), ]
     names(x) <- NULL
-    rownames(eset) <- x
-    if(!length(metadata(eset)$annotation)) metadata(eset)$annotation <- org
-    return(eset)
+    rownames(se) <- x
+    if(!length(metadata(se)$annotation)) metadata(se)$annotation <- org
+    return(se)
 }
 
 .idmap <- function(ids, org, from, to)

@@ -86,17 +86,17 @@
     # (1) expression data: 
     # simulated expression values of 100 genes
     # in two sample groups of 6 samples each
-    eset <- make.example.data(what="eset")
-    eset <- de.ana(eset)
+    se <- makeExampleData(what="SE")
+    se <- deAna(se)
 
     # (2) gene sets:
     # draw 10 gene sets with 15-25 genes
-    gs <- make.example.data(what="gs", gnames=names(eset))
+    gs <- makeExampleData(what="gs", gnames=names(se))
 
     # (3) make artificial enrichment analysis results:
     # 2 ea methods with 5 significantly enriched gene sets each 
-    ora.res <- make.example.data(what="ea.res", method="ora", eset=eset, gs=gs) 
-    gsea.res <- make.example.data(what="ea.res", method="gsea", eset=eset, gs=gs)
+    ora.res <- makeExampleData(what="ea.res", method="ora", se=se, gs=gs) 
+    gsea.res <- makeExampleData(what="ea.res", method="gsea", se=se, gs=gs)
     
     # (4) combining the results
     res.list <- list(ora.res, gsea.res)

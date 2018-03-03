@@ -8,7 +8,7 @@
 # GGEA - main function
 #
 # @param:   
-#   eset        ... ExpressionSet R object
+#   se        ... SummarizedExperiment R object
 #   gs      ... Gene sets
 #   grn     ... Gene regulatory network
 #               (3 cols: Regulator, Target, Effect)
@@ -19,14 +19,14 @@
 # @returns: the GGEA enrichment table
 #
 ###         
-.ggea <- function(eset, gs, grn, 
+.ggea <- function(se, gs, grn, 
     alpha=0.05, beta=1, perm=1000, gs.edges=c("&", "|"), cons.thresh=0.2)
 {
     # map gs & grn to indices implied by fDat
     # due to performance issues, transforms character2integer
     # map gene.id -> index, e.g. "b0031" -> 10
-    fDat <- as.matrix(rowData(eset, use.names=TRUE)[,
-        sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)])
+    rcols <- sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)
+    fDat <- as.matrix(rowData(se, use.names=TRUE)[,rcols])
     fMap <- seq_len(nrow(fDat))
     names(fMap) <- rownames(fDat) 
         
@@ -217,14 +217,14 @@
 ##
 
 # permutation of samples, de recomputation in each permutation 
-.permSamplesPval <- function(eset, gs.grns, grn, 
+.permSamplesPval <- function(se, gs.grns, grn, 
     obs.scores, perm, alpha, beta, cons.thresh)
 {
     message(paste(perm, "permutations to do ..."))  
     
     # init
     GRP.COL <- config.ebrowser("GRP.COL")
-    grp <- colData(eset)[,GRP.COL]
+    grp <- colData(se)[,GRP.COL]
     nr.samples <- length(grp)
     count.larger <- vector("integer", length(obs.scores))
     
@@ -235,11 +235,11 @@
         if(i %% 100 == 0) message(paste(i,"permutations done ..."))
         # sample & permute
         grp.perm <- grp[sample(nr.samples)]
-        colData(eset)[,GRP.COL] <- grp.perm
+        colData(se)[,GRP.COL] <- grp.perm
         
         # recompute de measures fc and p
-        eset <- de.ana(assay(eset), grp.perm)
-        fDat <- as.matrix(rowData(eset, use.names=TRUE)[,
+        se <- deAna(assay(se), grp.perm)
+        fDat <- as.matrix(rowData(se, use.names=TRUE)[,
             sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)])
         
         # recompute ggea scores

@@ -28,6 +28,7 @@ export(
     map.ids,
     normalize,
     de.ana,
+    deAna,
     pdistr,
     volcano,
     exprs.heatmap,
@@ -44,11 +45,11 @@ export(
     compile.grn.from.kegg,
     nbea.methods,
     nbea,
-    ggea.graph,
-    ggea.graph.legend,
+    ggeaGraph,
+    ggeaGraphLegend,
     ea.browse,
     comb.ea.results,
     ebrowser,
-    make.example.data,
+    makeExampleData,
     config.ebrowser
 )

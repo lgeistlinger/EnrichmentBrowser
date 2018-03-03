@@ -16,7 +16,7 @@ nbea.methods <- function()
 
 nbea <- function(
     method=EnrichmentBrowser::nbea.methods(), 
-    eset, 
+    se, 
     gs, 
     grn,
     prune.grn=TRUE,
@@ -34,12 +34,12 @@ nbea <- function(
     ADJP.COL <-  config.ebrowser("ADJP.COL")
 
     ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
-    if(is(eset, "ExpressionSet")) eset <- as(eset, "RangedSummarizedExperiment")
+    if(is(se, "ExpressionSet")) se <- as(se, "RangedSummarizedExperiment")
     ###  
     
     # dealing with NA's
-    eset <- eset[!is.na(rowData(eset)[,FC.COL]), ]
-    eset <- eset[!is.na(rowData(eset)[,ADJP.COL]), ]
+    se <- se[!is.na(rowData(se)[,FC.COL]), ]
+    se <- se[!is.na(rowData(se)[,ADJP.COL]), ]
 
     # getting gene sets & grn
     if(!is.list(gs)) gs <- parse.genesets.from.GMT(gs)
@@ -49,12 +49,12 @@ nbea <- function(
     if(prune.grn) grn <- .pruneGRN(grn)
 
     # restrict to relevant genes 
-    # in the intersection of eset, gs, and grn
+    # in the intersection of se, gs, and grn
     gs.genes <- unique(unlist(gs))
     grn.genes <- unique(c(grn[,1], grn[,2]))
-    eset.genes <- rownames(eset)
-    rel.genes <- intersect(intersect(gs.genes, grn.genes), eset.genes)
-    eset <- eset[rel.genes,]
+    se.genes <- rownames(se)
+    rel.genes <- intersect(intersect(gs.genes, grn.genes), se.genes)
+    se <- se[rel.genes,]
     gs <- lapply(gs, function(s) s[s%in% rel.genes])
     lens <- lengths(gs)
     gs <- gs[lens >= GS.MIN.SIZE & lens <= GS.MAX.SIZE]
@@ -64,18 +64,18 @@ nbea <- function(
     if(class(method) == "character")
     {
         method <- match.arg(method)
-        if(method == "spia") res.tbl <- .spia(eset, gs, grn, alpha, perm, ...)
-        else if(method == "nea") res.tbl <- .nea(eset, gs, grn, alpha, perm, ...)
-        else if(method == "pathnet") res.tbl <- .pathnet(eset, gs, grn, alpha, perm)
-        else if(method == "netgsa") res.tbl <- .netgsa(eset, gs, grn)
-        else if(method == "ganpa") res.tbl <- .ganpa(eset, gs, grn, perm)
-        else if(method == "cepa") res.tbl <- .cepa(eset, gs, grn)
-        else if(method == "degraph") res.tbl <- .degraph(eset, gs, grn)
-        else if(method == "topologygsa") res.tbl <- .topogsa(eset, gs, grn, alpha, perm, ...)
-        else res.tbl <- .ggea(eset, gs, grn, alpha, perm=perm, ...)      
+        if(method == "spia") res.tbl <- .spia(se, gs, grn, alpha, perm, ...)
+        else if(method == "nea") res.tbl <- .nea(se, gs, grn, alpha, perm, ...)
+        else if(method == "pathnet") res.tbl <- .pathnet(se, gs, grn, alpha, perm)
+        else if(method == "netgsa") res.tbl <- .netgsa(se, gs, grn)
+        else if(method == "ganpa") res.tbl <- .ganpa(se, gs, grn, perm)
+        else if(method == "cepa") res.tbl <- .cepa(se, gs, grn)
+        else if(method == "degraph") res.tbl <- .degraph(se, gs, grn)
+        else if(method == "topologygsa") res.tbl <- .topogsa(se, gs, grn, alpha, perm, ...)
+        else res.tbl <- .ggea(se, gs, grn, alpha, perm=perm, ...)      
     }
     else if(class(method) == "function") 
-        res.tbl <- method(eset=eset, gs=gs, grn=grn, alpha=alpha, perm=perm, ...)
+        res.tbl <- method(se=se, gs=gs, grn=grn, alpha=alpha, perm=perm, ...)
     else stop(paste(method, "is not a valid method for nbea"))
 
     res.tbl <- data.frame(signif(res.tbl, digits=3))
@@ -102,7 +102,7 @@ nbea <- function(
         res <- list(
             method=method, res.tbl=res.tbl, 
             nr.sigs=sum(res.tbl[,GSP.COL] < alpha),
-            eset=eset, gs=gs, alpha=alpha)
+            se=se, gs=gs, alpha=alpha)
 
         if(browse) ea.browse(res)
         else return(res)
@@ -145,17 +145,17 @@ nbea <- function(
 #
 # 1 SPIA
 #
-.spia <- function(eset, gs, grn, 
+.spia <- function(se, gs, grn, 
     alpha=0.05, perm=1000, beta=1, sig.stat=c("xxP", "xxFC", "|", "&")) 
 {
     FC.COL <- config.ebrowser("FC.COL")
     ADJP.COL <- config.ebrowser("ADJP.COL")
     GSP.COL <- config.ebrowser("GSP.COL")
 
-    de.genes <- .isSig(rowData(eset, use.names=TRUE), alpha, beta, sig.stat)
-    de <- rowData(eset, use.names=TRUE)[de.genes, FC.COL]
-    names(de) <- rownames(eset)[de.genes]
-    all <- rownames(eset)
+    de.genes <- .isSig(rowData(se, use.names=TRUE), alpha, beta, sig.stat)
+    de <- rowData(se, use.names=TRUE)[de.genes, FC.COL]
+    names(de) <- rownames(se)[de.genes]
+    all <- rownames(se)
 
     is.kegg <- .detectGSType(names(gs)[1]) == "KEGG"
     organism <- ""
@@ -239,15 +239,15 @@ nbea <- function(
 #
 # 2 NEA
 #
-.nea <- function(eset, gs, grn, 
+.nea <- function(se, gs, grn, 
     alpha=0.05, perm=100, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
 {
     nea <- NULL
    isAvailable("neaGUI", type="software")
 
     #if(perm > 100) perm <- 100
-    isig <- .isSig(rowData(eset, use.names=TRUE), alpha, beta, sig.stat)
-    ags <- rownames(eset)[isig]
+    isig <- .isSig(rowData(se, use.names=TRUE), alpha, beta, sig.stat)
+    ags <- rownames(se)[isig]
     grn <- unique(grn[,1:2])
     gs.genes <- unique(unlist(gs))
     grn <- grn[(grn[,1] %in% gs.genes) & (grn[,2] %in% gs.genes),]
@@ -272,7 +272,7 @@ nbea <- function(
 #
 # 3 Pathnet
 #
-.pathnet <- function(eset, gs, grn, alpha=0.05, perm=1000)
+.pathnet <- function(se, gs, grn, alpha=0.05, perm=1000)
 {
     PathNet <- NULL
     isAvailable("PathNet", type="software")
@@ -280,8 +280,8 @@ nbea <- function(
     ADJP.COL <- config.ebrowser("ADJP.COL")
     GSP.COL <- config.ebrowser("GSP.COL")
 
-    dir.evid <- -log(rowData(eset, use.names=TRUE)[,ADJP.COL], base=10)
-    dir.evid <- cbind(as.integer(rownames(eset)), dir.evid)
+    dir.evid <- -log(rowData(se, use.names=TRUE)[,ADJP.COL], base=10)
+    dir.evid <- cbind(as.integer(rownames(se)), dir.evid)
     colnames(dir.evid) <- c("Gene.ID", "Obs")
     adjm <- .grn2adjm(grn, directed=FALSE)
     pwy.dat <- .extrPwyDat(gs, grn)
@@ -368,13 +368,13 @@ nbea <- function(
 #
 # 4 NetGSA
 #
-.netgsa <- function(eset, gs, grn)
+.netgsa <- function(se, gs, grn)
 {
      NetGSA <- covsel <- edgelist2adj <- NULL
     isAvailable("netgsa", type="software")
 
-    x <- assay(eset)
-    y <- colData(eset)[,config.ebrowser("GRP.COL")] + 1
+    x <- assay(se)
+    y <- colData(se)[,config.ebrowser("GRP.COL")] + 1
 
     # prepare gene sets
     #cmat <- .gmt2cmat(gs, rownames(x)) 
@@ -418,7 +418,7 @@ nbea <- function(
 #
 # 5 GANPA
 #
-.ganpa <- function(eset, gs, grn, perm=1000)
+.ganpa <- function(se, gs, grn, perm=1000)
 {
     GSE.Test.Main <- NULL
     isAvailable("GANPA", type="software")
@@ -435,11 +435,11 @@ nbea <- function(
     out.prefix <- file.path(OUT.DIR, "ganpa")
 
     # expression data
-    has.scol <- SMPL.COL %in% colnames(colData(eset))
-    if(!has.scol) colData(eset)[,SMPL.COL] <- colnames(eset)
-    sinfo <- colData(eset)[,c(SMPL.COL, GRP.COL)]
+    has.scol <- SMPL.COL %in% colnames(colData(se))
+    if(!has.scol) colData(se)[,SMPL.COL] <- colnames(se)
+    sinfo <- colData(se)[,c(SMPL.COL, GRP.COL)]
     colnames(sinfo) <- c("sampleid", "status")
-    expr.obj <- list(gExprs=assay(eset), sampleinfo=sinfo)
+    expr.obj <- list(gExprs=assay(se), sampleinfo=sinfo)
     
     # gene regulatory network
     gnet <- .grn2gnet(grn)    
@@ -468,14 +468,14 @@ nbea <- function(
 #
 # 6 CePa
 #
-.cepa <- function(eset, gs, grn, perm=1000)
+.cepa <- function(se, gs, grn, perm=1000)
 {
     cepa.all <- set.pathway.catalogue <- sampleLabel <- NULL
     isAvailable("CePa", type="software")
 
     # define sample groups
     GRP.COL <- config.ebrowser("GRP.COL")
-    sl <- sampleLabel(colData(eset)[, GRP.COL], treatment=1, control=0)
+    sl <- sampleLabel(colData(se)[, GRP.COL], treatment=1, control=0)
 
     # create pathway catalogue from gs and grn
     # (1) pathway list
@@ -487,11 +487,11 @@ nbea <- function(
     colnames(il) <- c("interaction.id", "input", "output")
 
     # (3) mapping
-    m <- data.frame(node.id=rownames(eset), symbol=rownames(eset), stringsAsFactors=FALSE)
+    m <- data.frame(node.id=rownames(se), symbol=rownames(se), stringsAsFactors=FALSE)
     pwy.cat <- set.pathway.catalogue(pathList=pl, interactionList=il, mapping=m)
     
     # executing
-    res <- cepa.all(mat=assay(eset), label=sl, pc=pwy.cat, iter=perm)
+    res <- cepa.all(mat=assay(se), label=sl, pc=pwy.cat, iter=perm)
     res.mat <- matrix(0.0, nrow=length(res), ncol=7)
     for(i in seq_along(res))
     {
@@ -508,12 +508,12 @@ nbea <- function(
 #
 # 7 DEGraph
 #
-.degraph <- function(eset, gs, grn)
+.degraph <- function(se, gs, grn)
 {    
     testOneGraph <- NULL
     isAvailable("DEGraph", type="software")
 
-    grp <- colData(eset)[,config.ebrowser("GRP.COL")]
+    grp <- colData(se)[,config.ebrowser("GRP.COL")]
             
     options(show.error.messages=FALSE) 
     res <- sapply(names(gs),
@@ -524,7 +524,7 @@ nbea <- function(
             am <- .grn2adjm(gs.grn)
             gr <- graphAM(am, "directed")           
             gr <- as(gr, "graphNEL")                 
-            r <- try( testOneGraph(graph=gr, data=assay(eset), 
+            r <- try( testOneGraph(graph=gr, data=assay(se), 
                        classes=grp, useInteractionSigns=FALSE), silent=TRUE )
             if(is(r, "try-error")) return(NA) else return(r[[1]]$p.value[1])
         })
@@ -537,10 +537,10 @@ nbea <- function(
 #
 # 8 topologyGSA 
 #
-.topogsa <- function(eset, gs, grn, alpha=0.05, perm=1000, test.mean=TRUE)
+.topogsa <- function(se, gs, grn, alpha=0.05, perm=1000, test.mean=TRUE)
 {    
     # call topologyGSA via clipper's pathQ function
-    return(.clipper(eset, gs, grn, alpha, perm))
+    return(.clipper(se, gs, grn, alpha, perm))
 
     # original topologyGSA: deprecated
     # does not terminate on particular gs, eg. hsa04060_Cytokine-cytokine_receptor_interaction
@@ -553,9 +553,9 @@ nbea <- function(
     graph_from_graphnel <- mst <- NULL
      isAvailable("igraph", type="software")
  
-    grp <- colData(eset)[,config.ebrowser("GRP.COL")]
-    y1 <- t(assay(eset)[, grp == 0])
-    y2 <- t(assay(eset)[, grp == 1])
+    grp <- colData(se)[,config.ebrowser("GRP.COL")]
+    y1 <- t(assay(se)[, grp == 0])
+    y2 <- t(assay(se)[, grp == 1])
 
     res <- sapply(names(gs),
         function(s)
@@ -586,7 +586,7 @@ nbea <- function(
 #
 # 9 clipper
 #
-.clipper <- function(eset, gs, grn, alpha=0.05, perm=1000)
+.clipper <- function(se, gs, grn, alpha=0.05, perm=1000)
 {    
     pathQ <- NULL
     isAvailable("clipper", type="software")
@@ -597,7 +597,7 @@ nbea <- function(
     graph_from_graphnel <- mst <- NULL
      isAvailable("igraph", type="software")
  
-    grp <- colData(eset)[,config.ebrowser("GRP.COL")] + 1
+    grp <- colData(se)[,config.ebrowser("GRP.COL")] + 1
 
     res <- sapply(names(gs),
         function(s)
@@ -615,7 +615,7 @@ nbea <- function(
                 gr2 <- mst(gr2)
                 gr <- as(gr2, "graphNEL")
             }
-            r <- try(pathQ(assay(eset), grp, gr, perm, alpha), silent=TRUE)
+            r <- try(pathQ(assay(se), grp, gr, perm, alpha), silent=TRUE)
             if(is(r, "try-error")) return(NA) else return(r$alphaMean)
         }
     )

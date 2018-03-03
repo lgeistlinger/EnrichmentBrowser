@@ -49,18 +49,18 @@
     Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \seealso{
-    \code{\link{de.ana}} for differential expression analysis,
+    \code{\link{deAna}} for differential expression analysis,
     \code{\link{heatmap}} and \code{\link{truehist}} for generic plotting. 
 }
 \examples{
     # (1) simulating expression data: 100 genes, 12 samples
-    eset <- make.example.data(what="eset") 
+    se <- makeExampleData(what="SE") 
     
     # plot heatmap
-    exprs.heatmap(expr=assay(eset), grp=as.factor(eset$GROUP))
+    exprs.heatmap(expr=assay(se), grp=as.factor(se$GROUP))
 
     # (2) DE analysis
-    eset <- de.ana(eset)
-    pdistr(rowData(eset)$ADJ.PVAL)
-    volcano(fc=rowData(eset)$FC, p=rowData(eset)$ADJ.PVAL)
+    se <- deAna(se)
+    pdistr(rowData(se)$ADJ.PVAL)
+    volcano(fc=rowData(se)$FC, p=rowData(se)$ADJ.PVAL)
 }

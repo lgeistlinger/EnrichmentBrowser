@@ -71,8 +71,8 @@
         rows/features of the expression matrix. 
         If 'exprs' is a \code{SummarizedExperiment},
         the 'fdat' argument can be left unspecified, which then expects
-        feature and gene IDs in respectively named columns
-        'PROBE' and 'GENE' in the \code{rowData} slot.
+        probe and corresponding Entrez Gene IDs in respectively named columns
+        'PROBEID' and 'ENTREZID' in the \code{rowData} slot.
     }
     \item{org}{
         Organism under investigation in KEGG three letter code, 
@@ -84,7 +84,7 @@
         Expression data type.
         Use 'ma' for microarray and 'rseq' for RNA-seq data.
         If NA, data.type is automatically guessed. 
-        If the expression values in 'eset' are decimal numbers 
+        If the expression values in 'exprs' are decimal numbers 
         they are assumed to be microarray intensities.
         Whole numbers are assumed to be RNA-seq read counts. 
         Defaults to NA.
@@ -103,7 +103,7 @@
     }
     \item{de.method}{
         Determines which method is used for per-gene differential expression 
-        analysis. See the man page of \code{\link{de.ana}} for details.
+        analysis. See the man page of \code{\link{deAna}} for details.
         Defaults to 'limma', i.e. differential expression is calculated based 
         on the typical limma \code{\link{lmFit}} procedure.    
     }

@@ -80,48 +80,48 @@ ebrowser <- function(
     if(is.character(exprs))
     {
         message("Read expression data ...")
-        eset <- readSE( assay.file=exprs, 
+        se <- readSE( assay.file=exprs, 
             cdat.file=pdat, rdat.file=fdat, data.type=data.type )
     }
     else
     { 
         ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
-        if(is(eset, "ExpressionSet")) 
-            eset <- as(eset, "RangedSummarizedExperiment")
+        if(is(se, "ExpressionSet")) 
+            se <- as(se, "RangedSummarizedExperiment")
         ###  
-        eset <- exprs
+        se <- exprs
         if(is.na(data.type))
-            data.type <- .detectDataType(assay(eset))
-        metadata(eset)$dataType <- data.type
+            data.type <- .detectDataType(assay(se))
+        metadata(se)$dataType <- data.type
     }
     
     # normalize?
     if(norm.method != 'none')
     {
         message("Normalize ...")
-        eset <- normalize(eset, norm.method=norm.method)
+        se <- normalize(se, norm.method=norm.method)
     }
     
     # probe 2 gene if data.type = ma
-    # ... and it's not already a gene level eset
-    if(metadata(eset)$dataType == "ma")
+    # ... and it's not already a gene level se
+    if(metadata(se)$dataType == "ma")
     {
-        has.pcol <- config.ebrowser("PRB.COL") %in% colnames(rowData(eset))
-        anno <- metadata(eset)$annotation
+        has.pcol <- config.ebrowser("PRB.COL") %in% colnames(rowData(se))
+        anno <- metadata(se)$annotation
         has.anno <- ifelse(length(anno), nchar(anno) > 3, FALSE)
         if(has.pcol || has.anno)
         {
             message("Transform probe expression to gene expression ...")    
-            gene.eset <- probe2gene(eset)
+            geneSE <- probe2gene(se)
         }
-        else gene.eset <- eset
+        else geneSE <- se
     }
-    else gene.eset <- eset
+    else geneSE <- se
 
     message("DE analysis ...")    
-    gene.eset <- de.ana(gene.eset, de.method=de.method)
-    if(missing(org)) org <- metadata(gene.eset)$annotation 
-    else metadata(gene.eset)$annotation <- org
+    geneSE <- deAna(geneSE, de.method=de.method)
+    if(missing(org)) org <- metadata(geneSE)$annotation 
+    else metadata(geneSE)$annotation <- org
         
     nr.meth <- length(meth)
 	if(length(perm) != nr.meth) perm <- rep(perm[1], nr.meth)
@@ -133,10 +133,10 @@ ebrowser <- function(
         out.file <- file.path(out.dir, paste0(m, ".txt"))
 
         if(m %in% nbea.methods()) 
-            res <- nbea( method=m, eset=gene.eset, gs=gs, 
+            res <- nbea( method=m, se=geneSE, gs=gs, 
                     grn=grn, alpha=alpha, beta=beta, perm=perm[i] )
 
-        else res <- sbea( method=m, eset=gene.eset, 
+        else res <- sbea( method=m, se=geneSE, 
                     gs=gs, alpha=alpha, perm=perm[i] )
 
         write.table(res$res.tbl, file=out.file, 
@@ -148,12 +148,12 @@ ebrowser <- function(
         # link gene statistics
         sam.file <- file.path(out.dir, "samt.RData")    
         if(m == "samgs" && file.exists(sam.file))
-            rowData(gene.eset)$SAM.T <- 
+            rowData(geneSE)$SAM.T <- 
                 round(get(load(sam.file)), digits=2)
        
         s2n.file <- file.path(out.dir, "gsea_s2n.RData")
         if(m == "gsea" && file.exists(s2n.file))
-            rowData(gene.eset)$GSEA.S2N <- 
+            rowData(geneSE)$GSEA.S2N <- 
                 round(get(load(s2n.file)), digits=2)
         
         if(comb) res.list[[i]] <- res
@@ -162,12 +162,12 @@ ebrowser <- function(
     # write genewise differential expression
     gt.file <- file.path(out.dir, "de.txt")
 	message("Annotating genes ...")
-    gt <- .getGeneAnno(names(gene.eset), org)
-    gt <- cbind(gt, rowData(gene.eset, use.names=TRUE))
+    gt <- .getGeneAnno(names(geneSE), org)
+    gt <- cbind(gt, rowData(geneSE, use.names=TRUE))
     gt <- .sortGeneTable(gt)
     ind <- gt[,config.ebrowser("EZ.COL")]
-    gene.eset <- gene.eset[ind, ]
-    rowData(gene.eset) <- gt
+    geneSE <- geneSE[ind, ]
+    rowData(geneSE) <- gt
 
     message(paste("Genewise differential expression written to", gt.file))    
     write.table(gt, file=gt.file, row.names=FALSE, quote=FALSE, sep="\t")
@@ -198,12 +198,12 @@ ebrowser <- function(
     if(browse)
     { 
         # plot DE
-        if(length(gene.eset) > 1000)
+        if(length(geneSE) > 1000)
         {
             message("Restricting global view to the 1000 most significant genes")
-            gene.eset <- gene.eset[1:1000,]
+            geneSE <- geneSE[1:1000,]
         }
-        vs <- .viewSet(gene.eset, out.prefix=file.path(out.dir, "global"))
+        vs <- .viewSet(geneSE, out.prefix=file.path(out.dir, "global"))
         
         message("Produce html report ...")
         .createIndex(meth, comb)

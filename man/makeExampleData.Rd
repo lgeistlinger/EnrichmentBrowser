@@ -1,5 +1,5 @@
-\name{make.example.data}
-\alias{make.example.data}
+\name{makeExampleData}
+\alias{makeExampleData}
 \title{
     Example data for the EnrichmentBrowser package
 }
@@ -9,14 +9,14 @@
     and enrichment analysis results.
 }
 \usage{
-    make.example.data( what = c("eset", "gs", "grn", "ea.res"), ... )
+    makeExampleData( what = c("SE", "gs", "grn", "ea.res"), ... )
 }
 \arguments{
     \item{what}{
         Kind of example data set to be constructed.
         This should be one out of: 
         \itemize{
-            \item eset: Expression set
+            \item SE: SummarizedExperiment
             \item gs: Gene set list
             \item grn: Gene regulatory network
             \item ea.res: Enrichment analysis result object as returned 
@@ -26,7 +26,7 @@
     \item{...}{
         Additional arguments to fine-tune the specific example data sets.
         
-        For what='eset':
+        For what='SE':
         \itemize{
         \item type: Expression data type. Should be either 
             'ma' (Microarray intensity measurements) or 
@@ -35,7 +35,7 @@
         \item nsmpl: Number of samples. Defaults to 12.
         \item blk: Create sample blocks. Defaults to TRUE.
         \item norm: Should the expression data be normalized? Defaults to FALSE.
-        \item de.ana: Should an differential expression analysis be carried out 
+        \item deAna: Should an differential expression analysis be carried out 
             automatically? Defaults to FALSE.
         }
         
@@ -58,8 +58,8 @@
 
         For what='ea.res':
         \itemize{
-        \item eset: Expression set. Calls make.example.data(what="eset") per default.
-        \item gs: Gene sets. Calls make.example.data(what="gs") per default.
+        \item SE: SummarizedExperiment. Calls makeExampleData(what="SE") per default.
+        \item gs: Gene sets. Calls makeExampleData(what="gs") per default.
         \item method: Enrichment analysis method. Defaults to 'ora'.
         \item alpha: Statistical significance level. Defaults to 0.05. 
         }
@@ -72,6 +72,6 @@
     Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 }
 \examples{
-    eset <- make.example.data(what="eset")
+    se <- makeExampleData(what="SE")
 }
 

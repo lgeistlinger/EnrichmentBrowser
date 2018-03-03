@@ -12,7 +12,7 @@
     resulting gene set rankings. 
 }
 \usage{
-    nbea( method = EnrichmentBrowser::nbea.methods(), eset, gs, grn, 
+    nbea( method = EnrichmentBrowser::nbea.methods(), se, gs, grn, 
             prune.grn=TRUE, alpha = 0.05, perm = 1000, padj.method = "none", 
             out.file = NULL, browse = FALSE, ... )
 
@@ -30,7 +30,7 @@
         This can also be the name of a user-defined function implementing 
         network-based enrichment. See Details. 
     } 
-    \item{eset}{
+    \item{se}{
         Expression dataset. 
         An object of class \code{\linkS4class{SummarizedExperiment}}. 
         Mandatory minimal annotations:
@@ -179,7 +179,7 @@
 	implemented in Bioconductor's neaGUI package. 
 
     It is also possible to use additional network-based enrichment methods.
-    This requires to implement a function that takes 'eset', 'gs', 'grn', 
+    This requires to implement a function that takes 'se', 'gs', 'grn', 
     'alpha', and 'perm' as arguments and returns a numeric matrix 'res.tbl' 
     with a mandatory column named 'P.VALUE' storing the resulting p-value for 
     each gene set in 'gs'. The rows of this matrix must be named 
@@ -219,29 +219,29 @@
     # (1) expression data: 
     # simulated expression values of 100 genes
     # in two sample groups of 6 samples each
-    eset <- make.example.data(what="eset")
-    eset <- de.ana(eset)
+    se <- makeExampleData(what="SE")
+    se <- deAna(se)
 
     # (2) gene sets:
     # draw 10 gene sets with 15-25 genes
-    gs <- make.example.data(what="gs", gnames=names(eset))
+    gs <- makeExampleData(what="gs", gnames=names(se))
 
     # (3) make 2 artificially enriched sets:
-    sig.genes <- names(eset)[rowData(eset)$ADJ.PVAL < 0.1]
+    sig.genes <- names(se)[rowData(se)$ADJ.PVAL < 0.1]
     gs[[1]] <- sample(sig.genes, length(gs[[1]])) 
     gs[[2]] <- sample(sig.genes, length(gs[[2]]))   
    
     # (4) gene regulatory network 
-    grn <- make.example.data(what="grn", nodes=names(eset))
+    grn <- makeExampleData(what="grn", nodes=names(se))
     
     # (5) performing the enrichment analysis
-    ea.res <- nbea(method="ggea", eset=eset, gs=gs, grn=grn)
+    ea.res <- nbea(method="ggea", se=se, gs=gs, grn=grn)
 
     # (6) result visualization and exploration
     gs.ranking(ea.res, signif.only=FALSE)
 
     # using your own tailored function as enrichment method
-    dummy.nbea <- function(eset, gs, grn, alpha, perm)
+    dummy.nbea <- function(se, gs, grn, alpha, perm)
     {
         sig.ps <- sample(seq(0,0.05, length=1000),5)
         insig.ps <- sample(seq(0.1,1, length=1000), length(gs)-5)
@@ -253,7 +253,7 @@
         return(res.tbl[order(ps),])
     }
 
-    ea.res2 <- nbea(method=dummy.nbea, eset=eset, gs=gs, grn=grn)
+    ea.res2 <- nbea(method=dummy.nbea, se=se, gs=gs, grn=grn)
     gs.ranking(ea.res2) 
 }
 

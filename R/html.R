@@ -52,7 +52,7 @@
 ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
 {
     method <- ifelse( is(res$method, "character"), res$method, NA)
-    eset <- res$eset
+    se <- res$se
     alpha <- res$alpha
     gs <- res$gs
     
@@ -96,18 +96,18 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     # make gene pages
     im <- incidence(gsc)
     org <- organism(gsc[[1]])
-    if(org == "") org <- metadata(eset)$annotation
+    if(org == "") org <- metadata(se)$annotation
     if(!length(org)) stop("Organism annotation not found!\n", 
-        "Organism under study must be annotated via metadata(eset)$annotation")
+        "Organism under study must be annotated via metadata(se)$annotation")
 
     message("Creating gene report ...")
-    eset <- eset[colnames(im),]
+    se <- se[colnames(im),]
     rcols <- sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)
-    fDat <- rowData(eset, use.names=TRUE)[,rcols]
+    fDat <- rowData(se, use.names=TRUE)[,rcols]
     fDat <- as.data.frame(fDat)
     gt <- suppressMessages(.geneTable(im, org, fcs=fDat))
     gn.cols <- sapply(c("SYM.COL", "GN.COL"), config.ebrowser)
-    rowData(eset)[,gn.cols] <- DataFrame(gt[,gn.cols]) 
+    rowData(se)[,gn.cols] <- DataFrame(gt[,gn.cols]) 
     gt.reps <- sapply(gsc, function(s) .geneReport(s, gt, out.dir)) 
     
     # make gene set page
@@ -120,7 +120,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     out.prefix <- file.path(rep.dir, names(gsc))
     names(out.prefix) <- names(gsc)
     vcol <- sapply(gsc, function(s) 
-        .viewSet(eset[geneIds(s),], out.prefix[setName(s)]))
+        .viewSet(se[geneIds(s),], out.prefix[setName(s)]))
     vcol <- hwriteImage(sub("sview.html", "volc.png", vcol),
         link=vcol, table = FALSE, height=50, width=50, target="_blank")
     res <- DataFrame(res, vcol)
@@ -132,18 +132,18 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
         message("Creating kegg view ...")
         isAvailable("pathview", type="software")
         vcol <- sapply(gsc, function(s) 
-            .viewPath(setName(s), eset[geneIds(s),], out.prefix[setName(s)]))
+            .viewPath(setName(s), se[geneIds(s),], out.prefix[setName(s)]))
         vcol <- hwriteImage(sub("kview.html", "kpath.png", vcol),
             link=vcol, table = FALSE, height=50, width=50, target="_blank")
         res <- DataFrame(res, vcol)
         colnames(res)[ncol(res)] <- "PATH.VIEW"
     }
 
-    # graph view: ggea graphs
+    # graph view: ggeaGraphs
     if(!is.null(graph.view)) 
     {
         message("Creating graph view ...")
-        vcol <- sapply(gsc, function(s) .viewGraph(eset[geneIds(s),], .queryGRN(
+        vcol <- sapply(gsc, function(s) .viewGraph(se[geneIds(s),], .queryGRN(
             geneIds(s), graph.view, index=FALSE), alpha, out.prefix[setName(s)]))
         vcol <- hwriteImage(sub("html$", "png", vcol),
             link=vcol, table = FALSE, height=50, width=50, target="_blank")
@@ -188,17 +188,17 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
         html2.tag <- bkp
     }
 
-    f1.tag <- hmakeTag("frameset", 
+    f1.tag <- hmakeTag("framse", 
         paste0(sub("</frame>", "", c(html1.tag, html2.tag)), collapse=""), 
         cols=paste0(config.ebrowser("PLOT.WIDTH") + 30, ",*"), border=0)
     html3.tag <- sub("</frame>", "", html3.tag)
-    f2.tag <- hmakeTag("frameset", paste(f1.tag, html3.tag),
+    f2.tag <- hmakeTag("framse", paste(f1.tag, html3.tag),
         rows=paste0(config.ebrowser("PLOT.HEIGHT") + 30, ",*"), border=0)
     cont <- hmakeTag("html", paste0(head,f2.tag))
     return(cont)
 }
 
-.viewSet <- function(eset, out.prefix)
+.viewSet <- function(se, out.prefix)
 {
     out.files <- paste(out.prefix, 
         c("sview.html", "volc.png", "hmap.png"), sep="_" )
@@ -208,8 +208,8 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
         ##
         # 1 PLOT: heatmap & volcano
         ##
-        volc.html <- .makeVolcHTML(eset, out.files[2])
-        hmap.html <- .makeHmapHTML(eset, out.files[3])
+        volc.html <- .makeVolcHTML(se, out.files[2])
+        hmap.html <- .makeHmapHTML(se, out.files[3])
         cont <- .makeView(volc.html, hmap.html) 
         cat(cont, file=out.files[1])
     }
@@ -230,14 +230,14 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
 #    return(rev(views))
 }
 
-.viewPath <- function(s, eset, out.prefix)
+.viewPath <- function(s, se, out.prefix)
 {
     org <- substring(s, 1, 3)
     pwy.id <- sub("^[a-z]{3}", "", s)
-    fc <- rowData(eset)[,config.ebrowser("FC.COL")]
+    fc <- rowData(se)[,config.ebrowser("FC.COL")]
     gn.cols <- sapply(c("SYM.COL", "GN.COL"), config.ebrowser)
-    gnam <- apply(rowData(eset)[,gn.cols], 1, paste, collapse=": ")
-    names(fc) <- names(gnam) <- names(eset)
+    gnam <- apply(rowData(se)[,gn.cols], 1, paste, collapse=": ")
+    names(fc) <- names(gnam) <- names(se)
 
     out.files <- paste(out.prefix, 
         c("kview.html", "kpath.png", "kgraph.png"), sep="_")
@@ -257,16 +257,16 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     return(views)
 } 
 
-.viewGraph <- function(eset, sgrn, alpha, out.prefix)
+.viewGraph <- function(se, sgrn, alpha, out.prefix)
 {
     out.files <- paste0(out.prefix, "_gview.", c("html", "png", "txt"))
     
     if(!file.exists(out.files[1]))
     {
         ##
-        # 1 PLOT: ggea.graph
+        # 1 PLOT: ggeaGraph
         ##
-        ggraph.html <- .makeGGraphHTML(eset, sgrn, alpha, out.files[2])
+        ggraph.html <- .makeGGraphHTML(se, sgrn, alpha, out.files[2])
         void.html <- "void.html"
         cat(hmakeTag('html'), file=file.path(dirname(out.prefix),void.html))
         cont <- .makeView(ggraph.html, void.html)   
@@ -277,46 +277,46 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     return(views)
 }
 
-.makeHmapHTML <- function(eset, img.file)
+.makeHmapHTML <- function(se, img.file)
 {
     width <- config.ebrowser("PLOT.WIDTH") 
     height <- config.ebrowser("PLOT.HEIGHT")
 
     # 1: make the plot
     # (a) heatmap 1: all features vs all samples
-    expr <- assay(eset)
-    rownames(expr) <- rowData(eset)[,config.ebrowser("SYM.COL")]
+    expr <- assay(se)
+    rownames(expr) <- rowData(se)[,config.ebrowser("SYM.COL")]
     png(img.file, width=width, height=height)
-    exprs.heatmap(expr=expr, grp=eset[[config.ebrowser("GRP.COL")]])
+    exprs.heatmap(expr=expr, grp=se[[config.ebrowser("GRP.COL")]])
     dev.off()
     img.tag <- hwriteImage(basename(img.file))
 
     # (b) heatmap 2: most signif features
     max.row <- 40
-    fc <- abs(rowData(eset)[,config.ebrowser("FC.COL")])
-    p <- -log(rowData(eset)[,config.ebrowser("ADJP.COL")], base=10)
+    fc <- abs(rowData(se)[,config.ebrowser("FC.COL")])
+    p <- -log(rowData(se)[,config.ebrowser("ADJP.COL")], base=10)
     ind <- (fc >= 1) | (p >= 1)
-    eset <- eset[ind,]
-    if(nrow(eset) > 1)
+    se <- se[ind,]
+    if(nrow(se) > 1)
     {
-        if(nrow(eset) > max.row)
+        if(nrow(se) > max.row)
         {
             fc <- fc[ind]
             p <- p[ind]
             score <- sqrt(fc^2 + p^2)
-            eset <- eset[order(score, decreasing=TRUE)[seq_len(max.row)],]
+            se <- se[order(score, decreasing=TRUE)[seq_len(max.row)],]
             #    # select most variable samples
-            #if(ncol(eset) > max.col)
+            #if(ncol(se) > max.col)
             #{
-            #    svar <- apply(assay(eset), 2, var)
-            #    eset <- eset[,order(svar, decreasing=TRUE)[seq_len(max.col)]]
+            #    svar <- apply(assay(se), 2, var)
+            #    se <- se[,order(svar, decreasing=TRUE)[seq_len(max.col)]]
             #}
         }
-        expr <- assay(eset)
-        rownames(expr) <- rowData(eset)[,config.ebrowser("SYM.COL")]
+        expr <- assay(se)
+        rownames(expr) <- rowData(se)[,config.ebrowser("SYM.COL")]
         img2 <- sub(".png$", "2.png", img.file)
         png(img2, width=width, height=height)
-        exprs.heatmap(expr=expr, grp=eset[[config.ebrowser("GRP.COL")]])
+        exprs.heatmap(expr=expr, grp=se[[config.ebrowser("GRP.COL")]])
         dev.off()
         img.tag <- paste0(img.tag, hwriteImage(basename(img2)))
     }
@@ -328,13 +328,13 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     return(basename(hmap.html))
 }
 
-.makeVolcHTML <- function(eset, img.file)
+.makeVolcHTML <- function(se, img.file)
 {    
     width <- config.ebrowser("PLOT.WIDTH") 
     height <- config.ebrowser("PLOT.HEIGHT")
 
-    fc <- rowData(eset)[,config.ebrowser("FC.COL")]
-    p <- rowData(eset)[,config.ebrowser("ADJP.COL")]
+    fc <- rowData(se)[,config.ebrowser("FC.COL")]
+    p <- rowData(se)[,config.ebrowser("ADJP.COL")]
     # 1: make the plot
     png(img.file, width=width, height=height)
         volcano(fc, p)
@@ -385,8 +385,8 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     con <- file(volc.html, open="w")
     
     gn.cols <- sapply(c("SYM.COL", "GN.COL"), config.ebrowser)
-    titles <- apply(rowData(eset)[,gn.cols], 1, paste, collapse=": ") 
-    refs <- paste0(config.ebrowser("GENE.URL"), names(eset))
+    titles <- apply(rowData(se)[,gn.cols], 1, paste, collapse=": ") 
+    refs <- paste0(config.ebrowser("GENE.URL"), names(se))
     geneplotter::imageMap(coord, con, 
         list(HREF=refs, TITLE=titles, TARGET=rep("gene", nrow(coord))), 
         basename(img.file))    
@@ -450,20 +450,20 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     return(basename(kgraph.html))
 }
 
-.makeGGraphHTML <- function(eset, sgrn, alpha, img.file)
+.makeGGraphHTML <- function(se, sgrn, alpha, img.file)
 {
     width <- config.ebrowser("PLOT.WIDTH") 
     height <- config.ebrowser("PLOT.HEIGHT")
 
-    sggea.graph <- NULL
+    sggeaGraph <- NULL
     if(nrow(sgrn) > 0)
-        sggea.graph <- .constructGGEAGraph(grn=sgrn, eset=eset, alpha=alpha)
+        sggeaGraph <- .constructGGEAGraph(grn=sgrn, se=se, alpha=alpha)
     
     # txt report
     report.file <- sub("png$", "txt", img.file)
-    if(!is.null(sggea.graph))
+    if(!is.null(sggeaGraph))
     {
-            consistency <- sggea.graph@renderInfo@edges$label
+            consistency <- sggeaGraph@renderInfo@edges$label
             cons.tbl <- cbind(names(consistency), consistency)
             cons.tbl <- cons.tbl[order(as.numeric(consistency), decreasing=TRUE),]
             colnames(cons.tbl) <- c("EDGE", "CONSISTENCY")
@@ -472,29 +472,29 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     }
     else cat("No edges in network for this set!", file=report.file)
 
-    # ggea graph png
+    # ggeaGraph png
     png(img.file, width=width, height=height)
     par(mai=rep(0,4))
-    if(!is.null(sggea.graph))
-        sggea.graph <- .plotGGEAGraph(sggea.graph,
-            show.scores=(numEdges(sggea.graph) < config.ebrowser("NR.SHOW")))
+    if(!is.null(sggeaGraph))
+        sggeaGraph <- .plotGGEAGraph(sggeaGraph,
+            show.scores=(numEdges(sggeaGraph) < config.ebrowser("NR.SHOW")))
     else plot(NA, axes=FALSE, xlim=c(0,1), ylim=c(0,1),
         ylab="", xlab="", main="No edges in network for this set!")
     dev.off()
     
     ggraph.html <- sub("view.png$", "graph.html", img.file)
-    if(!is.null(sggea.graph))
+    if(!is.null(sggeaGraph))
     {
         gn.cols <- sapply(c("SYM.COL", "GN.COL"), config.ebrowser)
-        gnam <- apply(rowData(eset)[,gn.cols], 1, paste, collapse=": ")
-        names(gnam) <- names(eset)
+        gnam <- apply(rowData(se)[,gn.cols], 1, paste, collapse=": ")
+        names(gnam) <- names(se)
 
         # image map
-        nd <- nodes(sggea.graph)
+        nd <- nodes(sggeaGraph)
         nam <- gnam[nd]
         con <- file(ggraph.html, open="w")
         refs <- paste0(config.ebrowser("GENE.URL"),  nd)
-        biocGraph::imageMap(sggea.graph, con=con,
+        biocGraph::imageMap(sggeaGraph, con=con,
             tags=list(HREF=refs, TITLE = nam, TARGET = rep("gene", length(nd))),
             imgname=basename(img.file), width=width, height=height)    
         close(con)

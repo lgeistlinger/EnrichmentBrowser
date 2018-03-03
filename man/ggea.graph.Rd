@@ -1,6 +1,6 @@
-\name{ggea.graph}
-\alias{ggea.graph}
-\alias{ggea.graph.legend}
+\name{ggeaGraph}
+\alias{ggeaGraph}
+\alias{ggeaGraphLegend}
 \title{
     GGEA graphs of consistency between regulation and expression
 }
@@ -17,10 +17,10 @@
     of the expression of both interaction partners.     
 }
 \usage{
-    ggea.graph( gs, grn, eset, 
+    ggeaGraph( gs, grn, se, 
         alpha = 0.05, beta = 1, max.edges = 50, cons.thresh = 0.7 )
 
-    ggea.graph.legend()
+    ggeaGraphLegend()
 }
 \arguments{
     \item{gs}{
@@ -34,7 +34,7 @@
         2nd col = corresponding regulated genes;
         3rd col = regulation effect; Use '+' and '-' for activation/inhibition.
     }
-    \item{eset}{
+    \item{se}{
         Expression data given as an object of class 
             \code{\linkS4class{SummarizedExperiment}}. 
     }
@@ -68,19 +68,19 @@
     # (1) expression data: 
     # simulated expression values of 100 genes
     # in two sample groups of 6 samples each
-    eset <- make.example.data(what="eset")
-    eset <- de.ana(eset)
+    se <- makeExampleData(what="SE")
+    se <- deAna(se)
 
     # (2) gene sets:
     # draw 10 gene sets with 15-25 genes
-    gs <- make.example.data(what="gs", gnames=names(eset))
+    gs <- makeExampleData(what="gs", gnames=names(se))
 
     # (3) compiling artificial regulatory network 
-    grn <- make.example.data(what="grn", nodes=names(eset))
+    grn <- makeExampleData(what="grn", nodes=names(se))
 
     # (4) plot consistency graph
-    ggea.graph(gs=gs[[1]], grn=grn, eset=eset)
+    ggeaGraph(gs=gs[[1]], grn=grn, se=se)
 
     # (5) get legend
-    ggea.graph.legend()
+    ggeaGraphLegend()
 }

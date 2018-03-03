@@ -1,4 +1,5 @@
-\name{de.ana}
+\name{deAna}
+\alias{deAna}
 \alias{de.ana}
 \title{ 
     Differential expression analysis between two sample groups 
@@ -9,7 +10,7 @@
     Raw p-values are corrected for multiple testing.
 }
 \usage{
-    de.ana( expr, grp = NULL, blk = NULL, 
+    deAna( expr, grp = NULL, blk = NULL, 
         de.method = c("limma", "edgeR", "DESeq"), 
 		padj.method = "BH", stat.only=FALSE, min.cpm=2 )
 }
@@ -80,13 +81,13 @@
 }
 \examples{
     # (1) microarray data: intensity measurements
-    ma.eset <- make.example.data(what="eset", type="ma")
-    ma.eset <- de.ana(ma.eset)
-    rowData(ma.eset, use.names=TRUE)
+    maSE <- makeExampleData(what="SE", type="ma")
+    maSE <- deAna(maSE)
+    rowData(maSE, use.names=TRUE)
     
     # (2) RNA-seq data: read counts
-    rseq.eset <- make.example.data(what="eset", type="rseq")
-    rseq.eset <- de.ana(rseq.eset, de.method="DESeq")
-    rowData(rseq.eset, use.names=TRUE)
+    rseqSE <- makeExampleData(what="SE", type="rseq")
+    rseqSE <- deAna(rseqSE, de.method="DESeq")
+    rowData(rseqSE, use.names=TRUE)
 }
 

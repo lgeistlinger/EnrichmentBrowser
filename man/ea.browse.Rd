@@ -44,7 +44,8 @@
     }
 }
 \value{
-    gs.ranking: DataFrame with gene sets ranked by the corresponding p-value;
+    gs.ranking: \code{\linkS4class{DataFrame}} with gene sets ranked by the 
+                corresponding p-value;
 
     ea.browse: none, opens the browser to explore results.
 } 
@@ -62,12 +63,12 @@
     rdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
     probeSE <- readSE(exprs.file, cdat.file, rdat.file)
     geneSE <- probe2gene(probeSE) 
-    geneSE <- de.ana(geneSE)
+    geneSE <- deAna(geneSE)
     metadata(geneSE)$annotation <- "hsa"
 
     # artificial enrichment analysis results
-    gs <- make.example.data(what="gs", gnames=names(geneSE))
-    ea.res <- make.example.data(what="ea.res", method="ora", eset=geneSE, gs=gs)
+    gs <- makeExampleData(what="gs", gnames=names(geneSE))
+    ea.res <- makeExampleData(what="ea.res", method="ora", se=geneSE, gs=gs)
 
     # (5) result visualization and exploration
     gs.ranking(ea.res)

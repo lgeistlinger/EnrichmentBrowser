@@ -43,6 +43,7 @@ export(
     gs.ranking,
     download.kegg.pathways, 
     compile.grn.from.kegg,
+    compileGRN,
     nbea.methods,
     nbea,
     ggeaGraph,

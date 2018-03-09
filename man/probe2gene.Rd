@@ -15,24 +15,24 @@
     \item{probeSE}{
         Probe expression data. 
         An object of class \code{\linkS4class{SummarizedExperiment}}.
-        Make sure that the \code{metadata} contains an element named
+        Make sure that the \code{\link{metadata}} contains an element named
         \code{annotation} that provides the corresponding ID of a 
-        recognized platform such as 'hgu95av2' (Affymetrix Human Genome 
+        recognized platform such as \code{hgu95av2} (Affymetrix Human Genome 
         U95 chip).
-        This requires that a corresponding '.db' package exists (see 
+        This requires that a corresponding \code{.db} package exists (see 
         \url{http://www.bioconductor.org/packages/release/BiocViews.html#___ChipName}
         for available chips/packages) and that you have it installed.
         Alternatively, The mapping from probe to gene can also be defined in the
-        \code{rowData} slot via two columns named (i) \code{PROBEID} for the 
+        \code{\link{rowData}} slot via two columns named (i) \code{PROBEID} for the 
         platform-specific probe ID, and (ii) \code{ENTREZID} for the corresponding
         NCBI Entrez Gene ID.
     }
     \item{use.mean}{
         Logical.
         Determining, in case of multiple probes for one gene,
-        whether a mean value is computed (use.mean=TRUE), or the probe
+        whether a mean value is computed (\code{use.mean=TRUE}), or the probe
         that discriminate the most between the two sample
-        group is kept (use.mean=FALSE).
+        group is kept (\code{use.mean=FALSE}).
         Defaults to TRUE.
     }
 }

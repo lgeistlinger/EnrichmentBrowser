@@ -56,7 +56,7 @@
         Expression data type.
         Use 'ma' for microarray and 'rseq' for RNA-seq data.
         If NA, data.type is automatically guessed. 
-        If the expression values in 'eset' are decimal numbers 
+        If the expression values in the expression matrix are decimal numbers, 
         they are assumed to be microarray intensities.
         Whole numbers are assumed to be RNA-seq read counts. 
         Defaults to NA.

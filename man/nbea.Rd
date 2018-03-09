@@ -196,7 +196,7 @@
     Input:    
     \code{\link{readSE}}, \code{\link{probe2gene}}, 
     \code{\link{get.kegg.genesets}} to retrieve gene set definitions from KEGG.
-    \code{\link{compile.grn.from.kegg}} to construct a GRN from KEGG pathways.
+    \code{\link{compileGRN}} to construct a GRN from pathway databases.
   
     Output:
     \code{\link{gs.ranking}} to rank the list of gene sets.  

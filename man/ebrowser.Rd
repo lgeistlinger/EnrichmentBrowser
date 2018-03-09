@@ -39,8 +39,8 @@
         (RNA-seq logCPMs).
         See limma's user guide for definition and normalization of the 
         different data types.       
-        Alternatively, this can be a \code{SummarizedExperiment},
-        assuming the expression matrix in the \code{assays} slot.
+        Alternatively, this can be a \code{\linkS4class{SummarizedExperiment}},
+        assuming the expression matrix in the \code{\link{assays}} slot.
     }
     \item{pdat}{
         Phenotype data.
@@ -55,10 +55,11 @@
         class, respectively. 
         For paired samples or sample blocks a third column is expected that
         defines the blocks. 
-        If 'exprs' is a \code{SummarizedExperiment},
+        If 'exprs' is a \code{\linkS4class{SummarizedExperiment}},
         the 'pdat' argument can be left unspecified, which then expects
         group and optional block assignments in respectively named columns
-        'GROUP' (mandatory) and 'BLOCK' (optional) in the \code{colData} slot.
+        'GROUP' (mandatory) and 'BLOCK' (optional) in the \code{\link{colData}} 
+        slot.
     }
     \item{fdat}{
         Feature data.
@@ -69,10 +70,10 @@
         for each feature ID in 1st col; NO headers, row or column names.    
         The number of rows/features in this file should match the number of 
         rows/features of the expression matrix. 
-        If 'exprs' is a \code{SummarizedExperiment},
+        If 'exprs' is a \code{\linkS4class{SummarizedExperiment}},
         the 'fdat' argument can be left unspecified, which then expects
         probe and corresponding Entrez Gene IDs in respectively named columns
-        'PROBEID' and 'ENTREZID' in the \code{rowData} slot.
+        'PROBEID' and 'ENTREZID' in the \code{\link{rowData}} slot.
     }
     \item{org}{
         Organism under investigation in KEGG three letter code, 
@@ -157,15 +158,15 @@
     \code{\link{probe2gene}} to transform probe to gene level expression;
     \code{\link{kegg.species.code}} maps species name to KEGG code.
     \code{\link{get.kegg.genesets}} to retrieve gene set definitions from KEGG;
-    \code{\link{compile.grn.from.kegg}} to construct a GRN from KEGG pathways;
+    \code{\link{compileGRN}} to construct a GRN from pathway databases;
     \code{\link{sbea}} to perform set-based enrichment analysis;
     \code{\link{nbea}} to perform network-based enrichment analysis;
     \code{\link{comb.ea.results}} to combine results from different methods;
     \code{\link{ea.browse}} for exploration of resulting gene sets    
 }
 \references{
-Limma User's guide:
-\url{http://www.bioconductor.org/packages/limma}
+    Limma User's guide:
+    \url{http://www.bioconductor.org/packages/limma}
 }
 \author{
     Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
@@ -187,9 +188,7 @@ Limma User's guide:
             gs=hsa.gs, org="hsa", nr.show=3)
 
     # compile a gene regulatory network from KEGG pathways
-    # hsa.grn <- compile.grn.from.kegg("hsa")
-    pwys <- system.file("extdata/hsa_kegg_pwys.zip", package="EnrichmentBrowser")
-    hsa.grn <- compile.grn.from.kegg(pwys)
+    hsa.grn <- compileGRN(org="hsa", db="kegg")
    
     # network-based enrichment analysis
     ebrowser(   meth="ggea", 

@@ -26,12 +26,14 @@
         Use '0' and '1' for unaffected (controls) and affected (cases) 
         samples, respectively.
         If NULL, this is assumed to be defined via a column named 'GROUP' 
-        in the \code{colData} slot if 'expr' is a \code{SummarizedExperiment}.
+        in the \code{\link{colData}} slot if 'expr' is a 
+        \code{\linkS4class{SummarizedExperiment}}.
     }
     \item{blk}{
         Optional. For paired samples or sample blocks.
         This can also be defined via a column named 'BLOCK' 
-        in the \code{colData} slot if 'expr' is a \code{SummarizedExperiment}. 
+        in the \code{\link{colData}} slot if 'expr' is a 
+        \code{\linkS4class{SummarizedExperiment}}. 
     }
     \item{de.method}{
         Differential expression method.

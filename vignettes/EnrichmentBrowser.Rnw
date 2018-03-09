@@ -449,7 +449,7 @@ go.gs <- get.go.genesets(org="hsa", onto="BP", mode="GO.db")
 @
 
 User-defined gene sets can be parsed from GMT file format.
-Here, we are using this functionality for reading a list of already downloaded
+Here, we use this functionality for reading a list of already downloaded
 KEGG gene sets for \emph{Homo sapiens} containing NCBI Entrez Gene IDs.
  
 <<parseGMT>>=
@@ -600,22 +600,11 @@ There are well-studied processes and organisms for which comprehensive and
 well-annotated regulatory networks are available, e.g.~the \verb=RegulonDB= for
 \emph{E.~coli} and \verb=Yeastract= for \emph{S.~cerevisiae}. 
 However, there are also cases where such a network is missing. 
-A basic workaround is to compile a network from regulations in the KEGG
-database.
-
-We can download all KEGG pathways of a specified organism 
-(here: \emph{Homo sapiens}) via 
-
-<<dwnld-pwys, eval=FALSE>>=
-pwys <- download.kegg.pathways("hsa")
-@
-
-For demonstration purposes, we use a selection of already downloaded human 
-KEGG pathways.
+A basic workaround is to compile a network from regulations in 
+pathway databases such as KEGG.
 
 <<compile-grn>>=
-pwys <- file.path(data.dir, "hsa_kegg_pwys.zip")
-hsa.grn <- compile.grn.from.kegg(pwys)
+hsa.grn <- compileGRN(org="hsa", db="kegg")
 head(hsa.grn)
 @
 

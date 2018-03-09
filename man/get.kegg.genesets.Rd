@@ -49,8 +49,8 @@
 }
 \seealso{  
     \code{\link{keggList}}, \code{\link{keggLink}},
-    \code{\link[KEGGgraph:KEGGPathway-class]{KEGGPathway-class}}, 
-    \code{\link[KEGGgraph:parseKGML]{parseKGML}}
+    \code{\linkS4class{KEGGPathway}}, 
+    \code{\link{parseKGML}}
 }
 \examples{
     # WAYS TO DEFINE GENE SETS ACCORDING TO HUMAN KEGG PATHWAYS

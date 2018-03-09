@@ -25,9 +25,10 @@
 }
 \details{
     Checks whether a required package is available in the library.
-    If yes, the package is loaded via \code{require}.
-    If not, the package is optionally installed via \code{biocLite}
-    and, subsequently, loaded via \code{require}.
+    If yes, the package is loaded via \code{\link{require}}.
+    If not, the package is optionally installed via 
+    \code{\link[BiocInstaller:biocLite]{biocLite}}
+    and, subsequently, loaded via \code{\link{require}}.
 }
 \author{
     Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>

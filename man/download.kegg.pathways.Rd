@@ -39,8 +39,8 @@
 }
 \seealso{
     \code{\link{keggList}}, \code{\link{keggGet}}, 
-    \code{\link[KEGGgraph:KEGGPathway-class]{KEGGPathway-class}}, 
-    \code{\link[KEGGgraph:parseKGML]{parseKGML}}
+    \code{\linkS4class{KEGGPathway}}, 
+    \code{\link{parseKGML}}
 }
 \examples{
     \donttest{

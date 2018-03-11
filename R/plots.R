@@ -1,4 +1,48 @@
+#' @name plots
+#' 
+#' @title Visualization of gene expression
+#' 
+#' @description Visualization of differential gene expression via heatmap, p-value histogram
+#' and volcano plot (fold change vs. p-value).
+#' 
+#' 
+#' @param p Numeric vector of p-values for each gene.
+#' @param fc Numeric vector of fold changes (typically on log2 scale).
+#' @param expr Expression matrix. Rows correspond to genes, columns to samples.
+#' @param grp *BINARY* group assignment for the samples.  Use '0' and '1' for
+#' unaffected (controls) and affected (cases) samples, respectively.
+#' @param scale.rows Should rows of the expression matrix be scaled for better
+#' visibility of expression differences between sample groups? Defaults to
+#' TRUE.
+#' @param log.thresh Threshold for log2-transformation of the expression
+#' matrix.  Particularly useful for heatmap visualization of RNA-seq read count
+#' data, where the max and the min of the expression matrix typically differ by
+#' several orders of magnitude.  If the difference between min and max of the
+#' expression matrix is greater than the indicated threshold,
+#' log2-transformation is applied.
+#' @return None, plots to a graphics device.
+#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @seealso \code{\link{deAna}} for differential expression analysis,
+#' \code{\link{heatmap}} and \code{\link{truehist}} for generic plotting.
+#' @examples
+#' 
+#'     # (1) simulating expression data: 100 genes, 12 samples
+#'     se <- makeExampleData(what="SE") 
+#'     
+#'     # plot heatmap
+#'     exprs.heatmap(expr=assay(se), grp=as.factor(se$GROUP))
+#' 
+#'     # (2) DE analysis
+#'     se <- deAna(se)
+#'     pdistr(rowData(se)$ADJ.PVAL)
+#'     volcano(fc=rowData(se)$FC, p=rowData(se)$ADJ.PVAL)
+#' 
+NULL
+
+
 # P-Value Distribution
+#' @rdname plots
+#' @export
 pdistr <- function(p)
 {
     MASS::truehist(p, nbins=100, prob=TRUE,
@@ -6,6 +50,8 @@ pdistr <- function(p)
 }
 
 # Volcano Plot (fold change vs. p-value)
+#' @export
+#' @rdname plots
 volcano <- function(fc, p)
 {
     plot(x=fc, 
@@ -14,6 +60,8 @@ volcano <- function(fc, p)
 }
 
 # Heatmap: based on ComplexHeatmap
+#' @export
+#' @rdname plots
 exprs.heatmap <- function(expr, grp, scale.rows=TRUE, log.thresh=100)
 {
 	# log-transform?

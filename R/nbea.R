@@ -10,10 +10,193 @@
 #
 ############################################################
 
+#' @rdname nbea
+#' @export
 nbea.methods <- function() 
     c("ggea", "spia", "pathnet", "degraph", 
 		"ganpa", "cepa", "topologygsa", "netgsa", "nea")
 
+
+
+#' Network-based enrichment analysis (NBEA)
+#' 
+#' This is the main function for network-based enrichment analysis.  It
+#' implements and wraps existing implementations of several frequently used
+#' methods and allows a flexible inspection of resulting gene set rankings.
+#' 
+#' 'ggea': gene graph enrichment analysis, scores gene sets according to
+#' consistency within the given gene regulatory network, i.e. checks activating
+#' regulations for positive correlation and repressing regulations for negative
+#' correlation of regulator and target gene expression (Geistlinger et al.,
+#' 2011). When using 'ggea' it is possible to estimate the statistical
+#' significance of the consistency score of each gene set in two different
+#' ways: (1) based on sample permutation as described in the original
+#' publication (Geistlinger et al., 2011) or (2) using an approximation in the
+#' spirit of Bioconductor's npGSEA package that is much faster.
+#' 
+#' 'spia': signaling pathway impact analysis, combines ORA with the probability
+#' that expression changes are propagated across the pathway topology;
+#' implemented in Bioconductor's SPIA package.
+#' 
+#' 'pathnet': pathway analysis using network information, applies ORA on
+#' combined evidence for the observed signal for gene nodes and the signal
+#' implied by connected neighbors in the network; implemented in Bioconductor's
+#' PathNet package.
+#' 
+#' 'degraph': differential expression testing for gene graphs, multivariate
+#' testing of differences in mean incorporating underlying graph structure;
+#' implemented in Bioconductor's DEGraph package
+#' 
+#' 'topologygsa': topology-based gene set analysis, uses Gaussian graphical
+#' models to incorporate the dependence structure among genes as implied by
+#' pathway topology; implemented in CRAN's topologyGSA package.
+#' 
+#' 'ganpa': gene association network-based pathway analysis, incorporates
+#' network-derived gene weights in the enrichment analysis; implemented in
+#' CRAN's GANPA package.
+#' 
+#' 'cepa': centrality-based pathway enrichment, incorporates network
+#' centralities as node weights mapped from differentially expressed genes in
+#' pathways; implemented in CRAN's CePa package.
+#' 
+#' 'netgsa': network-based gene set analysis, incorporates external information
+#' about interactions among genes as well as novel interactions learned from
+#' data; implemented in CRAN's NetGSA package.
+#' 
+#' 'nea': network enrichment analysis, applies ORA on interactions instead of
+#' genes; implemented in Bioconductor's neaGUI package.
+#' 
+#' It is also possible to use additional network-based enrichment methods.
+#' This requires to implement a function that takes 'se', 'gs', 'grn', 'alpha',
+#' and 'perm' as arguments and returns a numeric matrix 'res.tbl' with a
+#' mandatory column named 'P.VALUE' storing the resulting p-value for each gene
+#' set in 'gs'. The rows of this matrix must be named accordingly (i.e.
+#' rownames(res.tbl) == names(gs)). See examples.
+#' 
+#' @aliases ggea spia
+#' @param method Network-based enrichment analysis method.  Currently, the
+#' following network-based enrichment analysis methods are supported:
+#' \sQuote{ggea}, \sQuote{spia}, \sQuote{pathnet}, \sQuote{degraph},
+#' \sQuote{topologygsa}, \sQuote{ganpa}, \sQuote{cepa}, \sQuote{netgsa}, and
+#' \sQuote{nea}.  Default is 'ggea'.  This can also be the name of a
+#' user-defined function implementing network-based enrichment. See Details.
+#' @param se Expression dataset.  An object of class
+#' \code{\linkS4class{SummarizedExperiment}}.  Mandatory minimal annotations:
+#' \itemize{ \item colData column storing binary group assignment (named
+#' "GROUP") \item rowData column storing (log2) fold changes of differential
+#' expression between sample groups (named "FC") \item rowData column storing
+#' adjusted (corrected for multiple testing) p-values of differential
+#' expression between sample groups (named "ADJ.PVAL") } Additional optional
+#' annotations: \itemize{ \item colData column defining paired samples or
+#' sample blocks (named "BLOCK") \item metadata slot named "annotation" giving
+#' the organism under investigation in KEGG three letter code (e.g. "hsa" for
+#' Homo sapiens) \item metadata slot named "dataType" indicating the expression
+#' data type ("ma" for microarray, "rseq" for RNA-seq) }
+#' @param gs Gene sets.  Either a list of gene sets (vectors of KEGG gene IDs)
+#' or a text file in GMT format storing all gene sets under investigation.
+#' @param grn Gene regulatory network.  Either an absolute file path to a
+#' tabular file or a character matrix with exactly *THREE* cols; 1st col = IDs
+#' of regulating genes; 2nd col = corresponding regulated genes; 3rd col =
+#' regulation effect; Use '+' and '-' for activation/inhibition.
+#' @param prune.grn Logical.  Should the GRN be pruned? This removes
+#' duplicated, self, and reversed edges. Defaults to TRUE.
+#' @param alpha Statistical significance level. Defaults to 0.05.
+#' @param perm Number of permutations of the expression matrix to estimate the
+#' null distribution. Defaults to 1000. If using method=\sQuote{ggea}, it is
+#' possible to set 'perm=0' to use a fast approximation of gene set
+#' significance to avoid permutation testing. See Details.
+#' @param padj.method Method for adjusting nominal gene set p-values to
+#' multiple testing.  For available methods see the man page of the stats
+#' function \code{\link{p.adjust}}.  Defaults to 'none', i.e. leaves the
+#' nominal gene set p-values unadjusted.
+#' @param out.file Optional output file the gene set ranking will be written
+#' to.
+#' @param browse Logical. Should results be displayed in the browser for
+#' interactive exploration? Defaults to FALSE.
+#' @param ...  Additional arguments passed to individual nbea methods.  This
+#' includes currently: \itemize{ \item beta: Log2 fold change significance
+#' level. Defaults to 1 (2-fold).  } For SPIA and NEA: \itemize{ \item
+#' sig.stat: decides which statistic is used for determining significant DE
+#' genes.  Options are: \itemize{ \item 'p' (Default): genes with p-value below
+#' alpha.  \item 'fc': genes with abs(log2(fold change)) above beta \item '&':
+#' p & fc (logical AND) \item '|': p | fc (logical OR) } } For GGEA: \itemize{
+#' \item cons.thresh: edge consistency threshold between -1 and 1.  Defaults to
+#' 0.2, i.e. only edges of the GRN with consistency >= 0.2 are included in the
+#' analysis. Evaluation on real datasets has shown that this works best to
+#' distinguish relevant gene sets.  Use consistency of -1 to include all edges.
+#' \item gs.edges: decides which edges of the grn are considered for a gene set
+#' under investigation. Should be one out of c('&', '|'), denoting logical AND
+#' and OR. respectively. Accordingly, this either includes edges for which
+#' regulator AND / OR target gene are members of the investigated gene set.  }
+#' @return nbea.methods: a character vector of currently supported methods;
+#' 
+#' nbea: if(is.null(out.file)): an enrichment analysis result object that can
+#' be detailedly explored by calling \code{\link{ea.browse}} and from which a
+#' flat gene set ranking can be extracted by calling \code{\link{gs.ranking}}.
+#' If 'out.file' is given, the ranking is written to the specified file.
+#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @seealso Input: \code{\link{readSE}}, \code{\link{probe2gene}},
+#' \code{\link{get.kegg.genesets}} to retrieve gene set definitions from KEGG.
+#' \code{\link{compileGRN}} to construct a GRN from pathway databases.
+#' 
+#' Output: \code{\link{gs.ranking}} to rank the list of gene sets.
+#' \code{\link{ea.browse}} for exploration of resulting gene sets.
+#' 
+#' Other: \code{\link{sbea}} to perform set-based enrichment analysis.
+#' \code{\link{comb.ea.results}} to combine results from different methods.
+#' the SPIA package for more information on signaling pathway impact analysis.
+#' the neaGUI package for more information on network enrichment analysis.  the
+#' PathNet package for more information on pathway analysis using network
+#' information.
+#' @references Geistlinger et al. (2011) From sets to graphs: towards a
+#' realistic enrichment analysis of transcriptomic systems.  Bioinformatics,
+#' 27(13), i366--73.
+#' @examples
+#' 
+#'     # currently supported methods
+#'     nbea.methods()
+#' 
+#'     # (1) expression data: 
+#'     # simulated expression values of 100 genes
+#'     # in two sample groups of 6 samples each
+#'     se <- makeExampleData(what="SE")
+#'     se <- deAna(se)
+#' 
+#'     # (2) gene sets:
+#'     # draw 10 gene sets with 15-25 genes
+#'     gs <- makeExampleData(what="gs", gnames=names(se))
+#' 
+#'     # (3) make 2 artificially enriched sets:
+#'     sig.genes <- names(se)[rowData(se)$ADJ.PVAL < 0.1]
+#'     gs[[1]] <- sample(sig.genes, length(gs[[1]])) 
+#'     gs[[2]] <- sample(sig.genes, length(gs[[2]]))   
+#'    
+#'     # (4) gene regulatory network 
+#'     grn <- makeExampleData(what="grn", nodes=names(se))
+#'     
+#'     # (5) performing the enrichment analysis
+#'     ea.res <- nbea(method="ggea", se=se, gs=gs, grn=grn)
+#' 
+#'     # (6) result visualization and exploration
+#'     gs.ranking(ea.res, signif.only=FALSE)
+#' 
+#'     # using your own tailored function as enrichment method
+#'     dummy.nbea <- function(se, gs, grn, alpha, perm)
+#'     {
+#'         sig.ps <- sample(seq(0,0.05, length=1000),5)
+#'         insig.ps <- sample(seq(0.1,1, length=1000), length(gs)-5)
+#'         ps <- sample(c(sig.ps, insig.ps), length(gs))
+#'         score <- sample(1:100, length(gs), replace=TRUE)
+#'         res.tbl <- cbind(score, ps)
+#'         colnames(res.tbl) <- c("SCORE", "P.VALUE")
+#'         rownames(res.tbl) <- names(gs)
+#'         return(res.tbl[order(ps),])
+#'     }
+#' 
+#'     ea.res2 <- nbea(method=dummy.nbea, se=se, gs=gs, grn=grn)
+#'     gs.ranking(ea.res2) 
+#' 
+#' @export nbea
 nbea <- function(
     method=EnrichmentBrowser::nbea.methods(), 
     se, 

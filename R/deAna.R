@@ -1,12 +1,62 @@
-de.ana <- function(expr, grp=NULL, blk=NULL, 
-                    de.method=c("limma", "edgeR", "DESeq"), 
-                    padj.method="BH", stat.only=FALSE, min.cpm=2)
-{
-    .Deprecated("deAna")
-    deAna(expr=expr, grp=grp, blk=blk, de.method=de.method,
-            padj.method=padj.method, stat.only=stat.only, min.cpm=min.cpm)
-}
-
+#' Differential expression analysis between two sample groups
+#' 
+#' The function carries out a differential expression analysis between two
+#' sample groups. Resulting fold changes and derived p-values are returned.
+#' Raw p-values are corrected for multiple testing.
+#' 
+#' 
+#' @aliases de.ana
+#' @param expr Expression data.  A numeric matrix. Rows correspond to genes,
+#' columns to samples.  Alternatively, this can also be an object of class
+#' \code{\linkS4class{SummarizedExperiment}}.
+#' @param grp *BINARY* group assignment for the samples.  Use '0' and '1' for
+#' unaffected (controls) and affected (cases) samples, respectively.  If NULL,
+#' this is assumed to be defined via a column named 'GROUP' in the
+#' \code{\link{colData}} slot if 'expr' is a
+#' \code{\linkS4class{SummarizedExperiment}}.
+#' @param blk Optional. For paired samples or sample blocks.  This can also be
+#' defined via a column named 'BLOCK' in the \code{\link{colData}} slot if
+#' 'expr' is a \code{\linkS4class{SummarizedExperiment}}.
+#' @param de.method Differential expression method.  Use 'limma' for microarray
+#' and RNA-seq data.  Alternatively, differential expression for RNA-seq data
+#' can be also calculated using edgeR ('edgeR') or DESeq2 ('DESeq').  Defaults
+#' to 'limma'.
+#' @param padj.method Method for adjusting p-values to multiple testing.  For
+#' available methods see the man page of the stats function
+#' \code{\link{p.adjust}}.  Defaults to 'BH'.
+#' @param stat.only Logical. Should only the test statistic be returned?  This
+#' is mainly for internal use, in order to carry out permutation tests on the
+#' DE statistic for each gene.  Defaults to FALSE.
+#' @param min.cpm In case of RNA-seq data: should genes not satisfying a
+#' minimum counts-per-million (cpm) threshold be excluded from the analysis?
+#' This is typically recommended. See the edgeR vignette for details. The
+#' default filter is to exclude genes with cpm < 2 in more than half of the
+#' samples.
+#' @return A DE-table with measures of differential expression for each
+#' gene/row, i.e. a two-column matrix with log2 fold changes in the 1st column
+#' and derived p-values in the 2nd column.  If 'expr' is a
+#' \code{\linkS4class{SummarizedExperiment}}, the DE-table will be
+#' automatically appended to the \code{\link{rowData}} slot.
+#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @seealso \code{\link{readSE}} for reading expression data from file,
+#' \code{\link{normalize}} for normalization of expression data,
+#' \code{\link{voom}} for preprocessing of RNA-seq data, \code{\link{p.adjust}}
+#' for multiple testing correction, \code{\link{eBayes}} for DE analysis with
+#' limma, \code{\link{glmFit}} for DE analysis with edgeR, and
+#' \code{\link{DESeq}} for DE analysis with DESeq.
+#' @examples
+#' 
+#'     # (1) microarray data: intensity measurements
+#'     maSE <- makeExampleData(what="SE", type="ma")
+#'     maSE <- deAna(maSE)
+#'     rowData(maSE, use.names=TRUE)
+#'     
+#'     # (2) RNA-seq data: read counts
+#'     rseqSE <- makeExampleData(what="SE", type="rseq")
+#'     rseqSE <- deAna(rseqSE, de.method="DESeq")
+#'     rowData(rseqSE, use.names=TRUE)
+#' 
+#' @export deAna
 deAna <- function(expr, grp=NULL, blk=NULL, 
                     de.method=c("limma", "edgeR", "DESeq"), 
                     padj.method="BH", stat.only=FALSE, min.cpm=2)
@@ -149,5 +199,18 @@ deAna <- function(expr, grp=NULL, blk=NULL,
     }
     return(de.tbl)
 }
+
+#' @export
+#' @keywords internal
+de.ana <- function(expr, grp=NULL, blk=NULL, 
+                    de.method=c("limma", "edgeR", "DESeq"), 
+                    padj.method="BH", stat.only=FALSE, min.cpm=2)
+{
+    .Deprecated("deAna")
+    deAna(expr=expr, grp=grp, blk=blk, de.method=de.method,
+            padj.method=padj.method, stat.only=stat.only, min.cpm=min.cpm)
+}
+
+
 
 

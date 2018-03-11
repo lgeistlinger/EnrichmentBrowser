@@ -16,7 +16,7 @@
 .createIndex <- function(meth, comb)
 {
     out.dir <- config.ebrowser("OUTDIR.DEFAULT")
-    indexPage <- HTMLReport(shortName = 'index',
+    indexPage <- ReportingTools::HTMLReport(shortName = 'index',
                         title = 'EnrichmentBrowser: Index of Result Files',
                         basePath=out.dir, reportDirectory="reports")
     
@@ -25,30 +25,90 @@
                     to=file.path(out.dir, "reports", res.files))
 
     vcol <- "global_sview.html"
-    de.plot <- hwriteImage(sub("sview.html", "volc.png", vcol),
+    de.plot <- hwriter::hwriteImage(sub("sview.html", "volc.png", vcol),
         link=vcol, table = FALSE, height=200, width=200, target="_blank")
 
-    publish(hwrite(de.plot, border=0, br=TRUE), indexPage)
-    publish(Link("DE Measures for each Gene", "de.txt"), indexPage)
+    de.tag <- hwriter::hwrite(de.plot, border=0, br=TRUE)
+    ReportingTools::publish(de.tag, indexPage)
+    delink <- ReportingTools::Link("DE Measures for each Gene", "de.txt")
+    ReportingTools::publish(delink, indexPage)
     
     if(comb)
     {
-        publish(hwrite("Combined Results", heading=4), indexPage)
-        publish(Link("Top Table", "comb.html"), indexPage)
-        publish(Link("Full Ranking", "comb.txt"), indexPage) 
+        res.tag <- hwriter::hwrite("Combined Results", heading=4)
+        ReportingTools::publish(res.tag, indexPage)
+        ttlink <- ReportingTools::Link("Top Table", "comb.html")
+        ReportingTools::publish(ttlink, indexPage)
+        frlink <- ReportingTools::Link("Full Ranking", "comb.txt")
+        ReportingTools::publish(frlink, indexPage) 
     }
 
     for(m in meth)
     {
-        publish(hwrite(paste(toupper(m), "Results"), heading=4), indexPage)
-        publish(Link("Top Table", paste0(m, ".html")), indexPage)
-        publish(Link("Full Ranking", paste0(m, ".txt")), indexPage) 
+        res.tag <- hwriter::hwrite(paste(toupper(m), "Results"), heading=4)
+        ReportingTools::publish(res.tag, indexPage)
+        ttlink <- ReportingTools::Link("Top Table", paste0(m, ".html"))
+        ReportingTools::publish(ttlink, indexPage)
+        frlink <- ReportingTools::Link("Full Ranking", paste0(m, ".txt"))
+        ReportingTools::publish(frlink, indexPage) 
     }
-    index <- finish(indexPage)
+    index <- ReportingTools::finish(indexPage)
     if (interactive()) browseURL(index)
 }
 
 
+
+
+#' Exploration of enrichment analysis results
+#' 
+#' Functions to extract a flat gene set ranking from an enrichment analysis
+#' result object and to detailedly explore it.
+#' 
+#' 
+#' @aliases ea.browse gs.ranking
+#' @param res Enrichment analysis result list (as returned by the functions
+#' \code{\link{sbea}} and \code{\link{nbea}}).
+#' @param nr.show Number of gene sets to show.  As default all statistically
+#' significant gene sets are displayed.
+#' @param graph.view Optional.  Should a graph-based summary (reports and
+#' visualizes consistency of regulations) be created for the result?  If
+#' specified, it needs to be a gene regulatory network, i.e. either an absolute
+#' file path to a tabular file or a character matrix with exactly *THREE* cols;
+#' 1st col = IDs of regulating genes; 2nd col = corresponding regulated genes;
+#' 3rd col = regulation effect; Use '+' and '-' for activation/inhibition.
+#' @param html.only Logical.  Should the html file only be written (without
+#' opening the browser to view the result page)? Defaults to FALSE.
+#' @param signif.only Logical.  Display only those gene sets in the ranking,
+#' which satisfy the significance level? Defaults to TRUE.
+#' @return gs.ranking: \code{\linkS4class{DataFrame}} with gene sets ranked by
+#' the corresponding p-value;
+#' 
+#' ea.browse: none, opens the browser to explore results.
+#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @seealso \code{\link{sbea}}, \code{\link{nbea}},
+#' \code{\link{comb.ea.results}}
+#' @examples
+#' 
+#'     
+#'     # real data
+#'     # (1) reading the expression data from file
+#'     exprs.file <- system.file("extdata/exprs.tab", package="EnrichmentBrowser")
+#'     cdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
+#'     rdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
+#'     probeSE <- readSE(exprs.file, cdat.file, rdat.file)
+#'     geneSE <- probe2gene(probeSE) 
+#'     geneSE <- deAna(geneSE)
+#'     metadata(geneSE)$annotation <- "hsa"
+#' 
+#'     # artificial enrichment analysis results
+#'     gs <- makeExampleData(what="gs", gnames=names(geneSE))
+#'     ea.res <- makeExampleData(what="ea.res", method="ora", se=geneSE, gs=gs)
+#' 
+#'     # (5) result visualization and exploration
+#'     gs.ranking(ea.res)
+#'     ea.browse(ea.res)
+#' 
+#' @export ea.browse
 ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
 {
     method <- ifelse( is(res$method, "character"), res$method, NA)
@@ -113,7 +173,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     # make gene set page
     # (1) link .geneReport
     link <- paste0(names(gsc), ".html")
-    res[,"NR.GENES"] <- hwrite(res[,"NR.GENES"], link=link, table = FALSE)
+    res[,"NR.GENES"] <- hwriter::hwrite(res[,"NR.GENES"], link=link, table=FALSE)
    
     # set view: volcano, heatmap 
     message("Creating set view ...")
@@ -121,7 +181,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     names(out.prefix) <- names(gsc)
     vcol <- sapply(gsc, function(s) 
         .viewSet(se[geneIds(s),], out.prefix[setName(s)]))
-    vcol <- hwriteImage(sub("sview.html", "volc.png", vcol),
+    vcol <- hwriter::hwriteImage(sub("sview.html", "volc.png", vcol),
         link=vcol, table = FALSE, height=50, width=50, target="_blank")
     res <- DataFrame(res, vcol)
     colnames(res)[ncol(res)] <- "SET.VIEW" 
@@ -133,7 +193,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
         isAvailable("pathview", type="software")
         vcol <- sapply(gsc, function(s) 
             .viewPath(setName(s), se[geneIds(s),], out.prefix[setName(s)]))
-        vcol <- hwriteImage(sub("kview.html", "kpath.png", vcol),
+        vcol <- hwriter::hwriteImage(sub("kview.html", "kpath.png", vcol),
             link=vcol, table = FALSE, height=50, width=50, target="_blank")
         res <- DataFrame(res, vcol)
         colnames(res)[ncol(res)] <- "PATH.VIEW"
@@ -145,7 +205,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
         message("Creating graph view ...")
         vcol <- sapply(gsc, function(s) .viewGraph(se[geneIds(s),], .queryGRN(
             geneIds(s), graph.view, index=FALSE), alpha, out.prefix[setName(s)]))
-        vcol <- hwriteImage(sub("html$", "png", vcol),
+        vcol <- hwriter::hwriteImage(sub("html$", "png", vcol),
             link=vcol, table = FALSE, height=50, width=50, target="_blank")
         res <- DataFrame(res, vcol)
         colnames(res)[ncol(res)] <- "GRAPH.VIEW"
@@ -158,16 +218,16 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
         .getHTMLOfMarkedPathway(setName(s), geneIds(s)[fDat[geneIds(s),2] < alpha]))
     else if(is.go) link <- paste0(config.ebrowser("GO.SHOW.URL"), res[,GS.COL])
     if(!is.null(link)) res[,GS.COL] <- 
-        hwrite(res[,GS.COL], link=link, table=FALSE)
+        hwriter::hwrite(res[,GS.COL], link=link, table=FALSE)
 
-    htmlRep <- HTMLReport(shortName=method,
+    htmlRep <- ReportingTools::HTMLReport(shortName=method,
         title=paste(toupper(method), config.ebrowser("RESULT.TITLE"), sep=" - "),
         basePath=out.dir, reportDirectory="reports")
     res <- as.data.frame(res)
-    publish(res, htmlRep) 
+    ReportingTools::publish(res, htmlRep) 
         #colClasses = c(rep("sort-string-robust", 3),
         #    rep("sort-num-robust", ncol(gt)-3 )))
-    rep <- finish(htmlRep)
+    rep <- ReportingTools::finish(htmlRep)
     if(!html.only) if (interactive()) browseURL(rep)
 }
 
@@ -176,10 +236,10 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     gene.html.pos <- match.arg(gene.html.pos)
     s <- unlist(strsplit(html1, "_"))[1]
     
-    head <- hmakeTag("head", hmakeTag("title", s))
-    html1.tag <- hmakeTag("frame", name="volc", src=html1)
-    html2.tag <- hmakeTag("frame", name="hmap", src=html2)
-    html3.tag <- hmakeTag("frame", name="gene", scrolling="auto")
+    head <- hwriter::hmakeTag("head", hwriter::hmakeTag("title", s))
+    html1.tag <- hwriter::hmakeTag("frame", name="volc", src=html1)
+    html2.tag <- hwriter::hmakeTag("frame", name="hmap", src=html2)
+    html3.tag <- hwriter::hmakeTag("frame", name="gene", scrolling="auto")
     
     if(gene.html.pos == "topright")
     {
@@ -188,13 +248,13 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
         html2.tag <- bkp
     }
 
-    f1.tag <- hmakeTag("framse", 
+    f1.tag <- hwriter::hmakeTag("framse", 
         paste0(sub("</frame>", "", c(html1.tag, html2.tag)), collapse=""), 
         cols=paste0(config.ebrowser("PLOT.WIDTH") + 30, ",*"), border=0)
     html3.tag <- sub("</frame>", "", html3.tag)
-    f2.tag <- hmakeTag("framse", paste(f1.tag, html3.tag),
+    f2.tag <- hwriter::hmakeTag("framse", paste(f1.tag, html3.tag),
         rows=paste0(config.ebrowser("PLOT.HEIGHT") + 30, ",*"), border=0)
-    cont <- hmakeTag("html", paste0(head,f2.tag))
+    cont <- hwriter::hmakeTag("html", paste0(head,f2.tag))
     return(cont)
 }
 
@@ -268,7 +328,8 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
         ##
         ggraph.html <- .makeGGraphHTML(se, sgrn, alpha, out.files[2])
         void.html <- "void.html"
-        cat(hmakeTag('html'), file=file.path(dirname(out.prefix),void.html))
+        void.file <- file.path(dirname(out.prefix), void.html)
+        cat(hwriter::hmakeTag('html'), file=void.file)
         cont <- .makeView(ggraph.html, void.html)   
         cat(cont, file=out.files[1])
     }
@@ -289,7 +350,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     png(img.file, width=width, height=height)
     exprs.heatmap(expr=expr, grp=se[[config.ebrowser("GRP.COL")]])
     dev.off()
-    img.tag <- hwriteImage(basename(img.file))
+    img.tag <- hwriter::hwriteImage(basename(img.file))
 
     # (b) heatmap 2: most signif features
     max.row <- 40
@@ -318,12 +379,12 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
         png(img2, width=width, height=height)
         exprs.heatmap(expr=expr, grp=se[[config.ebrowser("GRP.COL")]])
         dev.off()
-        img.tag <- paste0(img.tag, hwriteImage(basename(img2)))
+        img.tag <- paste0(img.tag, hwriter::hwriteImage(basename(img2)))
     }
     
     # 2: make the html
     hmap.html <- sub("png$", "html", img.file)
-    cont <- hmakeTag('html', hmakeTag('body', img.tag))
+    cont <- hwriter::hmakeTag('html', hwriter::hmakeTag('body', img.tag))
     cat(cont, file=hmap.html)
     return(basename(hmap.html))
 }
@@ -408,7 +469,8 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     
     # 2: make the html
     kpath.html <- sub("png$", "html", img.file)
-    cont <- hmakeTag('html', hmakeTag('body', hwriteImage(basename(img.file))))
+    img.tag <- hwriter::hwriteImage(basename(img.file))
+    cont <- hwriter::hmakeTag('html', hwriter::hmakeTag('body', img.tag))
     cat(cont, file=kpath.html)
     return(basename(kpath.html))
 }
@@ -435,7 +497,9 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     {
         nd <- nodeRenderInfo(gr)$kegg.ids
         nam <- sapply(names(nd), function(n) 
-            ifelse(nd[[n]][1] %in% names(gname), gname[nd[[n]][1]], nodeRenderInfo(gr)$label[[n]]))
+            ifelse(nd[[n]][1] %in% names(gname), 
+                    gname[nd[[n]][1]], 
+                    nodeRenderInfo(gr)$label[[n]]))
         names(nam) <- names(nd)
         kstr <- sapply(nd, function(n) 
             paste(paste(org, n, sep=":"), collapse="+"), USE.NAMES=FALSE)
@@ -446,7 +510,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
             imgname=basename(img.file), width=width, height=height)    
         close(con)
     }
-    else cat(hmakeTag('html'), file=kgraph.html)
+    else cat(hwriter::hmakeTag('html'), file=kgraph.html)
     return(basename(kgraph.html))
 }
 
@@ -499,7 +563,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
             imgname=basename(img.file), width=width, height=height)    
         close(con)
     }
-    else cat(hmakeTag('html'), file=ggraph.html)
+    else cat(hwriter::hmakeTag('html'), file=ggraph.html)
     return(basename(ggraph.html))
 }
 
@@ -532,9 +596,9 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     gt <- .sortGeneTable(gt)
         
     # (1) html table
-    htmlRep <- HTMLReport(basePath=out.dir, reportDirectory="reports",
+    htmlRep <- ReportingTools::HTMLReport(basePath=out.dir, reportDirectory="reports",
         shortName=setName(s), title=paste(setName(s), "Gene Report", sep=": "))
-    publish(gt, htmlRep, .modifyDF=list(.ncbiGeneLink))#, .pubmedLink),
+    ReportingTools::publish(gt, htmlRep, .modifyDF=list(.ncbiGeneLink))#, .pubmedLink),
         #colClasses = c(rep("sort-string-robust", 3), rep("sort-num-robust", ncol(gt)-3 )))
 
     # (2) flat file
@@ -543,9 +607,10 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     ofname <- file.path(rep.dir, fname)
     if(!file.exists(ofname))
         write.table(gt, file=ofname, sep="\t", quote=FALSE, row.names=FALSE)
-    publish(Link("Download .txt", fname), htmlRep)
+    dlink <- ReportingTools::Link("Download .txt", fname)
+    ReportingTools::publish(dlink, htmlRep)
 
-    rep <- finish(htmlRep)
+    rep <- ReportingTools::finish(htmlRep)
     return(rep)
 }
 
@@ -652,7 +717,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     EZ.COL <- config.ebrowser("EZ.COL")
     col <- as.character(object[,EZ.COL])
     link <- paste0(config.ebrowser("GENE.URL"), col)
-    object[,EZ.COL] <- hwrite(col, link=link, table=FALSE)
+    object[,EZ.COL] <- hwriter::hwrite(col, link=link, table=FALSE)
     return(object)
 }
 
@@ -662,6 +727,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     spl <- sapply(as.character(object[,PMID.COL]), 
         function(s) unlist(strsplit(s, " ")))
     spl <- t(spl)
-    object[,PMID.COL] <- hwrite(as.integer(spl[,1]), link=spl[,2], table=FALSE)
+    spl1 <- as.integer(spl[,1])
+    object[,PMID.COL] <- hwriter::hwrite(spl1, link=spl[,2], table=FALSE)
     return(object)    
 }

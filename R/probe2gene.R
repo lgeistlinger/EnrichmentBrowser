@@ -11,13 +11,45 @@
 #
 ###############################################################################
 
-probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
-{
-    .Deprecated("probe2gene")
-    probe2gene(probe.eset, use.mean=use.mean)
-}
-
 # fast conversion of probe 2 gene expression
+
+
+#' Transformation of probe level expression to gene level expression
+#' 
+#' Transforms expression data on probe level to gene level expression by
+#' summarizing all probes that are annotated to a particular gene.
+#' 
+#' @aliases probe.2.gene.eset
+#' @param probeSE Probe expression data.  An object of class
+#' \code{\linkS4class{SummarizedExperiment}}.  Make sure that the
+#' \code{\link{metadata}} contains an element named \code{annotation} that
+#' provides the corresponding ID of a recognized platform such as
+#' \code{hgu95av2} (Affymetrix Human Genome U95 chip).  This requires that a
+#' corresponding \code{.db} package exists (see
+#' \url{http://www.bioconductor.org/packages/release/BiocViews.html#___ChipName}
+#' for available chips/packages) and that you have it installed.
+#' Alternatively, The mapping from probe to gene can also be defined in the
+#' \code{\link{rowData}} slot via two columns named (i) \code{PROBEID} for the
+#' platform-specific probe ID, and (ii) \code{ENTREZID} for the corresponding
+#' NCBI Entrez Gene ID.
+#' @param use.mean Logical.  Determining, in case of multiple probes for one
+#' gene, whether a mean value is computed (\code{use.mean=TRUE}), or the probe
+#' that discriminate the most between the two sample group is kept
+#' (\code{use.mean=FALSE}).  Defaults to TRUE.
+#' @return A \code{\linkS4class{SummarizedExperiment}} on gene level.
+#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @seealso \code{\link{readSE}} for reading expression data from file,
+#' \code{\link{deAna}} for differential expression analysis.
+#' @examples
+#' 
+#'     # (1) reading the expression data from file
+#'     exprs.file <- system.file("extdata/exprs.tab", package="EnrichmentBrowser")
+#'     pdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
+#'     fdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
+#'     probeSE <- readSE(exprs.file, pdat.file, fdat.file)
+#'     geneSE <- probe2gene(probeSE) 
+#' 
+#' @export probe2gene
 probe2gene <- function(probeSE, use.mean=TRUE)
 {
     ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
@@ -71,6 +103,14 @@ probe2gene <- function(probeSE, use.mean=TRUE)
         colData=colData(se), metadata=metadata(se))  
     
     return(geneSE)
+}
+
+#' @export
+#' @keywords internal
+probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
+{
+    .Deprecated("probe2gene")
+    probe2gene(probe.eset, use.mean=use.mean)
 }
 
 .annoP2G <- function(se) 

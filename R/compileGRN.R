@@ -7,6 +7,54 @@
 #
 ############################################################
 
+#' Compilation of a gene regulatory network from pathway databases
+#' 
+#' To perform network-based enrichment analysis a gene regulatory network (GRN)
+#' is required. There are well-studied processes and organisms for which
+#' comprehensive and well-annotated regulatory networks are available, e.g. the
+#' RegulonDB for E. coli and Yeastract for S. cerevisiae.  However, in many
+#' cases such a network is missing.  A first simple workaround is to compile a
+#' network from regulations in pathway databases such as KEGG.
+#' 
+#' 
+#' @aliases compile.grn.from.kegg
+#' @param org An organism in KEGG three letter code, e.g. \sQuote{hsa} for
+#' \sQuote{Homo sapiens}.  Alternatively, and mainly for backward
+#' compatibility, this can also be either a list of
+#' \code{\linkS4class{KEGGPathway}} objects or an absolute file path of a zip
+#' compressed archive of pathway xml files in KGML format.
+#' @param db Pathway database.  This should be one or more DBs out of 'kegg',
+#' 'reactome', 'biocarta', and 'nci'.  See \code{\link{pathwayDatabases}} for
+#' available DBs of the respective organism.  Default is 'kegg'.
+#' @param act.inh Should gene regulatory interactions be classified as
+#' activating (+) or inhibiting (-)?  If TRUE, this will drop interactions for
+#' which such a classification cannot be made (e.g. binding events).
+#' Otherwise, all interactions found in the pathway DB will be included.
+#' Default is \code{TRUE}.
+#' @param map2entrez Should gene identifiers be mapped to NCBI Entrez Gene IDs?
+#' This only applies to Reactome and NCI as they both use UNIPROT IDs.  This is
+#' typically recommended when using the GRN for network-based enrichment
+#' analysis with the EnrichmentBrowser.  Default is \code{TRUE}.
+#' @param keep.type Should the original interaction type descriptions be kept?
+#' If TRUE, this will keep the long description of interaction types as found
+#' in the original KGML and BioPax pathway files.  Default is \code{FALSE}.
+#' @param kegg.native For KEGG: should the GRN be compiled from the native KGML
+#' files or should graphite's pathway topology conversion be used?  See the
+#' vignette of the graphite package for details.  This is mostly for backward
+#' compatibility.  Default is \code{FALSE}.
+#' @return The GRN in plain matrix format.  Two columns named \code{FROM} (the
+#' regulator) and \code{TO} (the regulated gene) are guaranteed.  Additional
+#' columns, named \code{TYPE} and \code{LONG.TYPE}, are included if option
+#' \code{act.inh} or \code{keep.type} is activated.
+#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @seealso \code{\link{pathwayDatabases}}, \code{\link{pathways}},
+#' \code{\linkS4class{KEGGPathway}}, \code{\link{parseKGML}},
+#' \code{\link{download.kegg.pathways}}
+#' @examples
+#' 
+#'     kegg.grn <- compileGRN(org="hsa", db="kegg")
+#' 
+#' @export compileGRN
 compileGRN <- function(org, db="kegg",
     act.inh=TRUE, map2entrez=TRUE, keep.type=FALSE, kegg.native=FALSE)
 {
@@ -17,6 +65,8 @@ compileGRN <- function(org, db="kegg",
     return(grn)
 }    
 
+#' @export
+#' @keywords internal
 compile.grn.from.kegg <- function(pwys, out.file=NULL)
 {
     .Deprecated("compileGRN")

@@ -7,13 +7,81 @@
 #
 ############################################################
 
+
+#' GGEA graphs of consistency between regulation and expression
+#' 
+#' Gene graph enrichment analysis (GGEA) is a network-based enrichment analysis
+#' method implemented in the EnrichmentBrowser package.  The idea of GGEA is to
+#' evaluate the consistency of known regulatory interactions with the observed
+#' gene expression data.  A GGEA graph for a gene set of interest displays the
+#' consistency of each interaction in the network that involves a gene set
+#' member.  Nodes (genes) are colored according to expression
+#' (up-/down-regulated) and edges (interactions) are colored according to
+#' consistency, i.e. how well the interaction type (activation/inhibition) is
+#' reflected in the correlation of the expression of both interaction partners.
+#' 
+#' 
+#' @aliases ggea.graph ggea.graph.legend
+#' @param gs Gene set under investigation.  This should be a character vector
+#' of KEGG gene IDs.
+#' @param grn Gene regulatory network.  Character matrix with exactly *THREE*
+#' cols; 1st col = IDs of regulating genes; 2nd col = corresponding regulated
+#' genes; 3rd col = regulation effect; Use '+' and '-' for
+#' activation/inhibition.
+#' @param se Expression data given as an object of class
+#' \code{\linkS4class{SummarizedExperiment}}.
+#' @param alpha Statistical significance level. Defaults to 0.05.
+#' @param beta Log2 fold change significance level. Defaults to 1 (2-fold).
+#' @param max.edges Maximum number of edges that should be displayed.  Defaults
+#' to 50.
+#' @param cons.thresh Consistency threshold.  Graphical parameter that
+#' correspondingly increases line width of edges with a consistency above the
+#' chosen threshold (defaults to 0.7).
+#' @param show.scores Logical. Should consistency scores of the edges be 
+#' displayed? Defaults to FALSE.
+#' @return None, plots to a graphics device.
+#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @seealso \code{\link{nbea}} to perform network-based enrichment analysis.
+#' \code{\link{ea.browse}} for exploration of resulting gene sets.
+#' @examples
+#' 
+#'     # (1) expression data: 
+#'     # simulated expression values of 100 genes
+#'     # in two sample groups of 6 samples each
+#'     se <- makeExampleData(what="SE")
+#'     se <- deAna(se)
+#' 
+#'     # (2) gene sets:
+#'     # draw 10 gene sets with 15-25 genes
+#'     gs <- makeExampleData(what="gs", gnames=names(se))
+#' 
+#'     # (3) compiling artificial regulatory network 
+#'     grn <- makeExampleData(what="grn", nodes=names(se))
+#' 
+#'     # (4) plot consistency graph
+#'     ggeaGraph(gs=gs[[1]], grn=grn, se=se)
+#' 
+#'     # (5) get legend
+#'     ggeaGraphLegend()
+#' 
+#' @export ggeaGraph
 ggeaGraph <- function(gs, grn, se, 
-    alpha=0.05, beta=1, max.edges=50, cons.thresh=0.7)
+    alpha=0.05, beta=1, max.edges=50, cons.thresh=0.7, show.scores=FALSE)
 {
     sgrn <- .queryGRN(gs, grn, index=FALSE)
-    g <- .constructGGEAGraph(grn=sgrn, se=se,
-        alpha=alpha, beta=beta, max.edges=max.edges, cons.thresh=cons.thresh)
-    .plotGGEAGraph(g)
+    g <- .constructGGEAGraph(grn=sgrn, se=se, alpha=alpha, beta=beta, 
+                                max.edges=max.edges, cons.thresh=cons.thresh)
+    .plotGGEAGraph(g, show.scores=show.scores)
+}
+
+#' @export
+#' @keywords internal
+ggea.graph <- function(gs, grn, se, 
+    alpha=0.05, beta=1, max.edges=50, cons.thresh=0.7, show.scores=FALSE)
+{
+    .Deprecated("ggeaGraph")
+    ggeaGraph(gs, grn, se, alpha=alpha, beta=beta, 
+        max.edges=max.edges, cons.thresh=cons.thresh, show.scores=show.scores)
 }
 
 ##
@@ -206,7 +274,10 @@ ggeaGraph <- function(gs, grn, se,
 ## ggeaGraphLegend
 ##
 ## function plots the legend for a ggeaGraph
-##
+#
+#' @rdname ggeaGraph
+#' @export
+#
 ggeaGraphLegend <- function() 
 {
     opar <- par(mar=c(0,0,3,0), mgp=c(0,0,0))
@@ -260,3 +331,10 @@ ggeaGraphLegend <- function()
     text(0.8, 11, "NODE COLORS", pos=2, cex=1.5)
 }
 
+#' @export
+#' @keywords internal
+ggea.graph.legend <- function() 
+{
+    .Deprecated("ggeaGraphLegend")
+    ggeaGraphLegend()
+}

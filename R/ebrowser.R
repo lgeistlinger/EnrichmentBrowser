@@ -22,6 +22,72 @@
 
 .ebrowser_config_cache <- new.env(parent=emptyenv())
 
+
+
+#' Configuring the EnrichmentBrowser
+#' 
+#' Function to get and set configuration parameters determining the default
+#' behavior of the EnrichmentBrowser
+#' 
+#' Important colData, rowData, and result column names: \itemize{ \item
+#' SMPL.COL: colData column storing the sample IDs (default: "SAMPLE") \item
+#' GRP.COL: colData column storing binary group assignment (default: "GROUP")
+#' \item BLK.COL: colData column defining paired samples or sample blocks
+#' (default: "BLOCK")
+#' 
+#' \item PRB.COL: rowData column storing probe/feature IDs ("PROBEID",
+#' read-only) \item EZ.COL: rowData column storing gene ENTREZ IDs ("ENTREZID",
+#' read-only) \item SYM.COL: rowData column storing gene symbols ("SYMBOL",
+#' read-only) \item GN.COL: rowData column storing gene names ("GENENAME",
+#' read-only)
+#' 
+#' \item FC.COL: rowData column storing (log2) fold changes of differential
+#' expression between sample groups (default: "FC") \item ADJP.COL: rowData
+#' column storing adjusted (corrected for multiple testing) p-values of
+#' differential expression between sample groups (default: "ADJ.PVAL")
+#' 
+#' \item GS.COL: result table column storing gene set IDs (default: "GENE.SET")
+#' \item GSP.COL: result table column storing gene set significance (default:
+#' "P.VALUE") \item PMID.COL: gene table column storing PUBMED IDs ("PUBMED",
+#' read-only) }
+#' 
+#' Important URLs (all read-only): \itemize{ \item NCBI.URL:
+#' \url{http://www.ncbi.nlm.nih.gov/} \item PUBMED.URL:
+#' \url{http://www.ncbi.nlm.nih.gov/pubmed/} \item GENE.URL:
+#' \url{http://www.ncbi.nlm.nih.gov/gene/} \item KEGG.URL:
+#' \url{http://www.genome.jp/dbget-bin/} \item KEGG.GENE.URL:
+#' \url{http://www.genome.jp/dbget-bin/www_bget?} \item KEGG.SHOW.URL:
+#' \url{http://www.genome.jp/dbget-bin/show_pathway?} \item GO.SHOW.URL:
+#' \url{http://amigo.geneontology.org/amigo/term/} }
+#' 
+#' Default output directory: \itemize{ \item EBROWSER.HOME:
+#' \code{rappdirs::user_data_dir("EnrichmentBrowser")} \item OUTDIR.DEFAULT:
+#' \code{file.path(EBROWSER.HOME, "results")} }
+#' 
+#' Gene set size: \itemize{ \item GS.MIN.SIZE: minimum number of genes per gene
+#' set (default: 5) \item GS.MAX.SIZE: maximum number of genes per gene set
+#' (default: 500) }
+#' 
+#' Result appearance: \itemize{ \item RESULT.TITLE: (default: "Table of
+#' Results") \item NR.SHOW: maximum number of entries to show (default: 20) }
+#' 
+#' @param key Configuration parameter.
+#' @param value Value to overwrite the current value of key.
+#' @return If is.null(value) this returns the value of the selected
+#' configuration parameter.  Otherwise, it updates the selected parameter with
+#' the given value.
+#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @examples
+#' 
+#'     # getting config information
+#'     config.ebrowser("GS.MIN.SIZE") 
+#' 
+#'     # setting config information
+#'     # WARNING: this is for advanced users only!
+#'     # inappropriate settings will impair EnrichmentBrowser's functionality
+#'     config.ebrowser(key="GS.MIN.SIZE", value=3)  
+#' 
+#' @export config.ebrowser
 config.ebrowser <- function(key, value=NULL) 
 {
     .key_readonly <- c(
@@ -52,6 +118,141 @@ config.ebrowser <- function(key, value=NULL)
 ##
 # eBrowser functionality
 ##
+
+
+#' Seamless navigation through enrichment analysis results
+#' 
+#' This is the all-in-one wrapper function to perform the standard enrichment
+#' analysis pipeline implemented in the EnrichmentBrowser package.
+#' 
+#' Given flat gene expression data, the data is read in and subsequently
+#' subjected to chosen enrichment analysis methods.
+#' 
+#' The results from different methods can be combined and investigated in
+#' detail in the default browser.
+#' 
+#' 
+#' @param meth Enrichment analysis method.  See \code{\link{sbea.methods}} and
+#' \code{\link{nbea.methods}} for currently supported enrichment analysis
+#' methods.  See also \code{\link{sbea}} and \code{\link{nbea}} for details.
+#' @param exprs Expression matrix.  A tab separated text file containing
+#' *normalized* expression values on a *log* scale.  Columns =
+#' samples/subjects; rows = features/probes/genes; NO headers, row or column
+#' names.  Supported data types are log2 counts (microarray single-channel),
+#' log2 ratios (microarray two-color), and log2-counts per million (RNA-seq
+#' logCPMs).  See limma's user guide for definition and normalization of the
+#' different data types.  Alternatively, this can be a
+#' \code{\linkS4class{SummarizedExperiment}}, assuming the expression matrix in
+#' the \code{\link{assays}} slot.
+#' @param pdat Phenotype data.  A tab separated text file containing annotation
+#' information for the samples in either *two or three* columns.  NO headers,
+#' row or column names.  The number of rows/samples in this file should match
+#' the number of columns/samples of the expression matrix.  The 1st column is
+#' reserved for the sample IDs; The 2nd column is reserved for a *BINARY* group
+#' assignment.  Use '0' and '1' for unaffected (controls) and affected (cases)
+#' sample class, respectively.  For paired samples or sample blocks a third
+#' column is expected that defines the blocks.  If 'exprs' is a
+#' \code{\linkS4class{SummarizedExperiment}}, the 'pdat' argument can be left
+#' unspecified, which then expects group and optional block assignments in
+#' respectively named columns 'GROUP' (mandatory) and 'BLOCK' (optional) in the
+#' \code{\link{colData}} slot.
+#' @param fdat Feature data.  A tab separated text file containing annotation
+#' information for the features.  Exactly *TWO* columns; 1st col = feature IDs;
+#' 2nd col = corresponding KEGG gene ID for each feature ID in 1st col; NO
+#' headers, row or column names.  The number of rows/features in this file
+#' should match the number of rows/features of the expression matrix.  If
+#' 'exprs' is a \code{\linkS4class{SummarizedExperiment}}, the 'fdat' argument
+#' can be left unspecified, which then expects probe and corresponding Entrez
+#' Gene IDs in respectively named columns 'PROBEID' and 'ENTREZID' in the
+#' \code{\link{rowData}} slot.
+#' @param org Organism under investigation in KEGG three letter code, e.g.
+#' \sQuote{hsa} for \sQuote{Homo sapiens}.  See also
+#' \code{\link{kegg.species.code}} to convert your organism of choice to KEGG
+#' three letter code.
+#' @param data.type Expression data type.  Use 'ma' for microarray and 'rseq'
+#' for RNA-seq data.  If NA, data.type is automatically guessed.  If the
+#' expression values in 'exprs' are decimal numbers they are assumed to be
+#' microarray intensities.  Whole numbers are assumed to be RNA-seq read
+#' counts.  Defaults to NA.
+#' @param norm.method Determines whether and how the expression data should be
+#' normalized.  For available microarray normalization methods see the man page
+#' of the limma function \code{\link{normalizeBetweenArrays}}.  For available
+#' RNA-seq normalization methods see the man page of the EDASeq function
+#' \code{\link{betweenLaneNormalization}}.  Defaults to 'quantile', i.e.
+#' normalization is carried out so that quantiles between arrays/lanes/samples
+#' are equal.  Use 'none' to indicate that the data is already normalized and
+#' should not be normalized by ebrowser.  See the man page of
+#' \code{\link{normalize}} for details.
+#' @param de.method Determines which method is used for per-gene differential
+#' expression analysis. See the man page of \code{\link{deAna}} for details.
+#' Defaults to 'limma', i.e. differential expression is calculated based on the
+#' typical limma \code{\link{lmFit}} procedure.
+#' @param gs Gene sets.  Either a list of gene sets (vectors of KEGG gene IDs)
+#' or a text file in GMT format storing all gene sets under investigation.
+#' @param grn Gene regulatory network.  Either an absolute file path to a
+#' tabular file or a character matrix with exactly *THREE* cols; 1st col = IDs
+#' of regulating genes; 2nd col = corresponding regulated genes; 3rd col =
+#' regulation effect; Use '+' and '-' for activation/inhibition.
+#' @param perm Number of permutations of the expression matrix to estimate the
+#' null distribution. Defaults to 1000. Can also be an integer vector matching
+#' the length of 'meth' to assign different numbers of permutations for
+#' different methods.
+#' @param alpha Statistical significance level. Defaults to 0.05.
+#' @param beta Log2 fold change significance level. Defaults to 1 (2-fold).
+#' @param comb Logical. Should results be combined if more then one enrichment
+#' method is selected? Defaults to FALSE.
+#' @param browse Logical. Should results be displayed in the browser for
+#' interactive exploration? Defaults to TRUE.
+#' @param nr.show Number of gene sets to show.  As default all statistical
+#' significant gene sets are displayed.  Note that this only influences the
+#' number of gene sets for which additional visualization will be provided
+#' (typically only of interest for the top / signifcant gene sets).  Selected
+#' enrichment methods and resulting flat gene set rankings still include the
+#' complete number of gene sets under study.
+#' @return None, opens the browser to explore results.
+#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @seealso \code{\link{readSE}} to read expression data from file;
+#' \code{\link{probe2gene}} to transform probe to gene level expression;
+#' \code{\link{kegg.species.code}} maps species name to KEGG code.
+#' \code{\link{get.kegg.genesets}} to retrieve gene set definitions from KEGG;
+#' \code{\link{compileGRN}} to construct a GRN from pathway databases;
+#' \code{\link{sbea}} to perform set-based enrichment analysis;
+#' \code{\link{nbea}} to perform network-based enrichment analysis;
+#' \code{\link{comb.ea.results}} to combine results from different methods;
+#' \code{\link{ea.browse}} for exploration of resulting gene sets
+#' @references Limma User's guide:
+#' \url{http://www.bioconductor.org/packages/limma}
+#' @examples
+#' 
+#'     # expression data from file
+#'     exprs.file <- system.file("extdata/exprs.tab", package="EnrichmentBrowser")
+#'     pdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
+#'     fdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
+#'     
+#'     # getting all human KEGG gene sets
+#'     # hsa.gs <- get.kegg.genesets("hsa")
+#'     gs.file <- system.file("extdata/hsa_kegg_gs.gmt", package="EnrichmentBrowser")
+#'     hsa.gs <- parse.genesets.from.GMT(gs.file)
+#' 
+#'     # set-based enrichment analysis
+#'     ebrowser(   meth="ora", 
+#'             exprs=exprs.file, pdat=pdat.file, fdat=fdat.file, 
+#'             gs=hsa.gs, org="hsa", nr.show=3)
+#' 
+#'     # compile a gene regulatory network from KEGG pathways
+#'     hsa.grn <- compileGRN(org="hsa", db="kegg")
+#'    
+#'     # network-based enrichment analysis
+#'     ebrowser(   meth="ggea", 
+#'             exprs=exprs.file, pdat=pdat.file, fdat=fdat.file, 
+#'             gs=hsa.gs, grn=hsa.grn, org="hsa", nr.show=3 )
+#' 
+#'     # combining results
+#'     ebrowser(   meth=c("ora", "ggea"), comb=TRUE,
+#'             exprs=exprs.file, pdat=pdat.file, fdat=fdat.file, 
+#'             gs=hsa.gs, grn=hsa.grn, org="hsa", nr.show=3 )
+#' 
+#' @export ebrowser
 ebrowser <- function(
     meth, exprs, pdat, fdat, org, data.type=c(NA, "ma", "rseq"),
     norm.method="quantile", de.method="limma",

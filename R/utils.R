@@ -7,6 +7,31 @@
 # 
 ############################################################
 
+
+
+#' Is a required package available?
+#' 
+#' Convenience function for checking and installing required packages.
+#' 
+#' Checks whether a required package is available in the library.  If yes, the
+#' package is loaded via \code{\link{require}}.  If not, the package is
+#' optionally installed via \code{\link[BiocInstaller:biocLite]{biocLite}} and,
+#' subsequently, loaded via \code{\link{require}}.
+#' 
+#' @param pkg Character vector of length 1.  A valid name of an existing R
+#' package.
+#' @param type Character vector of length 1.  What type of package is this?
+#' Choose one out of 'annotation', 'software', or 'data' package.
+#' @return None. See details.
+#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @seealso \code{require}, \code{biocLite}
+#' @examples
+#' 
+#'     \donttest{
+#'         isAvailable("EnrichmentBrowser", type="software")
+#'     }     
+#' 
+#' @export isAvailable
 isAvailable <- function(pkg, type=c("annotation", "software", "data"))
 {
     type <- match.arg(type)

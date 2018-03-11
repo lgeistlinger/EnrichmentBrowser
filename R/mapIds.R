@@ -7,14 +7,41 @@
 # 
 ############################################################
 
-id.types <- function(org)
-{
-    org.pkg <- .org2pkg(org)
-    isAvailable(org.pkg)
-    org.pkg <- get(org.pkg) 
-    return(keytypes(org.pkg))
-}
-
+#' Mapping between gene ID types for the rownames of a SummarizedExperiment
+#' 
+#' Functionality to map the rownames of a SummarizedExperiment between common
+#' gene ID types such as ENSEMBL and ENTREZ.
+#' 
+#' The function 'id.types' lists the valid values which the arguments 'from'
+#' and 'to' can take. This corresponds to the names of the available gene ID
+#' types for the mapping.
+#' 
+#' @param se An object of class \code{\linkS4class{SummarizedExperiment}}.
+#' Expects the names to be of gene ID type given in argument 'from'.
+#' @param org Organism in KEGG three letter code, e.g. \sQuote{hsa} for
+#' \sQuote{Homo sapiens}.  See references.
+#' @param from Gene ID type from which should be mapped.  Corresponds to the
+#' gene ID type of the featureNames of argument 'se'.  Defaults to 'ENSEMBL'.
+#' @param to Gene ID type to which should be mapped.  Corresponds to the gene
+#' ID type the featuresNames of argument 'se' should be updated with.  Defaults
+#' to 'ENTREZID'.
+#' @return id.types: character vector listing the available gene ID types for
+#' the mapping;
+#' 
+#' map.ids: An object of \code{\linkS4class{SummarizedExperiment}}.
+#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @seealso \code{\linkS4class{SummarizedExperiment}}, \code{\link{mapIds}},
+#' \code{\link{keytypes}}
+#' @references KEGG Organism code
+#' \url{http://www.genome.jp/kegg/catalog/org_list.html}
+#' @examples
+#' 
+#'     # create an expression dataset with 3 genes and 3 samples
+#'     se <- makeExampleData("SE", nfeat=3, nsmpl=3)
+#'     names(se) <- paste0("ENSG00000000", c("003","005", "419"))
+#'     se <- map.ids(se, org="hsa")
+#' 
+#' @export map.ids
 map.ids <- function(se, org=NA, from="ENSEMBL", to="ENTREZID")
 {
     ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
@@ -30,6 +57,16 @@ map.ids <- function(se, org=NA, from="ENSEMBL", to="ENTREZID")
     rownames(se) <- x
     if(!length(metadata(se)$annotation)) metadata(se)$annotation <- org
     return(se)
+}
+
+#' @rdname map.ids
+#' @export
+id.types <- function(org)
+{
+    org.pkg <- .org2pkg(org)
+    isAvailable(org.pkg)
+    org.pkg <- get(org.pkg) 
+    return(keytypes(org.pkg))
 }
 
 .idmap <- function(ids, org, from, to)

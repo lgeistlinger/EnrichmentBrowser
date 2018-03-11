@@ -13,6 +13,34 @@
 # USING KEGGREST
 #
 
+
+
+#' Download of KEGG pathways for a particular organism
+#' 
+#' The function downloads all metabolic and non-metabolic pathways in KEGG XML
+#' format for a specified organism.
+#' 
+#' 
+#' @param org Organism in KEGG three letter code, e.g. \sQuote{hsa} for
+#' \sQuote{homo sapiens}.
+#' @param cache Logical.  Should a locally cached version used if available?
+#' Defaults to \code{TRUE}.
+#' @param out.dir Output directory.  If not null, pathways are written to files
+#' in the specified directory.
+#' @param zip Logical.  In case pathways are written to file (\sQuote{out.dir}
+#' is not null): should output files be zipped?
+#' @return if(is.null(out.dir)): a list of KEGGPathway objects else: none, as
+#' pathways are written to file
+#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @seealso \code{\link{keggList}}, \code{\link{keggGet}},
+#' \code{\linkS4class{KEGGPathway}}, \code{\link{parseKGML}}
+#' @examples
+#' 
+#'     \donttest{
+#'         pwys <- download.kegg.pathways("hsa")
+#'     }
+#' 
+#' @export download.kegg.pathways
 download.kegg.pathways <- function(org, cache=TRUE, out.dir=NULL, zip=FALSE)
 {
     # should a cached version be used?

@@ -101,8 +101,8 @@ sbea.methods <- function()
 #' @param gs Gene sets.  Either a list of gene sets (character vectors of gene
 #' IDs) or a text file in GMT format storing all gene sets under investigation.
 #' @param alpha Statistical significance level. Defaults to 0.05.
-#' @param perm Number of permutations of the expression matrix to estimate the
-#' null distribution. Defaults to 1000. For basic ora set 'perm=0'.  Using
+#' @param perm Number of permutations of the sample group assignments.
+#' Defaults to 1000. For basic ora set 'perm=0'.  Using
 #' method="gsea" and 'perm=0' invokes the permutation approximation from the
 #' npGSEA package.
 #' @param padj.method Method for adjusting nominal gene set p-values to
@@ -765,11 +765,12 @@ global.GSA <- function(cmat, u, ...)
   
     nmin <- config.ebrowser("GS.MIN.SIZE")
   
-    res <- padog(sem=assay(se), group=grp, 
+    res <- padog(assay(se), group=grp, 
         paired=paired, block=blk, gslist=gs, Nmin=nmin, NI=perm)
   
     res.tbl <- res[, c("meanAbsT0", "padog0", "PmeanAbsT", "Ppadog")]
-    colnames(res.tbl) <- c("MEAN.ABS.T0", "PADOG0", "P.MEAN.ABS.T",  config.ebrowser("GSP.COL"))
+    colnames(res.tbl) <- c("MEAN.ABS.T0", 
+        "PADOG0", "P.MEAN.ABS.T",  config.ebrowser("GSP.COL"))
     rownames(res.tbl) <- as.vector(res[,"ID"]) 
     return(res.tbl)
 }

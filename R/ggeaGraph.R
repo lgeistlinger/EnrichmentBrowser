@@ -23,7 +23,7 @@
 #' 
 #' @aliases ggea.graph ggea.graph.legend
 #' @param gs Gene set under investigation.  This should be a character vector
-#' of KEGG gene IDs.
+#' of gene IDs.
 #' @param grn Gene regulatory network.  Character matrix with exactly *THREE*
 #' cols; 1st col = IDs of regulating genes; 2nd col = corresponding regulated
 #' genes; 3rd col = regulation effect; Use '+' and '-' for

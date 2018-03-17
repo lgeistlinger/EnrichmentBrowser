@@ -92,8 +92,8 @@ nbea.methods <- function()
 #' the organism under investigation in KEGG three letter code (e.g. "hsa" for
 #' Homo sapiens) \item metadata slot named "dataType" indicating the expression
 #' data type ("ma" for microarray, "rseq" for RNA-seq) }
-#' @param gs Gene sets.  Either a list of gene sets (vectors of KEGG gene IDs)
-#' or a text file in GMT format storing all gene sets under investigation.
+#' @param gs Gene sets.  Either a list of gene sets (character vectors of gene
+#' IDs) or a text file in GMT format storing all gene sets under investigation.
 #' @param grn Gene regulatory network.  Either an absolute file path to a
 #' tabular file or a character matrix with exactly *THREE* cols; 1st col = IDs
 #' of regulating genes; 2nd col = corresponding regulated genes; 3rd col =

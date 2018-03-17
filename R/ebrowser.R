@@ -187,14 +187,14 @@ config.ebrowser <- function(key, value=NULL)
 #' expression analysis. See the man page of \code{\link{deAna}} for details.
 #' Defaults to 'limma', i.e. differential expression is calculated based on the
 #' typical limma \code{\link{lmFit}} procedure.
-#' @param gs Gene sets.  Either a list of gene sets (vectors of KEGG gene IDs)
-#' or a text file in GMT format storing all gene sets under investigation.
+#' @param gs Gene sets.  Either a list of gene sets (character vectors of gene
+#' IDs) or a text file in GMT format storing all gene sets under investigation.
 #' @param grn Gene regulatory network.  Either an absolute file path to a
 #' tabular file or a character matrix with exactly *THREE* cols; 1st col = IDs
 #' of regulating genes; 2nd col = corresponding regulated genes; 3rd col =
 #' regulation effect; Use '+' and '-' for activation/inhibition.
-#' @param perm Number of permutations of the expression matrix to estimate the
-#' null distribution. Defaults to 1000. Can also be an integer vector matching
+#' @param perm Number of permutations of the sample group assignments. 
+#' Defaults to 1000. Can also be an integer vector matching
 #' the length of 'meth' to assign different numbers of permutations for
 #' different methods.
 #' @param alpha Statistical significance level. Defaults to 0.05.

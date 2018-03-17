@@ -26,6 +26,9 @@
 #' @param db Pathway database.  This should be one or more DBs out of 'kegg',
 #' 'reactome', 'biocarta', and 'nci'.  See \code{\link{pathwayDatabases}} for
 #' available DBs of the respective organism.  Default is 'kegg'.
+#' Note: when dealing with non-model organisms, GRN compilation is currently
+#' only supported directly from KEGG (the argument \code{kegg.native} should
+#' accordingly be set to \code{TRUE}).
 #' @param act.inh Should gene regulatory interactions be classified as
 #' activating (+) or inhibiting (-)?  If TRUE, this will drop interactions for
 #' which such a classification cannot be made (e.g. binding events).
@@ -41,7 +44,9 @@
 #' @param kegg.native For KEGG: should the GRN be compiled from the native KGML
 #' files or should graphite's pathway topology conversion be used?  See the
 #' vignette of the graphite package for details.  This is mostly for backward
-#' compatibility.  Default is \code{FALSE}.
+#' compatibility.  Default is \code{FALSE}. Note: when dealing with non-model 
+#' organisms (not supported by graphite) this argument should be set to 
+#' \code{TRUE}.
 #' @return The GRN in plain matrix format.  Two columns named \code{FROM} (the
 #' regulator) and \code{TO} (the regulated gene) are guaranteed.  Additional
 #' columns, named \code{TYPE} and \code{LONG.TYPE}, are included if option

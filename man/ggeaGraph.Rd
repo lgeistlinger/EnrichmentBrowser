@@ -14,7 +14,7 @@ ggeaGraphLegend()
 }
 \arguments{
 \item{gs}{Gene set under investigation.  This should be a character vector
-of KEGG gene IDs.}
+of gene IDs.}
 
 \item{grn}{Gene regulatory network.  Character matrix with exactly *THREE*
 cols; 1st col = IDs of regulating genes; 2nd col = corresponding regulated

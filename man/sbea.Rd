@@ -40,8 +40,8 @@ IDs) or a text file in GMT format storing all gene sets under investigation.}
 
 \item{alpha}{Statistical significance level. Defaults to 0.05.}
 
-\item{perm}{Number of permutations of the expression matrix to estimate the
-null distribution. Defaults to 1000. For basic ora set 'perm=0'.  Using
+\item{perm}{Number of permutations of the sample group assignments.
+Defaults to 1000. For basic ora set 'perm=0'.  Using
 method="gsea" and 'perm=0' invokes the permutation approximation from the
 npGSEA package.}
 

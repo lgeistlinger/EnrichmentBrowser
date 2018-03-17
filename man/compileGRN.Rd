@@ -17,7 +17,10 @@ compressed archive of pathway xml files in KGML format.}
 
 \item{db}{Pathway database.  This should be one or more DBs out of 'kegg',
 'reactome', 'biocarta', and 'nci'.  See \code{\link{pathwayDatabases}} for
-available DBs of the respective organism.  Default is 'kegg'.}
+available DBs of the respective organism.  Default is 'kegg'.
+Note: when dealing with non-model organisms, GRN compilation is currently
+only supported directly from KEGG (the argument \code{kegg.native} should
+accordingly be set to \code{TRUE}).}
 
 \item{act.inh}{Should gene regulatory interactions be classified as
 activating (+) or inhibiting (-)?  If TRUE, this will drop interactions for
@@ -37,7 +40,9 @@ in the original KGML and BioPax pathway files.  Default is \code{FALSE}.}
 \item{kegg.native}{For KEGG: should the GRN be compiled from the native KGML
 files or should graphite's pathway topology conversion be used?  See the
 vignette of the graphite package for details.  This is mostly for backward
-compatibility.  Default is \code{FALSE}.}
+compatibility.  Default is \code{FALSE}. Note: when dealing with non-model 
+organisms (not supported by graphite) this argument should be set to 
+\code{TRUE}.}
 }
 \value{
 The GRN in plain matrix format.  Two columns named \code{FROM} (the

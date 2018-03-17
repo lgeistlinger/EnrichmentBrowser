@@ -16,7 +16,7 @@ provides the corresponding ID of a recognized platform such as
 corresponding \code{.db} package exists (see
 \url{http://www.bioconductor.org/packages/release/BiocViews.html#___ChipName}
 for available chips/packages) and that you have it installed.
-Alternatively, The mapping from probe to gene can also be defined in the
+Alternatively, the mapping from probe to gene can also be defined in the
 \code{\link{rowData}} slot via two columns named (i) \code{PROBEID} for the
 platform-specific probe ID, and (ii) \code{ENTREZID} for the corresponding
 NCBI Entrez Gene ID.}

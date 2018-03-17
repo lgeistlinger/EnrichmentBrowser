@@ -88,7 +88,7 @@ isAvailable <- function(pkg, type=c("annotation", "software", "data"))
     {
         # is the cached version outdated?
         dt <- difftime(Sys.time(), qgsc$create_time, units=update.unit)   
-        if(dt < update.value)
+        if(is.na(update.value) || dt < update.value)
         {
             if(interactive())
                 message(paste("Using cached version from", qgsc$create_time))

@@ -7,8 +7,6 @@
 # 
 ############################################################
 
-
-
 #' Is a required package available?
 #' 
 #' Convenience function for checking and installing required packages.

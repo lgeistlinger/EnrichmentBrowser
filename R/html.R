@@ -53,7 +53,7 @@
         ReportingTools::publish(frlink, indexPage) 
     }
     index <- ReportingTools::finish(indexPage)
-    if (interactive()) browseURL(index)
+    if(interactive()) browseURL(index)
 }
 
 
@@ -228,7 +228,13 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
         #colClasses = c(rep("sort-string-robust", 3),
         #    rep("sort-num-robust", ncol(gt)-3 )))
     rep <- ReportingTools::finish(htmlRep)
-    if(!html.only) if (interactive()) browseURL(rep)
+    if(!html.only)
+    { 
+        message(paste("Your output files are in", rep.dir, "!"))
+        message(paste0("HTML report: ", method, ".html"))
+        if(Sys.getenv("RSTUDIO") == "1") rep <- URLencode(rep)
+        if(interactive()) browseURL(rep)
+    }
 }
 
 .makeView <- function(html1, html2, gene.html.pos=c("bottom", "topright"))

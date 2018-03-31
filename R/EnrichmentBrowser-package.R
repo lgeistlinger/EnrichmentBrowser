@@ -9,7 +9,7 @@
 #' @importFrom  methods as getMethod is new
 #' @importFrom  utils available.packages browseURL capture.output data 
 #'                head memory.limit packageVersion read.csv read.delim unzip 
-#'                  write.table 
+#'                  write.table URLencode
 NULL
 
 

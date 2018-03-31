@@ -269,7 +269,7 @@ sbea <- function(
             # gsea
             if(method == "gsea") gs.ps <- .gsea(se, gs, perm, padj.method)
             # gsa
-            else if(method == "gsa") gs.ps <- .gsa(se, gs, perm, padj.method)
+            else if(method == "gsa") gs.ps <- .gsa(se, gs, perm)
             # padog
 	        else if(method == "padog") gs.ps <- .padog(se, gs, perm)
 	        # mgsa
@@ -328,8 +328,8 @@ sbea <- function(
     else colnames(res.tbl)[1] <- GSP.COL 
     res.tbl <- res.tbl[do.call(order, as.data.frame(sorting.df)), , drop=FALSE]
 
-    # use built-in FDR control for safe, gsea, gsa
-    fdr.methods <- c("gsea", "safe", "gsa") 
+    # use built-in FDR control for safe and gsea
+    fdr.methods <- c("gsea", "safe") 
     if(is.function(method) || !(method %in% fdr.methods))
         res.tbl[,GSP.COL] <- p.adjust(res.tbl[,GSP.COL], method=padj.method)
 
@@ -657,25 +657,29 @@ local.deAna <- function (X.mat, y.vec, args.local)
 
 
 # 6 GSA
-.gsa <- function(se, gs, perm=1000, padj.method="none")
+.gsa <- function(se, gs, perm=1000)
 {  
+    # setup
     GSA <- NULL
     isAvailable("GSA", type="software")
  
     minsize <- config.ebrowser("GS.MIN.SIZE")
     maxsize <- config.ebrowser("GS.MAX.SIZE")
-
-    blk <- NULL
+    GRP.COL <- config.ebrowser("GRP.COL")
     BLK.COL <- config.ebrowser("BLK.COL")
+    
+    # prepare input
+    x <- assay(se)
+    genenames <- names(se)
+    y <- se[[GRP.COL]] + 1
+   
+    # paired?
+    blk <- NULL
     if(BLK.COL %in% colnames(colData(se))) blk <- se[[BLK.COL]] 
     paired <- !is.null(blk)
     resp.type <- ifelse(paired, "Two class paired", "Two class unpaired")
 
-    # prepare input
-    x <- assay(se)
-    y <- se[[config.ebrowser("GRP.COL")]] + 1
-   
-    # response vector y need to differently coded for 2-class paired   
+    # response vector y need to be differently coded for 2-class paired   
     if(paired)
     {
         y <- blk
@@ -683,7 +687,6 @@ local.deAna <- function (X.mat, y.vec, args.local)
         for(i in seq_along(ublk)) y[blk==ublk[i]] <- c(i,-i)
         y <- as.integer(y)
     }
-    genenames <- rownames(se)
 
     # run GSA
     res <- GSA(x=x, y=y, nperms=perm, genesets=gs, resp.type=resp.type,
@@ -691,26 +694,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
    
     # format output
     ps <- cbind(res$pvalues.lo, res$pvalues.hi)
-    is.fdr <- tolower(padj.method) %in% c("bh", "fdr")
-    if(is.fdr)
-    {
-        lo <- cut(res$pvalues.lo, 
-                    breaks = c(res$fdr.lo[,"pv cutpoint"], 1), 
-                    labels = res$fdr.lo[,"FDR"])
-        lo <- as.numeric(as.vector(lo))
-        lo[is.na(lo)] <- res$fdr.lo[1,"FDR"]
-        hi <- cut(res$pvalues.hi, 
-                    breaks = c(res$fdr.hi[,"pv cutpoint"], 1), 
-                    labels = res$fdr.hi[,"FDR"])
-        hi <- as.numeric(as.vector(hi))
-        lo[is.na(lo)] <- res$fdr.lo[1,"FDR"]
-        ps <- cbind(lo, hi) 
-    }
-    ps <- apply(ps, 1, min)
-    # technically this would need to be corrected for multiple testing
-    # via
-    # ps <- 2 * ps
-    # ps <- vapply(ps, function(p) if(p > 1) 1 else p, numeric(1))
+    ps <- 2 * apply(ps, 1, min)
     scores <- res$GSA.scores
     res.tbl <- cbind(scores, ps)
     colnames(res.tbl) <- c("SCORE", config.ebrowser("GSP.COL"))
@@ -764,7 +748,8 @@ global.GSA <- function(cmat, u, ...)
     paired <- !is.null(blk)
   
     nmin <- config.ebrowser("GS.MIN.SIZE")
-  
+    perm <- as.numeric(perm) 
+ 
     res <- padog(assay(se), group=grp, 
         paired=paired, block=blk, gslist=gs, Nmin=nmin, NI=perm)
   
@@ -885,20 +870,13 @@ global.PADOG <- function(cmat, u, args.global)
     
     # run roast / camera
     if(method == "roast")
-    {
         res <- limma::mroast(y, gs.index, design, 
                                 nrot=perm, adjust.method="none", sort="none")
-        res <- res[,c("NGenes", "Direction", "PValue")]
-        colnames(res) <- c("NR.GENES", "DIR", config.ebrowser("GSP.COL"))
-        res[,"DIR"] <- ifelse(res[,"DIR"] == "Up", 1, -1)
-    }
-    else
-    { 
-        res <- limma::camera(y, gs.index, design, sort=FALSE)
-        res <- res[,1:3]
-        colnames(res) <- c("NR.GENES", "DIR", config.ebrowser("GSP.COL"))
-        res[,"DIR"] <- ifelse(res[,"DIR"] == "Up", 1, -1)
-    }
+    else res <- limma::camera(y, gs.index, design, sort=FALSE)
+    res <- res[,c("NGenes", "Direction", "PValue")]
+    colnames(res) <- c("NR.GENES", "DIR", config.ebrowser("GSP.COL"))
+    res[,"DIR"] <- ifelse(res[,"DIR"] == "Up", 1, -1)
+
     return(res)
 }
 

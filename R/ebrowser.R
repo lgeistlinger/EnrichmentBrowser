@@ -192,7 +192,7 @@ ebrowser <- function(
         }
     }
     
-    message(paste("Your output files are in", out.dir, "!"))
+    message(paste("Your output files are in", out.dir))
     
     # create INDEX.html
     if(browse)

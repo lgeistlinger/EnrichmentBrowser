@@ -56,6 +56,7 @@
     if(interactive())
     {
         message("HTML report: index.html")
+        # this can be removed upon release of RStudio v1.2 (Summer 2018)
         if(Sys.getenv("RSTUDIO") == "1") index <- URLencode(index)
         browseURL(index)
     }
@@ -237,6 +238,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     { 
         message(paste("Your output files are in", rep.dir))
         message(paste0("HTML report: ", method, ".html"))
+        # this can be removed upon release of RStudio v1.2 (Summer 2018)
         if(Sys.getenv("RSTUDIO") == "1") rep <- URLencode(rep)
         browseURL(rep)
     }

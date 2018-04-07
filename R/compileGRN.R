@@ -87,8 +87,7 @@ compile.grn.from.kegg <- function(pwys, out.file=NULL)
     if(!all(db %in% valid.dbs)) 
         stop(paste("Valid values of \'db\':", paste(valid.dbs, collapse=", ")))
 
-    #pathways <- pathwayDatabases <- NULL
-    isAvailable("graphite", type="software")
+    #isAvailable("graphite", type="software")
     all.dbs <- as.matrix(graphite::pathwayDatabases())
 
     # valid org?

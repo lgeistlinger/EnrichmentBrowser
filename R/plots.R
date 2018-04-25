@@ -30,7 +30,7 @@
 #'     se <- makeExampleData(what="SE") 
 #'     
 #'     # plot heatmap
-#'     exprs.heatmap(expr=assay(se), grp=as.factor(se$GROUP))
+#'     exprsHeatmap(expr=assay(se), grp=as.factor(se$GROUP))
 #' 
 #'     # (2) DE analysis
 #'     se <- deAna(se)
@@ -62,7 +62,7 @@ volcano <- function(fc, p)
 # Heatmap: based on ComplexHeatmap
 #' @export
 #' @rdname plots
-exprs.heatmap <- function(expr, grp, scale.rows=TRUE, log.thresh=100)
+exprsHeatmap <- function(expr, grp, scale.rows=TRUE, log.thresh=100)
 {
 	# log-transform?
 	dd <- diff(range(expr, na.rm=TRUE))

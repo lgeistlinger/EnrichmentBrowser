@@ -76,7 +76,7 @@ reflected in the correlation of the expression of both interaction partners.
 }
 \seealso{
 \code{\link{nbea}} to perform network-based enrichment analysis.
-\code{\link{ea.browse}} for exploration of resulting gene sets.
+\code{\link{eaBrowse}} for exploration of resulting gene sets.
 }
 \author{
 Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>

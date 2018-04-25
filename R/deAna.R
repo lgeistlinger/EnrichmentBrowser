@@ -68,8 +68,8 @@ deAna <- function(expr, grp=NULL, blk=NULL,
     isSE <- is(expr, "SummarizedExperiment")
     if(isSE) 
     { 
-        GRP.COL <- config.ebrowser("GRP.COL")    
-        BLK.COL <- config.ebrowser("BLK.COL")
+        GRP.COL <- configEBrowser("GRP.COL")    
+        BLK.COL <- configEBrowser("BLK.COL")
 
         se <- expr
         expr <- assay(se)
@@ -188,7 +188,7 @@ deAna <- function(expr, grp=NULL, blk=NULL,
                     "See man page for supported de.method."))
 
     de.tbl[,2] <- p.adjust(de.tbl[,2], method=padj.method)
-    colnames(de.tbl)[1:2] <- sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)
+    colnames(de.tbl)[1:2] <- sapply(c("FC.COL", "ADJP.COL"), configEBrowser)
 
     if(isSE)
     {

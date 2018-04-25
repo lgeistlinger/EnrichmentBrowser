@@ -9,7 +9,7 @@
 
 #' @rdname sbea
 #' @export
-sbea.methods <- function() 
+sbeaMethods <- function() 
     c("ora", "safe", "gsea", "gsa", "padog", "globaltest", 
         "roast", "camera", "gsva", "samgs", "ebm", "mgsa")
 
@@ -113,28 +113,29 @@ sbea.methods <- function()
 #' to.
 #' @param browse Logical. Should results be displayed in the browser for
 #' interactive exploration? Defaults to FALSE.
-#' @param ...  Additional arguments passed to individual sbea methods.  This
+#' @param ...  Additional arguments passed to individual sbeaMethods.  This
 #' includes currently for ORA and MGSA: \itemize{ \item beta: Log2 fold change
 #' significance level. Defaults to 1 (2-fold).  \item sig.stat: decides which
 #' statistic is used for determining significant DE genes.  Options are:
 #' \itemize{ \item 'p' (Default): genes with p-value below alpha.  \item 'fc':
 #' genes with abs(log2(fold change)) above beta \item '&': p & fc (logical AND)
 #' \item '|': p | fc (logical OR) } }
-#' @return sbea.methods: a character vector of currently supported methods;
+#' @return sbeaMethods: a character vector of currently supported methods;
 #' 
 #' sbea: if(is.null(out.file)): an enrichment analysis result object that can
-#' be detailedly explored by calling \code{\link{ea.browse}} and from which a
-#' flat gene set ranking can be extracted by calling \code{\link{gs.ranking}}.
+#' be detailedly explored by calling \code{\link{eaBrowse}} and from which a
+#' flat gene set ranking can be extracted by calling \code{\link{gsRanking}}.
 #' If 'out.file' is given, the ranking is written to the specified file.
 #' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
 #' @seealso Input: \code{\link{readSE}}, \code{\link{probe2gene}}
-#' \code{\link{get.kegg.genesets}} to retrieve gene sets from KEGG.
+#' \code{\link{getGenesets}} to retrieve gene sets from databases such as GO 
+#' and KEGG.
 #' 
-#' Output: \code{\link{gs.ranking}} to retrieve the ranked list of gene sets.
-#' \code{\link{ea.browse}} for exploration of resulting gene sets.
+#' Output: \code{\link{gsRanking}} to retrieve the ranked list of gene sets.
+#' \code{\link{eaBrowse}} for exploration of resulting gene sets.
 #' 
 #' Other: \code{\link{nbea}} to perform network-based enrichment analysis.
-#' \code{\link{comb.ea.results}} to combine results from different methods.
+#' \code{\link{combResults}} to combine results from different methods.
 #' @references Goeman and Buhlmann (2007) Analyzing gene expression data in
 #' terms of gene sets: methodological issues.  Bioinformatics, 23, 980-7.
 #' 
@@ -150,7 +151,7 @@ sbea.methods <- function()
 #' @examples
 #' 
 #'     # currently supported methods
-#'     sbea.methods()
+#'     sbeaMethods()
 #' 
 #'     # (1) expression data: 
 #'     # simulated expression values of 100 genes
@@ -171,10 +172,10 @@ sbea.methods <- function()
 #'     ea.res <- sbea(method="ora", se=se, gs=gs, perm=0)
 #' 
 #'     # (5) result visualization and exploration
-#'     gs.ranking(ea.res)
+#'     gsRanking(ea.res)
 #' 
 #'     # using your own tailored function as enrichment method
-#'     dummy.sbea <- function(se, gs, alpha, perm)
+#'     dummySBEA <- function(se, gs, alpha, perm)
 #'     {
 #'         sig.ps <- sample(seq(0, 0.05, length=1000), 5)
 #'         nsig.ps <- sample(seq(0.1, 1, length=1000), length(gs)-5)
@@ -183,12 +184,12 @@ sbea.methods <- function()
 #'         return(ps)
 #'     }
 #' 
-#'     ea.res2 <- sbea(method=dummy.sbea, se=se, gs=gs)
-#'     gs.ranking(ea.res2) 
+#'     ea.res2 <- sbea(method=dummySBEA, se=se, gs=gs)
+#'     gsRanking(ea.res2) 
 #' 
 #' @export sbea
 sbea <- function(   
-    method=EnrichmentBrowser::sbea.methods(), 
+    method=EnrichmentBrowser::sbeaMethods(), 
     se, 
     gs, 
     alpha=0.05, 
@@ -198,11 +199,11 @@ sbea <- function(
     browse=FALSE, ...)
 {   
     # get configuration
-    GS.MIN.SIZE <- config.ebrowser("GS.MIN.SIZE")
-    GS.MAX.SIZE <- config.ebrowser("GS.MAX.SIZE")
-    GSP.COL <- config.ebrowser("GSP.COL")
-    FC.COL <-  config.ebrowser("FC.COL")
-    ADJP.COL <-  config.ebrowser("ADJP.COL")
+    GS.MIN.SIZE <- configEBrowser("GS.MIN.SIZE")
+    GS.MAX.SIZE <- configEBrowser("GS.MAX.SIZE")
+    GSP.COL <- configEBrowser("GSP.COL")
+    FC.COL <-  configEBrowser("FC.COL")
+    ADJP.COL <-  configEBrowser("ADJP.COL")
 
     ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
     if(is(se, "ExpressionSet")) se <- as(se, "RangedSummarizedExperiment")
@@ -215,7 +216,7 @@ sbea <- function(
     if(nr.na) se <- se[!is.na(rowData(se)[,ADJP.COL]),]    
 
     # getting gene sets
-    if(!is.list(gs)) gs <- parse.genesets.from.GMT(gs)
+    if(!is.list(gs)) gs <- getGenesets(gs)
 
     # restrict se and gs to intersecting genes
     igenes <- intersect(rownames(se), unique(unlist(gs)))
@@ -304,11 +305,11 @@ sbea <- function(
                 # samgs
                 else if(method == "samgs")
                 {
-                    if(is.null(out.file)) out.dir <- config.ebrowser("OUTDIR.DEFAULT")
+                    if(is.null(out.file)) out.dir <- configEBrowser("OUTDIR.DEFAULT")
                     else out.dir <- sub("\\.[a-z]+$","_files", out.file)
                     if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)
                     samt.file <- file.path(out.dir, "samt.RData")
-                    GRP.COL <- config.ebrowser("GRP.COL")
+                    GRP.COL <- configEBrowser("GRP.COL")
                     gs.ps <- SAMGS(GS=as.data.frame(cmat), DATA=assay(se), 
                         cl=as.factor(as.integer(se[[GRP.COL]])), 
                         nbPermutations=perm, 
@@ -334,7 +335,7 @@ sbea <- function(
         res.tbl[,GSP.COL] <- p.adjust(res.tbl[,GSP.COL], method=padj.method)
 
     res.tbl <- DataFrame(rownames(res.tbl), res.tbl)
-    colnames(res.tbl)[1] <- config.ebrowser("GS.COL")
+    colnames(res.tbl)[1] <- configEBrowser("GS.COL")
     rownames(res.tbl) <- NULL
        
     if(!is.null(out.file))
@@ -349,14 +350,14 @@ sbea <- function(
             method=method, res.tbl=res.tbl,
             nr.sigs=sum(res.tbl[,GSP.COL] < alpha),
             se=se, gs=gs, alpha=alpha)
-        if(browse) ea.browse(res)
+        if(browse) eaBrowse(res)
         else return(res)
     }
 }
 
-#' @rdname ea.browse
+#' @rdname eaBrowse
 #' @export
-gs.ranking <- function(res, signif.only=TRUE)
+gsRanking <- function(res, signif.only=TRUE)
 {
     if(signif.only)
     {
@@ -368,6 +369,14 @@ gs.ranking <- function(res, signif.only=TRUE)
     return(ranking)
 }
 
+#' @export
+#' @keywords internal
+gs.ranking <- function(res, signif.only=TRUE)
+{
+    .Deprecated("gsRanking")
+    gsRanking(res, signif.only)
+}
+
 ###
 #
 # HELPER
@@ -375,7 +384,7 @@ gs.ranking <- function(res, signif.only=TRUE)
 ###
 .gmt2cmat <- function(gs, features, min.size=0, max.size=Inf)
 {
-    if(is.character(gs)) gs <- parse.genesets.from.GMT(gs)
+    if(is.character(gs)) gs <- getGenesets(gs)
     # transform gs gmt to cmat
     cmat <- sapply(gs, function(x) features %in% x)
     rownames(cmat) <- features
@@ -421,7 +430,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
     de.method <- sub(".STAT$",  "", de.method)
     
     blk <- NULL
-    blk.col <- config.ebrowser("BLK.COL") 
+    blk.col <- configEBrowser("BLK.COL") 
     if(blk.col %in% colnames(colData(se))) blk <- colData(se)[,blk.col]
 
     args.local <- list(de.method=de.method, blk=blk)
@@ -430,7 +439,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
     if(method == "ora")
     {
         global <- "Fisher"
-        nr.sigs <- sum(rowData(se)[, config.ebrowser("ADJP.COL")] < alpha)
+        nr.sigs <- sum(rowData(se)[, configEBrowser("ADJP.COL")] < alpha)
         args.global$genelist.length <- nr.sigs
     }
     else if(method == "safe") global <- "Wilcoxon" 
@@ -445,7 +454,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
     }
 
 	x <- assay(se)
-    y <- colData(se)[,config.ebrowser("GRP.COL")]
+    y <- colData(se)[,configEBrowser("GRP.COL")]
     gs.ps <- safe::safe(X.mat=x, y.vec=y, C.mat=cmat,         
         local="deAna", args.local=args.local,
         global=global, args.global=args.global, 
@@ -456,15 +465,15 @@ local.deAna <- function (X.mat, y.vec, args.local)
             gs.ps@global.stat / colSums(cmat), 
             gs.ps@global.pval)
     
-    colnames(res.tbl) <- c("GLOB.STAT", "NGLOB.STAT", config.ebrowser("GSP.COL"))
+    colnames(res.tbl) <- c("GLOB.STAT", "NGLOB.STAT", configEBrowser("GSP.COL"))
     
     return(res.tbl)
 }
 
 .isSig <- function(fdat, alpha=0.05, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
 {
-    FC.COL <- config.ebrowser("FC.COL")
-    ADJP.COL <- config.ebrowser("ADJP.COL")
+    FC.COL <- configEBrowser("FC.COL")
+    ADJP.COL <- configEBrowser("ADJP.COL")
 
     sig.stat <- sig.stat[1]
     if(grepl("P$", sig.stat))
@@ -529,7 +538,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
     gs.ps <- phyper(ovlp.sizes-1, gs.sizes, uni.sizes, nr.sigs, lower.tail=FALSE) 
     
     res.tbl <- cbind(gs.sizes, ovlp.sizes, gs.ps)
-    colnames(res.tbl) <- c("NR.GENES", "NR.SIG.GENES", config.ebrowser("GSP.COL"))
+    colnames(res.tbl) <- c("NR.GENES", "NR.SIG.GENES", configEBrowser("GSP.COL"))
     rownames(res.tbl) <- colnames(cmat)
 
     return(res.tbl)
@@ -551,8 +560,8 @@ local.deAna <- function (X.mat, y.vec, args.local)
 .ora <- function(mode=2, se, cmat, perm=1000, alpha=0.05, 
     padj.method="none", beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
 {
-    GRP.COL <- config.ebrowser("GRP.COL")
-    ADJP.COL <- config.ebrowser("ADJP.COL")
+    GRP.COL <- configEBrowser("GRP.COL")
+    ADJP.COL <- configEBrowser("ADJP.COL")
 
     x <- assay(se)
     y <- colData(se)[, GRP.COL]
@@ -587,7 +596,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
             gs.ps@global.stat, 
             gs.ps@global.stat / colSums(cmat), 
             pval)
-        colnames(res.tbl) <- c("GLOB.STAT", "NGLOB.STAT", config.ebrowser("GSP.COL"))
+        colnames(res.tbl) <- c("GLOB.STAT", "NGLOB.STAT", configEBrowser("GSP.COL"))
     }
     return(res.tbl)
 }
@@ -600,7 +609,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
     padj.method="none", 
     out.file=NULL)
 {        
-    GRP.COL <- config.ebrowser("GRP.COL")
+    GRP.COL <- configEBrowser("GRP.COL")
     
     # npGSEA
     if(perm==0)
@@ -620,7 +629,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
     cls$class.v <- ifelse(se[[GRP.COL]] == cls$phen[1], 0, 1)
 
     if(is.null(out.file)) 
-        out.dir <- config.ebrowser("OUTDIR.DEFAULT") 
+        out.dir <- configEBrowser("OUTDIR.DEFAULT") 
     else out.dir <- sub("\\.[a-z]+$", "_files", out.file)
     if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)
      
@@ -649,7 +658,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
 {
     empiricalBrownsMethod <- NULL
     isAvailable("EmpiricalBrownsMethod", type="software")
-    pcol <-  rowData(se, use.names=TRUE)[, config.ebrowser("ADJP.COL")]
+    pcol <-  rowData(se, use.names=TRUE)[, configEBrowser("ADJP.COL")]
     e <- assay(se)
     gs.ps <- apply(cmat, 2, function(s) empiricalBrownsMethod(e[s,], pcol[s]))
     return(gs.ps)
@@ -663,10 +672,10 @@ local.deAna <- function (X.mat, y.vec, args.local)
     GSA <- NULL
     isAvailable("GSA", type="software")
  
-    minsize <- config.ebrowser("GS.MIN.SIZE")
-    maxsize <- config.ebrowser("GS.MAX.SIZE")
-    GRP.COL <- config.ebrowser("GRP.COL")
-    BLK.COL <- config.ebrowser("BLK.COL")
+    minsize <- configEBrowser("GS.MIN.SIZE")
+    maxsize <- configEBrowser("GS.MAX.SIZE")
+    GRP.COL <- configEBrowser("GRP.COL")
+    BLK.COL <- configEBrowser("BLK.COL")
     
     # prepare input
     x <- assay(se)
@@ -697,7 +706,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
     ps <- 2 * apply(ps, 1, min)
     scores <- res$GSA.scores
     res.tbl <- cbind(scores, ps)
-    colnames(res.tbl) <- c("SCORE", config.ebrowser("GSP.COL"))
+    colnames(res.tbl) <- c("SCORE", configEBrowser("GSP.COL"))
     rownames(res.tbl) <- names(gs)
 
     return(res.tbl)
@@ -739,15 +748,15 @@ global.GSA <- function(cmat, u, ...)
     padog <- NULL
     isAvailable("PADOG", type="software")
 
-    grp <- se[[config.ebrowser("GRP.COL")]]
+    grp <- se[[configEBrowser("GRP.COL")]]
     grp <- ifelse(grp == 0, "c", "d") 
   
     blk <- NULL
-    BLK.COL <- config.ebrowser("BLK.COL")
+    BLK.COL <- configEBrowser("BLK.COL")
     if(BLK.COL %in% colnames(colData(se))) blk <- colData(se)[,BLK.COL] 
     paired <- !is.null(blk)
   
-    nmin <- config.ebrowser("GS.MIN.SIZE")
+    nmin <- configEBrowser("GS.MIN.SIZE")
     perm <- as.numeric(perm) 
  
     res <- padog(assay(se), group=grp, 
@@ -755,7 +764,7 @@ global.GSA <- function(cmat, u, ...)
   
     res.tbl <- res[, c("meanAbsT0", "padog0", "PmeanAbsT", "Ppadog")]
     colnames(res.tbl) <- c("MEAN.ABS.T0", 
-        "PADOG0", "P.MEAN.ABS.T",  config.ebrowser("GSP.COL"))
+        "PADOG0", "P.MEAN.ABS.T",  configEBrowser("GSP.COL"))
     rownames(res.tbl) <- as.vector(res[,"ID"]) 
     return(res.tbl)
 }
@@ -815,7 +824,7 @@ global.PADOG <- function(cmat, u, args.global)
     res <- mgsa(o=obs, sets=gs, population=pop)
     res <- setsResults(res)[,1:3]
     res[,3] <- 1 - res[,3]
-    colnames(res)[3] <- config.ebrowser("GSP.COL")
+    colnames(res)[3] <- configEBrowser("GSP.COL")
     return(res)
 }
 
@@ -825,11 +834,11 @@ global.PADOG <- function(cmat, u, args.global)
     gt <- NULL
     isAvailable("globaltest", type="software")
 
-    grp <- colData(se)[, config.ebrowser("GRP.COL")]
+    grp <- colData(se)[, configEBrowser("GRP.COL")]
     se <- as(se, "ExpressionSet")
     res <- gt(grp, se, subsets=gs, permutations=perm)
     res <- res@result[,2:1]
-    colnames(res) <- c("STAT", config.ebrowser("GSP.COL"))
+    colnames(res) <- c("STAT", configEBrowser("GSP.COL"))
     return(res)
 }
 
@@ -840,9 +849,9 @@ global.PADOG <- function(cmat, u, args.global)
     method <- match.arg(method)
 
     # design matrix
-    grp <- colData(se)[, config.ebrowser("GRP.COL")]
+    grp <- colData(se)[, configEBrowser("GRP.COL")]
     blk <- NULL
-    BLK.COL <- config.ebrowser("BLK.COL")
+    BLK.COL <- configEBrowser("BLK.COL")
     if(BLK.COL %in% colnames(colData(se))) blk <- colData(se)[,BLK.COL]
    
     group <- factor(grp)
@@ -874,7 +883,7 @@ global.PADOG <- function(cmat, u, args.global)
                                 nrot=perm, adjust.method="none", sort="none")
     else res <- limma::camera(y, gs.index, design, sort=FALSE)
     res <- res[,c("NGenes", "Direction", "PValue")]
-    colnames(res) <- c("NR.GENES", "DIR", config.ebrowser("GSP.COL"))
+    colnames(res) <- c("NR.GENES", "DIR", configEBrowser("GSP.COL"))
     res[,"DIR"] <- ifelse(res[,"DIR"] == "Up", 1, -1)
 
     return(res)
@@ -892,9 +901,9 @@ global.PADOG <- function(cmat, u, args.global)
     es <- gsva(expr=assay(se), gset.idx.list=gs, kcdf=kcdf)
   
     # set design matrix
-    grp <- colData(se)[, config.ebrowser("GRP.COL")]
+    grp <- colData(se)[, configEBrowser("GRP.COL")]
     blk <- NULL
-    BLK.COL <- config.ebrowser("BLK.COL")
+    BLK.COL <- configEBrowser("BLK.COL")
     if(BLK.COL %in% colnames(colData(se))) blk <- colData(se)[,BLK.COL]
 
     group <- factor(grp)
@@ -915,7 +924,7 @@ global.PADOG <- function(cmat, u, args.global)
     
     # process output
     res <- res[,c("t", "P.Value")]
-    colnames(res) <- c("t.SCORE", config.ebrowser("GSP.COL"))
+    colnames(res) <- c("t.SCORE", configEBrowser("GSP.COL"))
     
     return(res)
 }

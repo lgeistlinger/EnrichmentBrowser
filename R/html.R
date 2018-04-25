@@ -15,7 +15,7 @@
 
 .createIndex <- function(meth, comb)
 {
-    out.dir <- config.ebrowser("OUTDIR.DEFAULT")
+    out.dir <- configEBrowser("OUTDIR.DEFAULT")
     indexPage <- ReportingTools::HTMLReport(shortName = 'index',
                         title = 'EnrichmentBrowser: Index of Result Files',
                         basePath=out.dir, reportDirectory="reports")
@@ -71,7 +71,7 @@
 #' result object and to detailedly explore it.
 #' 
 #' 
-#' @aliases ea.browse gs.ranking
+#' @aliases eaBrowse ea.browse gsRanking gs.ranking
 #' @param res Enrichment analysis result list (as returned by the functions
 #' \code{\link{sbea}} and \code{\link{nbea}}).
 #' @param nr.show Number of gene sets to show.  As default all statistically
@@ -86,13 +86,13 @@
 #' opening the browser to view the result page)? Defaults to FALSE.
 #' @param signif.only Logical.  Display only those gene sets in the ranking,
 #' which satisfy the significance level? Defaults to TRUE.
-#' @return gs.ranking: \code{\linkS4class{DataFrame}} with gene sets ranked by
+#' @return gsRanking: \code{\linkS4class{DataFrame}} with gene sets ranked by
 #' the corresponding p-value;
 #' 
-#' ea.browse: none, opens the browser to explore results.
+#' eaBrowse: none, opens the browser to explore results.
 #' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
 #' @seealso \code{\link{sbea}}, \code{\link{nbea}},
-#' \code{\link{comb.ea.results}}
+#' \code{\link{combResults}}
 #' @examples
 #' 
 #'     
@@ -111,11 +111,11 @@
 #'     ea.res <- makeExampleData(what="ea.res", method="ora", se=geneSE, gs=gs)
 #' 
 #'     # (5) result visualization and exploration
-#'     gs.ranking(ea.res)
-#'     ea.browse(ea.res)
+#'     gsRanking(ea.res)
+#'     eaBrowse(ea.res)
 #' 
-#' @export ea.browse
-ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
+#' @export eaBrowse
+eaBrowse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
 {
     method <- ifelse( is(res$method, "character"), res$method, NA)
     se <- res$se
@@ -123,7 +123,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     gs <- res$gs
     
     # create out dir
-    out.dir <- config.ebrowser("OUTDIR.DEFAULT")
+    out.dir <- configEBrowser("OUTDIR.DEFAULT")
     if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)
     rep.dir <- file.path(out.dir, "reports")
     
@@ -168,11 +168,11 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
 
     message("Creating gene report ...")
     se <- se[colnames(im),]
-    rcols <- sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)
+    rcols <- sapply(c("FC.COL", "ADJP.COL"), configEBrowser)
     fDat <- rowData(se, use.names=TRUE)[,rcols]
     fDat <- as.data.frame(fDat)
     gt <- suppressMessages(.geneTable(im, org, fcs=fDat))
-    gn.cols <- sapply(c("SYM.COL", "GN.COL"), config.ebrowser)
+    gn.cols <- sapply(c("SYM.COL", "GN.COL"), configEBrowser)
     rowData(se)[,gn.cols] <- DataFrame(gt[,gn.cols]) 
     gt.reps <- sapply(gsc, function(s) .geneReport(s, gt, out.dir)) 
     
@@ -219,15 +219,15 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
  
     # (2) link KEGG / GO 
     link <- NULL
-    GS.COL <- config.ebrowser("GS.COL")
+    GS.COL <- configEBrowser("GS.COL")
     if(is.kegg) link <- sapply(gsc, function(s) 
         .getHTMLOfMarkedPathway(setName(s), geneIds(s)[fDat[geneIds(s),2] < alpha]))
-    else if(is.go) link <- paste0(config.ebrowser("GO.SHOW.URL"), res[,GS.COL])
+    else if(is.go) link <- paste0(configEBrowser("GO.SHOW.URL"), res[,GS.COL])
     if(!is.null(link)) res[,GS.COL] <- 
         hwriter::hwrite(res[,GS.COL], link=link, table=FALSE)
 
     htmlRep <- ReportingTools::HTMLReport(shortName=method,
-        title=paste(toupper(method), config.ebrowser("RESULT.TITLE"), sep=" - "),
+        title=paste(toupper(method), configEBrowser("RESULT.TITLE"), sep=" - "),
         basePath=out.dir, reportDirectory="reports")
     res <- as.data.frame(res)
     ReportingTools::publish(res, htmlRep) 
@@ -243,6 +243,14 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
         browseURL(rep)
     }
 }
+
+#' @export
+#' @keywords internal
+ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
+{
+    .Deprecated("eaBrowse")
+    eaBrowse(res, nr.show, graph.view, html.only)
+}   
 
 .makeView <- function(html1, html2, gene.html.pos=c("bottom", "topright"))
 {
@@ -263,10 +271,10 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
 
     f1.tag <- hwriter::hmakeTag("framse", 
         paste0(sub("</frame>", "", c(html1.tag, html2.tag)), collapse=""), 
-        cols=paste0(config.ebrowser("PLOT.WIDTH") + 30, ",*"), border=0)
+        cols=paste0(configEBrowser("PLOT.WIDTH") + 30, ",*"), border=0)
     html3.tag <- sub("</frame>", "", html3.tag)
     f2.tag <- hwriter::hmakeTag("framse", paste(f1.tag, html3.tag),
-        rows=paste0(config.ebrowser("PLOT.HEIGHT") + 30, ",*"), border=0)
+        rows=paste0(configEBrowser("PLOT.HEIGHT") + 30, ",*"), border=0)
     cont <- hwriter::hmakeTag("html", paste0(head,f2.tag))
     return(cont)
 }
@@ -307,8 +315,8 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
 {
     org <- substring(s, 1, 3)
     pwy.id <- sub("^[a-z]{3}", "", s)
-    fc <- rowData(se)[,config.ebrowser("FC.COL")]
-    gn.cols <- sapply(c("SYM.COL", "GN.COL"), config.ebrowser)
+    fc <- rowData(se)[,configEBrowser("FC.COL")]
+    gn.cols <- sapply(c("SYM.COL", "GN.COL"), configEBrowser)
     gnam <- apply(rowData(se)[,gn.cols], 1, paste, collapse=": ")
     names(fc) <- names(gnam) <- names(se)
 
@@ -353,22 +361,22 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
 
 .makeHmapHTML <- function(se, img.file)
 {
-    width <- config.ebrowser("PLOT.WIDTH") 
-    height <- config.ebrowser("PLOT.HEIGHT")
+    width <- configEBrowser("PLOT.WIDTH") 
+    height <- configEBrowser("PLOT.HEIGHT")
 
     # 1: make the plot
     # (a) heatmap 1: all features vs all samples
     expr <- assay(se)
-    rownames(expr) <- rowData(se)[,config.ebrowser("SYM.COL")]
+    rownames(expr) <- rowData(se)[,configEBrowser("SYM.COL")]
     png(img.file, width=width, height=height)
-    exprs.heatmap(expr=expr, grp=se[[config.ebrowser("GRP.COL")]])
+    exprsHeatmap(expr=expr, grp=se[[configEBrowser("GRP.COL")]])
     dev.off()
     img.tag <- hwriter::hwriteImage(basename(img.file))
 
     # (b) heatmap 2: most signif features
     max.row <- 40
-    fc <- abs(rowData(se)[,config.ebrowser("FC.COL")])
-    p <- -log(rowData(se)[,config.ebrowser("ADJP.COL")], base=10)
+    fc <- abs(rowData(se)[,configEBrowser("FC.COL")])
+    p <- -log(rowData(se)[,configEBrowser("ADJP.COL")], base=10)
     ind <- (fc >= 1) | (p >= 1)
     se <- se[ind,]
     if(nrow(se) > 1)
@@ -387,10 +395,10 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
             #}
         }
         expr <- assay(se)
-        rownames(expr) <- rowData(se)[,config.ebrowser("SYM.COL")]
+        rownames(expr) <- rowData(se)[,configEBrowser("SYM.COL")]
         img2 <- sub(".png$", "2.png", img.file)
         png(img2, width=width, height=height)
-        exprs.heatmap(expr=expr, grp=se[[config.ebrowser("GRP.COL")]])
+        exprsHeatmap(expr=expr, grp=se[[configEBrowser("GRP.COL")]])
         dev.off()
         img.tag <- paste0(img.tag, hwriter::hwriteImage(basename(img2)))
     }
@@ -404,11 +412,11 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
 
 .makeVolcHTML <- function(se, img.file)
 {    
-    width <- config.ebrowser("PLOT.WIDTH") 
-    height <- config.ebrowser("PLOT.HEIGHT")
+    width <- configEBrowser("PLOT.WIDTH") 
+    height <- configEBrowser("PLOT.HEIGHT")
 
-    fc <- rowData(se)[,config.ebrowser("FC.COL")]
-    p <- rowData(se)[,config.ebrowser("ADJP.COL")]
+    fc <- rowData(se)[,configEBrowser("FC.COL")]
+    p <- rowData(se)[,configEBrowser("ADJP.COL")]
     # 1: make the plot
     png(img.file, width=width, height=height)
         volcano(fc, p)
@@ -458,9 +466,9 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     volc.html <- sub("png$", "html", img.file) 
     con <- file(volc.html, open="w")
     
-    gn.cols <- sapply(c("SYM.COL", "GN.COL"), config.ebrowser)
+    gn.cols <- sapply(c("SYM.COL", "GN.COL"), configEBrowser)
     titles <- apply(rowData(se)[,gn.cols], 1, paste, collapse=": ") 
-    refs <- paste0(config.ebrowser("GENE.URL"), names(se))
+    refs <- paste0(configEBrowser("GENE.URL"), names(se))
     geneplotter::imageMap(coord, con, 
         list(HREF=refs, TITLE=titles, TARGET=rep("gene", nrow(coord))), 
         basename(img.file))    
@@ -490,8 +498,8 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
 
 .makeKGraphHTML <- function(fc, gname, pwy.id, org, img.file)
 {
-    width <- config.ebrowser("PLOT.WIDTH") 
-    height <- config.ebrowser("PLOT.HEIGHT")
+    width <- configEBrowser("PLOT.WIDTH") 
+    height <- configEBrowser("PLOT.HEIGHT")
 
     # 1: make the plot
     # run pathview2 for getting the kegg graph
@@ -517,7 +525,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
         kstr <- sapply(nd, function(n) 
             paste(paste(org, n, sep=":"), collapse="+"), USE.NAMES=FALSE)
         con <- file(kgraph.html, open="w")
-        refs <- paste0(config.ebrowser("KEGG.GENE.URL"), kstr)
+        refs <- paste0(configEBrowser("KEGG.GENE.URL"), kstr)
         biocGraph::imageMap(gr, con=con,
             tags=list(HREF=refs, TITLE = nam, TARGET = rep("gene", length(nd))),
             imgname=basename(img.file), width=width, height=height)    
@@ -529,8 +537,8 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
 
 .makeGGraphHTML <- function(se, sgrn, alpha, img.file)
 {
-    width <- config.ebrowser("PLOT.WIDTH") 
-    height <- config.ebrowser("PLOT.HEIGHT")
+    width <- configEBrowser("PLOT.WIDTH") 
+    height <- configEBrowser("PLOT.HEIGHT")
 
     sggeaGraph <- NULL
     if(nrow(sgrn) > 0)
@@ -554,7 +562,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     par(mai=rep(0,4))
     if(!is.null(sggeaGraph))
         sggeaGraph <- .plotGGEAGraph(sggeaGraph,
-            show.scores=(numEdges(sggeaGraph) < config.ebrowser("NR.SHOW")))
+            show.scores=(numEdges(sggeaGraph) < configEBrowser("NR.SHOW")))
     else plot(NA, axes=FALSE, xlim=c(0,1), ylim=c(0,1),
         ylab="", xlab="", main="No edges in network for this set!")
     dev.off()
@@ -562,7 +570,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     ggraph.html <- sub("view.png$", "graph.html", img.file)
     if(!is.null(sggeaGraph))
     {
-        gn.cols <- sapply(c("SYM.COL", "GN.COL"), config.ebrowser)
+        gn.cols <- sapply(c("SYM.COL", "GN.COL"), configEBrowser)
         gnam <- apply(rowData(se)[,gn.cols], 1, paste, collapse=": ")
         names(gnam) <- names(se)
 
@@ -570,7 +578,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
         nd <- nodes(sggeaGraph)
         nam <- gnam[nd]
         con <- file(ggraph.html, open="w")
-        refs <- paste0(config.ebrowser("GENE.URL"),  nd)
+        refs <- paste0(configEBrowser("GENE.URL"),  nd)
         biocGraph::imageMap(sggeaGraph, con=con,
             tags=list(HREF=refs, TITLE = nam, TARGET = rep("gene", length(nd))),
             imgname=basename(img.file), width=width, height=height)    
@@ -587,7 +595,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     coids <- paste(oids, collapse="+")
     request <- pwy
     if(nchar(coids)) request <- paste(request, coids, sep="+")
-    return(paste0(config.ebrowser("KEGG.SHOW.URL"), request))
+    return(paste0(configEBrowser("KEGG.SHOW.URL"), request))
 }
 
 .sortGeneTable <- function(gt)
@@ -595,7 +603,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     gt <- as.data.frame(gt)
     num.cols <- sapply(gt, is.numeric)
     gt[,num.cols] <- signif(gt[,num.cols], digits=3)
-    scols <- sapply(c("ADJP.COL", "FC.COL"), config.ebrowser)
+    scols <- sapply(c("ADJP.COL", "FC.COL"), configEBrowser)
     sorting.df <- gt[, scols]
     sorting.df[,2] <- -abs(sorting.df[,2])
     gt <- gt[do.call(order, sorting.df), , drop=FALSE]
@@ -635,8 +643,8 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     org.pkg <- get(org.pkg)
 
     # (1) gene identification 
-    EZ.COL <- config.ebrowser("EZ.COL")
-    gn.cols <- sapply(c("SYM.COL", "GN.COL"), config.ebrowser)
+    EZ.COL <- configEBrowser("EZ.COL")
+    gn.cols <- sapply(c("SYM.COL", "GN.COL"), configEBrowser)
     gt <- suppressMessages(select(org.pkg, keys=ids,
             columns=gn.cols, keytype=EZ.COL))
 	
@@ -680,8 +688,8 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     org.pkg <- get(org.pkg)
 
     # (1) gene identification 
-    EZ.COL <- config.ebrowser("EZ.COL")
-    gn.cols <- sapply(c("SYM.COL", "GN.COL"), config.ebrowser)
+    EZ.COL <- configEBrowser("EZ.COL")
+    gn.cols <- sapply(c("SYM.COL", "GN.COL"), configEBrowser)
     gt <- select(org.pkg, keys=colnames(im), columns=gn.cols, keytype=EZ.COL)
 
     # (2) fold change
@@ -716,27 +724,27 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
 #  
 #    nr.articles <- sapply(pmids, length)
 #    pubmed.urls <- sapply(pmids, function(p) paste0(
-#        config.ebrowser("PUBMED.URL"), paste(p, collapse=",")), USE.NAMES=FALSE)
+#        configEBrowser("PUBMED.URL"), paste(p, collapse=",")), USE.NAMES=FALSE)
 #    articles <- paste(nr.articles, pubmed.urls)
 #
 #    gt <- cbind(gt, articles)
-#    colnames(gt)[ncol(gt)] <- config.ebrowser("PMID.COL")
+#    colnames(gt)[ncol(gt)] <- configEBrowser("PMID.COL")
     return(gt)
 }
 
 
 .ncbiGeneLink <- function(object, ...)
 {
-    EZ.COL <- config.ebrowser("EZ.COL")
+    EZ.COL <- configEBrowser("EZ.COL")
     col <- as.character(object[,EZ.COL])
-    link <- paste0(config.ebrowser("GENE.URL"), col)
+    link <- paste0(configEBrowser("GENE.URL"), col)
     object[,EZ.COL] <- hwriter::hwrite(col, link=link, table=FALSE)
     return(object)
 }
 
 .pubmedLink <- function(object, ...)
 {
-    PMID.COL <- config.ebrowser("PMID.COL")
+    PMID.COL <- configEBrowser("PMID.COL")
     spl <- sapply(as.character(object[,PMID.COL]), 
         function(s) unlist(strsplit(s, " ")))
     spl <- t(spl)

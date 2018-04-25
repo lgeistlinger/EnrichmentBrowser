@@ -70,7 +70,8 @@
 #' 
 #' Result appearance: \itemize{ \item RESULT.TITLE: (default: "Table of
 #' Results") \item NR.SHOW: maximum number of entries to show (default: 20) }
-#' 
+#'
+#' @aliases config.ebrowser 
 #' @param key Configuration parameter.
 #' @param value Value to overwrite the current value of key.
 #' @return If is.null(value) this returns the value of the selected
@@ -80,15 +81,15 @@
 #' @examples
 #' 
 #'     # getting config information
-#'     config.ebrowser("GS.MIN.SIZE") 
+#'     configEBrowser("GS.MIN.SIZE") 
 #' 
 #'     # setting config information
 #'     # WARNING: this is for advanced users only!
 #'     # inappropriate settings will impair EnrichmentBrowser's functionality
-#'     config.ebrowser(key="GS.MIN.SIZE", value=3)  
+#'     configEBrowser(key="GS.MIN.SIZE", value=3)  
 #' 
-#' @export config.ebrowser
-config.ebrowser <- function(key, value=NULL) 
+#' @export configEBrowser
+configEBrowser <- function(key, value=NULL) 
 {
     .key_readonly <- c(
         "PRB.COL", "EZ.COL", "GN.COL", "SYM.COL", "PMID.COL", 
@@ -98,9 +99,17 @@ config.ebrowser <- function(key, value=NULL)
     if(is.null(value)) .ebrowser_config_cache[[key]]
     else if(!(key %in% .key_readonly)) .ebrowser_config_cache[[key]] <- value
 }
-    
+
+#' @export
+#' @keywords internal
+config.ebrowser <- function(key, value=NULL)     
+{
+    .Deprecated("configEBrowser")
+    configEBrowser(key, value)
+}
+
 ##
-# set the output directory
+# check the output directory
 ##
 .checkOutDir <- function(out.dir)
 {
@@ -132,8 +141,8 @@ config.ebrowser <- function(key, value=NULL)
 #' detail in the default browser.
 #' 
 #' 
-#' @param meth Enrichment analysis method.  See \code{\link{sbea.methods}} and
-#' \code{\link{nbea.methods}} for currently supported enrichment analysis
+#' @param meth Enrichment analysis method.  See \code{\link{sbeaMethods}} and
+#' \code{\link{nbeaMethods}} for currently supported enrichment analysis
 #' methods.  See also \code{\link{sbea}} and \code{\link{nbea}} for details.
 #' @param exprs Expression matrix.  A tab separated text file containing
 #' *normalized* expression values on a *log* scale.  Columns =
@@ -214,12 +223,12 @@ config.ebrowser <- function(key, value=NULL)
 #' @seealso \code{\link{readSE}} to read expression data from file;
 #' \code{\link{probe2gene}} to transform probe to gene level expression;
 #' \code{\link{kegg.species.code}} maps species name to KEGG code.
-#' \code{\link{get.kegg.genesets}} to retrieve gene set definitions from KEGG;
+#' \code{\link{getGenesets}} to retrieve gene set databases such as GO or KEGG;
 #' \code{\link{compileGRN}} to construct a GRN from pathway databases;
 #' \code{\link{sbea}} to perform set-based enrichment analysis;
 #' \code{\link{nbea}} to perform network-based enrichment analysis;
-#' \code{\link{comb.ea.results}} to combine results from different methods;
-#' \code{\link{ea.browse}} for exploration of resulting gene sets
+#' \code{\link{combResults}} to combine results from different methods;
+#' \code{\link{eaBrowse}} for exploration of resulting gene sets
 #' @references Limma User's guide:
 #' \url{http://www.bioconductor.org/packages/limma}
 #' @examples
@@ -230,9 +239,9 @@ config.ebrowser <- function(key, value=NULL)
 #'     fdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
 #'     
 #'     # getting all human KEGG gene sets
-#'     # hsa.gs <- get.kegg.genesets("hsa")
+#'     # hsa.gs <- getGenesets(org="hsa", db="kegg")
 #'     gs.file <- system.file("extdata/hsa_kegg_gs.gmt", package="EnrichmentBrowser")
-#'     hsa.gs <- parse.genesets.from.GMT(gs.file)
+#'     hsa.gs <- getGenesets(gs.file)
 #' 
 #'     # set-based enrichment analysis
 #'     ebrowser(   meth="ora", 
@@ -259,20 +268,20 @@ ebrowser <- function(
     gs, grn=NULL, perm=1000, alpha=0.05, beta=1, 
     comb=FALSE, browse=TRUE, nr.show=-1)
 {
-    GRP.COL <- config.ebrowser("GRP.COL")
-    FC.COL <- config.ebrowser("FC.COL")
-    ADJP.COL <- config.ebrowser("ADJP.COL")
-    EZ.COL <- config.ebrowser("EZ.COL")    
+    GRP.COL <- configEBrowser("GRP.COL")
+    FC.COL <- configEBrowser("FC.COL")
+    ADJP.COL <- configEBrowser("ADJP.COL")
+    EZ.COL <- configEBrowser("EZ.COL")    
 
-    METHODS <- c(sbea.methods(), nbea.methods())
+    METHODS <- c(sbeaMethods(), nbeaMethods())
     is.method <- (meth %in% METHODS) | is.function(meth)
     if(!all(is.method)) stop("No such method: ", meth[!is.method])
     
-    if(any(nbea.methods() %in% meth)) 
+    if(any(nbeaMethods() %in% meth)) 
         if(is.null(grn))
             stop("\'grn\' must be not null")
   
-    out.dir <- config.ebrowser("OUTDIR.DEFAULT")
+    out.dir <- configEBrowser("OUTDIR.DEFAULT")
     if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)    
 
     # execution
@@ -307,7 +316,7 @@ ebrowser <- function(
     # ... and it's not already a gene level se
     if(metadata(se)$dataType == "ma")
     {
-        has.pcol <- config.ebrowser("PRB.COL") %in% colnames(rowData(se))
+        has.pcol <- configEBrowser("PRB.COL") %in% colnames(rowData(se))
         anno <- metadata(se)$annotation
         has.anno <- ifelse(length(anno), nchar(anno) > 3, FALSE)
         if(has.pcol || has.anno)
@@ -333,7 +342,7 @@ ebrowser <- function(
         message(paste("Execute", toupper(m), "..."))
         out.file <- file.path(out.dir, paste0(m, ".txt"))
 
-        if(m %in% nbea.methods()) 
+        if(m %in% nbeaMethods()) 
             res <- nbea( method=m, se=geneSE, gs=gs, 
                     grn=grn, alpha=alpha, beta=beta, perm=perm[i] )
 
@@ -344,7 +353,7 @@ ebrowser <- function(
             quote=FALSE, row.names=FALSE, sep="\t")
 
         # produce html reports, if desired
-        if(browse) ea.browse( res, nr.show, graph.view=grn, html.only=TRUE )
+        if(browse) eaBrowse( res, nr.show, graph.view=grn, html.only=TRUE )
         
         # link gene statistics
         sam.file <- file.path(out.dir, "samt.RData")    
@@ -366,7 +375,7 @@ ebrowser <- function(
     gt <- .getGeneAnno(names(geneSE), org)
     gt <- cbind(gt, rowData(geneSE, use.names=TRUE))
     gt <- .sortGeneTable(gt)
-    ind <- gt[,config.ebrowser("EZ.COL")]
+    ind <- gt[,configEBrowser("EZ.COL")]
     geneSE <- geneSE[ind, ]
     rowData(geneSE) <- gt
 
@@ -383,13 +392,13 @@ ebrowser <- function(
         {
             # combine results in a specified out file
             out.file <- file.path(out.dir, "comb.txt")
-            res <- comb.ea.results(res.list=res.list)
+            res <- combResults(res.list=res.list)
             write.table(res$res.tbl, 
                 file=out.file, quote=FALSE, row.names=FALSE, sep="\t")
 
             # produce html report, if desired
             if(browse)
-                ea.browse(res, nr.show, graph.view=grn, html.only=TRUE)
+                eaBrowse(res, nr.show, graph.view=grn, html.only=TRUE)
         }
     }
     

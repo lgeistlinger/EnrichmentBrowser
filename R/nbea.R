@@ -12,7 +12,7 @@
 
 #' @rdname nbea
 #' @export
-nbea.methods <- function() 
+nbeaMethods <- function() 
     c("ggea", "spia", "pathnet", "degraph", 
 		"ganpa", "cepa", "topologygsa", "netgsa", "nea")
 
@@ -113,7 +113,7 @@ nbea.methods <- function()
 #' to.
 #' @param browse Logical. Should results be displayed in the browser for
 #' interactive exploration? Defaults to FALSE.
-#' @param ...  Additional arguments passed to individual nbea methods.  This
+#' @param ...  Additional arguments passed to individual nbeaMethods.  This
 #' includes currently: \itemize{ \item beta: Log2 fold change significance
 #' level. Defaults to 1 (2-fold).  } For SPIA and NEA: \itemize{ \item
 #' sig.stat: decides which statistic is used for determining significant DE
@@ -128,22 +128,23 @@ nbea.methods <- function()
 #' under investigation. Should be one out of c('&', '|'), denoting logical AND
 #' and OR. respectively. Accordingly, this either includes edges for which
 #' regulator AND / OR target gene are members of the investigated gene set.  }
-#' @return nbea.methods: a character vector of currently supported methods;
+#' @return nbeaMethods: a character vector of currently supported methods;
 #' 
 #' nbea: if(is.null(out.file)): an enrichment analysis result object that can
-#' be detailedly explored by calling \code{\link{ea.browse}} and from which a
-#' flat gene set ranking can be extracted by calling \code{\link{gs.ranking}}.
+#' be detailedly explored by calling \code{\link{eaBrowse}} and from which a
+#' flat gene set ranking can be extracted by calling \code{\link{gsRanking}}.
 #' If 'out.file' is given, the ranking is written to the specified file.
 #' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
 #' @seealso Input: \code{\link{readSE}}, \code{\link{probe2gene}},
-#' \code{\link{get.kegg.genesets}} to retrieve gene set definitions from KEGG.
+#' \code{\link{getGenesets}} to retrieve gene set definitions from databases 
+#' such as GO and KEGG.
 #' \code{\link{compileGRN}} to construct a GRN from pathway databases.
 #' 
-#' Output: \code{\link{gs.ranking}} to rank the list of gene sets.
-#' \code{\link{ea.browse}} for exploration of resulting gene sets.
+#' Output: \code{\link{gsRanking}} to rank the list of gene sets.
+#' \code{\link{eaBrowse}} for exploration of resulting gene sets.
 #' 
 #' Other: \code{\link{sbea}} to perform set-based enrichment analysis.
-#' \code{\link{comb.ea.results}} to combine results from different methods.
+#' \code{\link{combResults}} to combine results from different methods.
 #' the SPIA package for more information on signaling pathway impact analysis.
 #' the neaGUI package for more information on network enrichment analysis.  the
 #' PathNet package for more information on pathway analysis using network
@@ -154,7 +155,7 @@ nbea.methods <- function()
 #' @examples
 #' 
 #'     # currently supported methods
-#'     nbea.methods()
+#'     nbeaMethods()
 #' 
 #'     # (1) expression data: 
 #'     # simulated expression values of 100 genes
@@ -178,10 +179,10 @@ nbea.methods <- function()
 #'     ea.res <- nbea(method="ggea", se=se, gs=gs, grn=grn)
 #' 
 #'     # (6) result visualization and exploration
-#'     gs.ranking(ea.res, signif.only=FALSE)
+#'     gsRanking(ea.res, signif.only=FALSE)
 #' 
 #'     # using your own tailored function as enrichment method
-#'     dummy.nbea <- function(se, gs, grn, alpha, perm)
+#'     dummyNBEA <- function(se, gs, grn, alpha, perm)
 #'     {
 #'         sig.ps <- sample(seq(0,0.05, length=1000),5)
 #'         insig.ps <- sample(seq(0.1,1, length=1000), length(gs)-5)
@@ -193,12 +194,12 @@ nbea.methods <- function()
 #'         return(res.tbl[order(ps),])
 #'     }
 #' 
-#'     ea.res2 <- nbea(method=dummy.nbea, se=se, gs=gs, grn=grn)
-#'     gs.ranking(ea.res2) 
+#'     ea.res2 <- nbea(method=dummyNBEA, se=se, gs=gs, grn=grn)
+#'     gsRanking(ea.res2) 
 #' 
 #' @export nbea
 nbea <- function(
-    method=EnrichmentBrowser::nbea.methods(), 
+    method=EnrichmentBrowser::nbeaMethods(), 
     se, 
     gs, 
     grn,
@@ -210,11 +211,11 @@ nbea <- function(
     browse=FALSE, ...)
 {
     # get configuration
-    GS.MIN.SIZE <- config.ebrowser("GS.MIN.SIZE")
-    GS.MAX.SIZE <- config.ebrowser("GS.MAX.SIZE")
-    GSP.COL <- config.ebrowser("GSP.COL")
-    FC.COL <-  config.ebrowser("FC.COL")
-    ADJP.COL <-  config.ebrowser("ADJP.COL")
+    GS.MIN.SIZE <- configEBrowser("GS.MIN.SIZE")
+    GS.MAX.SIZE <- configEBrowser("GS.MAX.SIZE")
+    GSP.COL <- configEBrowser("GSP.COL")
+    FC.COL <-  configEBrowser("FC.COL")
+    ADJP.COL <-  configEBrowser("ADJP.COL")
 
     ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
     if(is(se, "ExpressionSet")) se <- as(se, "RangedSummarizedExperiment")
@@ -225,7 +226,7 @@ nbea <- function(
     se <- se[!is.na(rowData(se)[,ADJP.COL]), ]
 
     # getting gene sets & grn
-    if(!is.list(gs)) gs <- parse.genesets.from.GMT(gs)
+    if(!is.list(gs)) gs <- getGenesets(gs)
     if(!is.matrix(grn)) grn <- .readGRN(grn)
 
     # prune grn
@@ -271,7 +272,7 @@ nbea <- function(
     res.tbl[,GSP.COL] <- p.adjust(res.tbl[,GSP.COL], method=padj.method)
 
     res.tbl <- DataFrame(rownames(res.tbl), res.tbl)
-    colnames(res.tbl)[1] <- config.ebrowser("GS.COL") 
+    colnames(res.tbl)[1] <- configEBrowser("GS.COL") 
     rownames(res.tbl) <- NULL
     
     if(!is.null(out.file))
@@ -287,7 +288,7 @@ nbea <- function(
             nr.sigs=sum(res.tbl[,GSP.COL] < alpha),
             se=se, gs=gs, alpha=alpha)
 
-        if(browse) ea.browse(res)
+        if(browse) eaBrowse(res)
         else return(res)
     }
 }
@@ -331,9 +332,9 @@ nbea <- function(
 .spia <- function(se, gs, grn, 
     alpha=0.05, perm=1000, beta=1, sig.stat=c("xxP", "xxFC", "|", "&")) 
 {
-    FC.COL <- config.ebrowser("FC.COL")
-    ADJP.COL <- config.ebrowser("ADJP.COL")
-    GSP.COL <- config.ebrowser("GSP.COL")
+    FC.COL <- configEBrowser("FC.COL")
+    ADJP.COL <- configEBrowser("ADJP.COL")
+    GSP.COL <- configEBrowser("GSP.COL")
 
     de.genes <- .isSig(rowData(se, use.names=TRUE), alpha, beta, sig.stat)
     de <- rowData(se, use.names=TRUE)[de.genes, FC.COL]
@@ -383,7 +384,7 @@ nbea <- function(
             nam <- list(x, x)
             m <- matrix(0, nrow=len, ncol=len, dimnames=nam)
             sgrn <- .queryGRN(gs=x, grn=grn, index=FALSE)
-            if(nrow(sgrn) < config.ebrowser("GS.MIN.SIZE")) return(NULL)
+            if(nrow(sgrn) < configEBrowser("GS.MIN.SIZE")) return(NULL)
             act.grn <- sgrn[sgrn[,3] == "+",,drop=FALSE]
             actm2 <- m
             if(nrow(act.grn))
@@ -447,7 +448,7 @@ nbea <- function(
     colnames(res) <- gsub("_", ".", colnames(res))
     colnames(res) <- toupper(colnames(res))
     res <- as.matrix(res)
-    GSP.COL <- config.ebrowser("GSP.COL")
+    GSP.COL <- configEBrowser("GSP.COL")
     res <- res[order(res[,GSP.COL]),]
     return(res) 
 }
@@ -460,8 +461,8 @@ nbea <- function(
     PathNet <- NULL
     isAvailable("PathNet", type="software")
     
-    ADJP.COL <- config.ebrowser("ADJP.COL")
-    GSP.COL <- config.ebrowser("GSP.COL")
+    ADJP.COL <- configEBrowser("ADJP.COL")
+    GSP.COL <- configEBrowser("GSP.COL")
 
     dir.evid <- -log(rowData(se, use.names=TRUE)[,ADJP.COL], base=10)
     dir.evid <- cbind(as.integer(rownames(se)), dir.evid)
@@ -557,7 +558,7 @@ nbea <- function(
     isAvailable("netgsa", type="software")
 
     x <- assay(se)
-    y <- colData(se)[,config.ebrowser("GRP.COL")] + 1
+    y <- colData(se)[,configEBrowser("GRP.COL")] + 1
 
     # prepare gene sets
     #cmat <- .gmt2cmat(gs, rownames(x)) 
@@ -570,7 +571,7 @@ nbea <- function(
     x <- x[rownames(cmat),]
 
     # prepare network
-    out.dir <- config.ebrowser("OUTDIR.DEFAULT")
+    out.dir <- configEBrowser("OUTDIR.DEFAULT")
     if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)
     out.file <- file.path(out.dir, "grn.txt")
     write.table(grn[,1:2], file=out.file, row.names=FALSE)
@@ -593,7 +594,7 @@ nbea <- function(
     res <- NetGSA(A1$wAdj, A2$wAdj, x, y, B=cmat, directed=TRUE)
 
     res <- cbind(res$teststat, res$p.value)
-    colnames(res) <- c("STAT", config.ebrowser("GSP.COL"))
+    colnames(res) <- c("STAT", configEBrowser("GSP.COL"))
     rownames(res) <- rownames(cmat)
     return(res)
 }
@@ -607,12 +608,12 @@ nbea <- function(
     isAvailable("GANPA", type="software")
 
     # configure
-    GRP.COL <- config.ebrowser("GRP.COL")
-    SMPL.COL <- config.ebrowser("SMPL.COL")
-    OUT.DIR <- config.ebrowser("OUTDIR.DEFAULT")
-    GS.MIN.SIZE <- config.ebrowser("GS.MIN.SIZE")
-    GS.MAX.SIZE <- config.ebrowser("GS.MAX.SIZE")
-    GSP.COL <- config.ebrowser("GSP.COL")
+    GRP.COL <- configEBrowser("GRP.COL")
+    SMPL.COL <- configEBrowser("SMPL.COL")
+    OUT.DIR <- configEBrowser("OUTDIR.DEFAULT")
+    GS.MIN.SIZE <- configEBrowser("GS.MIN.SIZE")
+    GS.MAX.SIZE <- configEBrowser("GS.MAX.SIZE")
+    GSP.COL <- configEBrowser("GSP.COL")
     
     if(!file.exists(OUT.DIR)) dir.create(OUT.DIR, recursive=TRUE)
     out.prefix <- file.path(OUT.DIR, "ganpa")
@@ -657,13 +658,13 @@ nbea <- function(
     isAvailable("CePa", type="software")
 
     # define sample groups
-    GRP.COL <- config.ebrowser("GRP.COL")
+    GRP.COL <- configEBrowser("GRP.COL")
     sl <- sampleLabel(colData(se)[, GRP.COL], treatment=1, control=0)
 
     # create pathway catalogue from gs and grn
     # (1) pathway list
     pl <- sapply(gs, function(s) as.character(.queryGRN(s, grn)))
-    pl <- pl[sapply(pl, length) >= config.ebrowser("GS.MIN.SIZE")]
+    pl <- pl[sapply(pl, length) >= configEBrowser("GS.MIN.SIZE")]
 
     # (2) interaction list
     il <- data.frame(as.character(seq_len(nrow(grn))), grn[,1:2], stringsAsFactors=FALSE)
@@ -684,7 +685,7 @@ nbea <- function(
     }
     rownames(res.mat) <- names(res)
     n <- paste(toupper(names(res[[1]])), "PVAL" , sep=".")
-    colnames(res.mat) <- c(n, config.ebrowser("GSP.COL"))
+    colnames(res.mat) <- c(n, configEBrowser("GSP.COL"))
     return(res.mat)
 }
 
@@ -696,14 +697,14 @@ nbea <- function(
     testOneGraph <- NULL
     isAvailable("DEGraph", type="software")
 
-    grp <- colData(se)[,config.ebrowser("GRP.COL")]
+    grp <- colData(se)[,configEBrowser("GRP.COL")]
             
     options(show.error.messages=FALSE) 
     res <- sapply(names(gs),
         function(s)
         {
             gs.grn <- .queryGRN(gs[[s]], grn, index=FALSE)
-            if(nrow(gs.grn) < config.ebrowser("GS.MIN.SIZE")) return(NA)
+            if(nrow(gs.grn) < configEBrowser("GS.MIN.SIZE")) return(NA)
             am <- .grn2adjm(gs.grn)
             gr <- graphAM(am, "directed")           
             gr <- as(gr, "graphNEL")                 
@@ -736,7 +737,7 @@ nbea <- function(
     graph_from_graphnel <- mst <- NULL
      isAvailable("igraph", type="software")
  
-    grp <- colData(se)[,config.ebrowser("GRP.COL")]
+    grp <- colData(se)[,configEBrowser("GRP.COL")]
     y1 <- t(assay(se)[, grp == 0])
     y2 <- t(assay(se)[, grp == 1])
 
@@ -745,7 +746,7 @@ nbea <- function(
         {
             message(s)
             gs.grn <- .queryGRN(gs[[s]], grn, index=FALSE)
-            if(nrow(gs.grn) < config.ebrowser("GS.MIN.SIZE")) return(NA)
+            if(nrow(gs.grn) < configEBrowser("GS.MIN.SIZE")) return(NA)
             am <- .grn2adjm(gs.grn)
             gr <- graphAM(am, "directed")           
             gr <- as(gr, "graphNEL")                 
@@ -780,14 +781,14 @@ nbea <- function(
     graph_from_graphnel <- mst <- NULL
      isAvailable("igraph", type="software")
  
-    grp <- colData(se)[,config.ebrowser("GRP.COL")] + 1
+    grp <- colData(se)[,configEBrowser("GRP.COL")] + 1
 
     res <- sapply(names(gs),
         function(s)
         {
             message(s)
             gs.grn <- .queryGRN(gs[[s]], grn, index=FALSE)
-            if(nrow(gs.grn) < config.ebrowser("GS.MIN.SIZE")) return(NA)
+            if(nrow(gs.grn) < configEBrowser("GS.MIN.SIZE")) return(NA)
             am <- .grn2adjm(gs.grn)
             gr <- graphAM(am, "directed")           
             gr <- as(gr, "graphNEL")                 

@@ -66,7 +66,7 @@ network from regulations in pathway databases such as KEGG.
 \seealso{
 \code{\link{pathwayDatabases}}, \code{\link{pathways}},
 \code{\linkS4class{KEGGPathway}}, \code{\link{parseKGML}},
-\code{\link{download.kegg.pathways}}
+\code{\link{downloadPathways}}
 }
 \author{
 Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>

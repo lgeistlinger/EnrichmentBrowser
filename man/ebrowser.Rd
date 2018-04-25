@@ -10,8 +10,8 @@ ebrowser(meth, exprs, pdat, fdat, org, data.type = c(NA, "ma", "rseq"),
   nr.show = -1)
 }
 \arguments{
-\item{meth}{Enrichment analysis method.  See \code{\link{sbea.methods}} and
-\code{\link{nbea.methods}} for currently supported enrichment analysis
+\item{meth}{Enrichment analysis method.  See \code{\link{sbeaMethods}} and
+\code{\link{nbeaMethods}} for currently supported enrichment analysis
 methods.  See also \code{\link{sbea}} and \code{\link{nbea}} for details.}
 
 \item{exprs}{Expression matrix.  A tab separated text file containing
@@ -125,9 +125,9 @@ detail in the default browser.
     fdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
     
     # getting all human KEGG gene sets
-    # hsa.gs <- get.kegg.genesets("hsa")
+    # hsa.gs <- getGenesets(org="hsa", db="kegg")
     gs.file <- system.file("extdata/hsa_kegg_gs.gmt", package="EnrichmentBrowser")
-    hsa.gs <- parse.genesets.from.GMT(gs.file)
+    hsa.gs <- getGenesets(gs.file)
 
     # set-based enrichment analysis
     ebrowser(   meth="ora", 
@@ -156,12 +156,12 @@ Limma User's guide:
 \code{\link{readSE}} to read expression data from file;
 \code{\link{probe2gene}} to transform probe to gene level expression;
 \code{\link{kegg.species.code}} maps species name to KEGG code.
-\code{\link{get.kegg.genesets}} to retrieve gene set definitions from KEGG;
+\code{\link{getGenesets}} to retrieve gene set databases such as GO or KEGG;
 \code{\link{compileGRN}} to construct a GRN from pathway databases;
 \code{\link{sbea}} to perform set-based enrichment analysis;
 \code{\link{nbea}} to perform network-based enrichment analysis;
-\code{\link{comb.ea.results}} to combine results from different methods;
-\code{\link{ea.browse}} for exploration of resulting gene sets
+\code{\link{combResults}} to combine results from different methods;
+\code{\link{eaBrowse}} for exploration of resulting gene sets
 }
 \author{
 Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>

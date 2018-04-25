@@ -10,78 +10,6 @@
 #
 ###########################################################
 
-# Stouffer's combination of pvalues 
-.stoufferComb <- function(pvals, two.sided=TRUE)
-{
-    ## remove NA
-    pvals <- pvals[!is.na(pvals)]
-    ## correct for two sided tests
-    if(two.sided) pvals <- pvals/2
-    ## z transformation
-    z <- sum(-qnorm(pvals)) / sqrt(length(pvals))
-    ## backtransformation
-    p <- 1 - pnorm(abs(z))
-    ## correct for two sided tests
-    if(two.sided) p <- p * 2
-    return(p)
-}
-
-# Fisher's combination of pvalues
-.fisherComb <- function(pvals) {
-    Xsq <- -2*sum(log(pvals))
-    p <- 1 - pchisq(Xsq, df = 2*length(pvals))
-    return(p)
-}
-
-# input: named ranking measure vector
-# e.g. pvalues/scores of gene sets
-# res <- c(0.01, 0.02, ..)
-# names(res) <- c("gs1", "gs2", ..)
-.getRanks <- function(res, 
-    rank.fun=c("comp.ranks", "rel.ranks", "abs.ranks"), 
-    rank.col=config.ebrowser("GSP.COL"),
-    decreasing=FALSE)
-{
-    if(is.function(rank.fun)) ranks <- rank.fun(res)
-    else{
-        rank.fun <- match.arg(rank.fun)
-        GS.COL <- config.ebrowser("GS.COL")
-        rcol <- res[, rank.col]
-        if(decreasing) rcol <- -rcol
-        names(rcol) <- res[, GS.COL] 
-
-        if(rank.fun == "comp.ranks")
-            ranks <- vapply(rcol, function(p) mean(rcol <= p) * 100, numeric(1))
-        else
-        {
-            ucats <- unique(rcol)
-            ranks <- match(rcol, ucats)
-            if(rank.fun == "rel.ranks") ranks <- ranks / length(ucats) * 100
-        }
-        return(ranks)
-    }
-    return(ranks)
-}
-
-.combRanks <- function(rankm, 
-    comb.fun=c("mean", "median", "min", "max", "sum"))
-{   
-    if(is.function(comb.fun)) ranks <- apply(rankm, 1, comb.fun)
-    else
-    {   
-        comb.fun <- match.arg(comb.fun)
-        ranks <- apply(rankm, 1, 
-            function(x) do.call(comb.fun, list(x, na.rm=TRUE)))
-    }
-    return(ranks)
-}
-
-###
-# combine results of different enrichment analyises
-# and compute average measures (rank & p-value)
-###
-
-
 #' Combining enrichment analysis results
 #' 
 #' Different enrichment analysis methods usually result in different gene set
@@ -90,6 +18,7 @@
 #' includes the computation of average gene set ranks across methods.
 #' 
 #' 
+#' @aliases comb.ea.results
 #' @param res.list A list of enrichment analysis result lists (as returned by
 #' the functions \code{\link{sbea}} and \code{\link{nbea}}).
 #' @param rank.col Rank column.  Column name of the enrichment analysis result
@@ -102,7 +31,7 @@
 #' larger the better.
 #' @param rank.fun Ranking function.  Used to rank gene sets according to the
 #' result table of individual enrichment methods (as returned from the
-#' \code{\link{gs.ranking}} function). This is typically done according to gene
+#' \code{\link{gsRanking}} function). This is typically done according to gene
 #' set p-values, but can also take into account gene set scores/statistics,
 #' especially in case of gene sets with equal p-value.  Can be either one of
 #' the predefined functions ('comp.ranks', 'rel.ranks', 'abs.ranks') or a
@@ -121,10 +50,10 @@
 #' median, max, min, sum) or a user-defined function.  Defaults to 'sum', i.e.
 #' the rank sum across methods is computed.
 #' @return An enrichment analysis result list that can be detailedly explored
-#' by calling \code{\link{ea.browse}} and from which a flat gene set ranking
-#' can be extracted by calling \code{\link{gs.ranking}}.
+#' by calling \code{\link{eaBrowse}} and from which a flat gene set ranking
+#' can be extracted by calling \code{\link{gsRanking}}.
 #' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
-#' @seealso \code{\link{sbea}}, \code{\link{nbea}}, \code{\link{ea.browse}}
+#' @seealso \code{\link{sbea}}, \code{\link{nbea}}, \code{\link{eaBrowse}}
 #' @examples
 #' 
 #' 
@@ -145,10 +74,10 @@
 #'     
 #'     # (4) combining the results
 #'     res.list <- list(ora.res, gsea.res)
-#'     comb.res <- comb.ea.results(res.list)
+#'     comb.res <- combResults(res.list)
 #' 
 #'     # (5) result visualization and exploration
-#'     gs.ranking(comb.res)
+#'     gsRanking(comb.res)
 #' 
 #'     # user-defined ranking and combination functions
 #'     # (a) dummy ranking, give 1:nrow(res.tbl)
@@ -157,17 +86,17 @@
 #'     # (b) weighted average for combining ranks
 #'     wavg <- function(r) mean(c(1,2) * r)
 #' 
-#'     comb.res <- comb.ea.results(res.list, rank.fun=dummy.rank, comb.fun=wavg)
+#'     comb.res <- combResults(res.list, rank.fun=dummy.rank, comb.fun=wavg)
 #' 
-#' @export comb.ea.results
-comb.ea.results <- function(res.list, 
-    rank.col=config.ebrowser("GSP.COL"),
+#' @export combResults
+combResults <- function(res.list, 
+    rank.col=configEBrowser("GSP.COL"),
     decreasing=FALSE,
     rank.fun=c("comp.ranks", "rel.ranks", "abs.ranks"), 
     comb.fun=c("mean", "median", "min", "max", "sum"))
 {
-    GS.COL <- config.ebrowser("GS.COL")
-    GSP.COL <- config.ebrowser("GSP.COL")
+    GS.COL <- configEBrowser("GS.COL")
+    GSP.COL <- configEBrowser("GSP.COL")
 
     # requires min. 2 results
     stopifnot(length(res.list) > 1)   
@@ -226,7 +155,88 @@ comb.ea.results <- function(res.list,
     res <- res.list[[1]]
     res$res.tbl <- res.tbl
     res$method <- "comb"
-    res$nr.sigs <- min(nr.gs, config.ebrowser("NR.SHOW"))
+    res$nr.sigs <- min(nr.gs, configEBrowser("NR.SHOW"))
 
     return(res)
 }
+
+#' @export
+#' @keywords internal
+comb.ea.results <- function(res.list, 
+    rank.col=configEBrowser("GSP.COL"),
+    decreasing=FALSE,
+    rank.fun=c("comp.ranks", "rel.ranks", "abs.ranks"), 
+    comb.fun=c("mean", "median", "min", "max", "sum"))
+{
+    .Deprecated("combResults")
+    combResults(res.list, rank.col, decreasing, rank.fun, comb.fun)
+}
+
+
+# Stouffer's combination of pvalues 
+.stoufferComb <- function(pvals, two.sided=TRUE)
+{
+    ## remove NA
+    pvals <- pvals[!is.na(pvals)]
+    ## correct for two sided tests
+    if(two.sided) pvals <- pvals/2
+    ## z transformation
+    z <- sum(-qnorm(pvals)) / sqrt(length(pvals))
+    ## backtransformation
+    p <- 1 - pnorm(abs(z))
+    ## correct for two sided tests
+    if(two.sided) p <- p * 2
+    return(p)
+}
+
+# Fisher's combination of pvalues
+.fisherComb <- function(pvals) {
+    Xsq <- -2*sum(log(pvals))
+    p <- 1 - pchisq(Xsq, df = 2*length(pvals))
+    return(p)
+}
+
+# input: named ranking measure vector
+# e.g. pvalues/scores of gene sets
+# res <- c(0.01, 0.02, ..)
+# names(res) <- c("gs1", "gs2", ..)
+.getRanks <- function(res, 
+    rank.fun=c("comp.ranks", "rel.ranks", "abs.ranks"), 
+    rank.col=configEBrowser("GSP.COL"),
+    decreasing=FALSE)
+{
+    if(is.function(rank.fun)) ranks <- rank.fun(res)
+    else{
+        rank.fun <- match.arg(rank.fun)
+        GS.COL <- configEBrowser("GS.COL")
+        rcol <- res[, rank.col]
+        if(decreasing) rcol <- -rcol
+        names(rcol) <- res[, GS.COL] 
+
+        if(rank.fun == "comp.ranks")
+            ranks <- vapply(rcol, function(p) mean(rcol <= p) * 100, numeric(1))
+        else
+        {
+            ucats <- unique(rcol)
+            ranks <- match(rcol, ucats)
+            if(rank.fun == "rel.ranks") ranks <- ranks / length(ucats) * 100
+        }
+        return(ranks)
+    }
+    return(ranks)
+}
+
+.combRanks <- function(rankm, 
+    comb.fun=c("mean", "median", "min", "max", "sum"))
+{   
+    if(is.function(comb.fun)) ranks <- apply(rankm, 1, comb.fun)
+    else
+    {   
+        comb.fun <- match.arg(comb.fun)
+        ranks <- apply(rankm, 1, 
+            function(x) do.call(comb.fun, list(x, na.rm=TRUE)))
+    }
+    return(ranks)
+}
+
+

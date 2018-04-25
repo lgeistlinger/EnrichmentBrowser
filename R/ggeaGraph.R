@@ -42,7 +42,7 @@
 #' @return None, plots to a graphics device.
 #' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
 #' @seealso \code{\link{nbea}} to perform network-based enrichment analysis.
-#' \code{\link{ea.browse}} for exploration of resulting gene sets.
+#' \code{\link{eaBrowse}} for exploration of resulting gene sets.
 #' @examples
 #' 
 #'     # (1) expression data: 
@@ -136,7 +136,7 @@ ggea.graph <- function(gs, grn, se,
 	if(nrow(grn) < 2) return(NULL)
 
     fDat <- as.matrix(rowData(se, use.names=TRUE)[nodes, 
-        sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)])
+        sapply(c("FC.COL", "ADJP.COL"), configEBrowser)])
     de <- .compDE(fDat, alpha=alpha, beta=beta)
     grn.de <- cbind(de[grn[,1]], de[grn[,2]])
     if(ncol(grn) > 2) grn.de <- cbind(grn.de, grn[,3])

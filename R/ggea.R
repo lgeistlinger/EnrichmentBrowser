@@ -25,7 +25,7 @@
     # map gs & grn to indices implied by fDat
     # due to performance issues, transforms character2integer
     # map gene.id -> index, e.g. "b0031" -> 10
-    rcols <- sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)
+    rcols <- sapply(c("FC.COL", "ADJP.COL"), configEBrowser)
     fDat <- as.matrix(rowData(se, use.names=TRUE)[,rcols])
     fMap <- seq_len(nrow(fDat))
     names(fMap) <- rownames(fDat) 
@@ -37,7 +37,7 @@
     # restrict to gene sets with a minimal number of edges
     gs.grns <- lapply(gs, function(s) .queryGRN(s, grn, gs.edges))
     nr.rels <- lengths(gs.grns)
-    ind <- which(nr.rels >= config.ebrowser("GS.MIN.SIZE")) 
+    ind <- which(nr.rels >= configEBrowser("GS.MIN.SIZE")) 
         #& (res.tbl[,"NR.RELS"] <= GS.MAX.SIZE)
     if(length(ind) == 0) stop("No gene set with minimal number of interactions")
     gs <- gs[ind]
@@ -74,7 +74,7 @@
         ps <- .permEdgesPval(res.tbl, grn.cons, perm)
     else ps <- .approxPval(res.tbl, grn.cons)
     res.tbl <- cbind(res.tbl, ps)
-    colnames(res.tbl)[ncol(res.tbl)] <- config.ebrowser("GSP.COL") 
+    colnames(res.tbl)[ncol(res.tbl)] <- configEBrowser("GSP.COL") 
     return(res.tbl)
 }
 
@@ -223,7 +223,7 @@
     message(paste(perm, "permutations to do ..."))  
     
     # init
-    GRP.COL <- config.ebrowser("GRP.COL")
+    GRP.COL <- configEBrowser("GRP.COL")
     grp <- colData(se)[,GRP.COL]
     nr.samples <- length(grp)
     count.larger <- vector("integer", length(obs.scores))
@@ -240,7 +240,7 @@
         # recompute de measures fc and p
         se <- deAna(assay(se), grp.perm)
         fDat <- as.matrix(rowData(se, use.names=TRUE)[,
-            sapply(c("FC.COL", "ADJP.COL"), config.ebrowser)])
+            sapply(c("FC.COL", "ADJP.COL"), configEBrowser)])
         
         # recompute ggea scores
         grn.cons <- .scoreGRN(fDat, grn, alpha, beta, cons.thresh) 

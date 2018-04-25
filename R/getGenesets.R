@@ -3,33 +3,39 @@
 # Author: ludwig geistlinger
 # Date: 16 June 2010
 #
-# script for extracting genesets from kgml files (KEGG XML)
-# of pathways. The genesets are subsequently written in gmt format
-# that is suitable for input to GSEA.
+# Getting gene sets for enrichment analysis
 #
-# Update, 05 May 2014:  easy & fast geneset getter for organism of choice 
-#           based on KEGGREST functionality 
-#
+# Update, 05 May 2014: KEGG gene set getter for organism of choice 
 # Update, 10 March 2015: including getter for GO genesets
+# Update, 24 April 2018: unified getGenesets fassade for gene sets from
+#                        different DBs       
 ###############################################################################
 
-#
-# (1) GO
-#
-
-
-#' Definition of gene sets according to the Gene Ontology (GO)
+#' @name getGenesets
+#'
+#' @title Definition of gene sets according to different sources
 #' 
-#' This function retrieves GO gene sets for an organism under investigation
-#' either via download from BioMart or based on BioC annotation packages.
-#' 
-#' 
+#' @description Functionality for retrieving gene sets for an organism under
+#' investigation from databases such as GO and KEGG. Parsing and writing a list
+#' of gene sets from/to a flat text file in GMT format is also supported.
+#'
+#' The GMT (Gene Matrix Transposed) file format is a tab delimited file format
+#' that describes gene sets.  In the GMT format, each row represents a gene
+#' set.  Each gene set is described by a name, a description, and the genes in
+#' the gene set. See references.
+#'
+#' @aliases get.go.genesets get.kegg.genesets parse.genesets.from.GMT
 #' @param org An organism in (KEGG) three letter code, e.g. \sQuote{hsa} for
-#' \sQuote{Homo sapiens}.
-#' @param onto Character. Specifies one of the three GO ontologies: 'BP'
+#' \sQuote{Homo sapiens}. Alternatively, this can also be a text file storing 
+#' gene sets in GMT format. See details.
+#' @param db Database from which gene sets should be retrieved. Currently, 
+#' either 'go' (default) or 'kegg'. 
+#' @param cache Logical.  Should a locally cached version used if available?
+#' Defaults to \code{TRUE}.
+#' @param go.onto Character. Specifies one of the three GO ontologies: 'BP'
 #' (biological process), 'MF' (molecular function), 'CC' (cellular component).
 #' Defaults to 'BP'.
-#' @param mode Character. Determines in which way the gene sets are retrieved.
+#' @param go.mode Character. Determines in which way the gene sets are retrieved.
 #' This can be either 'GO.db' or 'biomart'.  The 'GO.db' mode creates the gene
 #' sets based on BioC annotation packages - which is fast, but represents not
 #' necessarily the most up-to-date mapping. In addition, this option is only
@@ -37,34 +43,83 @@
 #' 'biomart' mode downloads the mapping from BioMart - which can be time
 #' consuming, but allows to select from a larger range of organisms and
 #' contains the latest mappings.  Defaults to 'GO.db'.
-#' @param cache Logical.  Should a locally cached version used if available?
-#' Defaults to \code{TRUE}.
-#' @return A list of gene sets (vectors of gene IDs).
+#' @param gs A list of gene sets (character vectors of gene IDs).
+#' @param gmt.file Gene set file in GMT format. See details.
+#' @return For \code{getGenesets}: a list of gene sets (vectors of gene IDs).
+#' For \code{writeGMT}: none, writes to file.
 #' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
 #' @seealso \code{\link{annFUN}} for general GO2gene mapping used in the
-#' 'GO.db' mode, the biomaRt package for general queries to BioMart,
-#' \code{\link{get.kegg.genesets}} for defining gene sets according to KEGG,
-#' \code{\link{parse.genesets.from.GMT}} to parse user-def. gene sets from
-#' file.
-#' @references \url{http://geneontology.org/}
+#' 'GO.db' mode, and the biomaRt package for general queries to BioMart. 
+#' 
+#' \code{\link{keggList}} and \code{\link{keggLink}} for accessing the KEGG REST
+#' server.
+#' @references GO: \url{http://geneontology.org/}
+#' 
+#' KEGG Organism code \url{http://www.genome.jp/kegg/catalog/org_list.html}
+#'
+#' GMT file format
+#' \url{http://www.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats}
 #' @examples
 #' 
-#'     # Typical usage for gene set enrichment analysis:
+#'     # (1) Typical usage for gene set enrichment analysis with GO:
 #'     # Biological process terms based on BioC annotation (for human)
-#'     gs <- get.go.genesets("hsa")
+#'     go.gs <- getGenesets(org="hsa", db="go")
 #'     
 #'     # eq.:  
-#'     # gs <- get.go.genesets(org="hsa", onto="BP", mode="GO.db")
+#'     # go.gs <- getGenesets(org="hsa", db="go", go.onto="BP", go.mode="GO.db")
 #' 
 #'     # Alternatively:
 #'     # downloading from BioMart 
 #'     # this may take a few minutes ...
 #'     \donttest{
-#'     gs <- get.go.genesets(org="hsa", mode="biomart")
+#'      go.gs <- getGenesets(org="hsa", db="go", mode="biomart")
 #'     }
+#'
+#'     # (2) Defining gene sets according to KEGG  
+#'     kegg.gs <- getGenesets(org="hsa", db="kegg")
+#'
+#'     # (3) parsing gene sets from GMT
+#'     gmt.file <- system.file("extdata/hsa_kegg_gs.gmt", package="EnrichmentBrowser")
+#'     gs <- getGenesets(gmt.file)     
+#'     
+#'     # (4) writing gene sets to file
+#'     writeGMT(gs, gmt.file)
 #' 
-#' @export get.go.genesets
+NULL
+
+#' @export
+#' @rdname getGenesets
+getGenesets <- function(org, 
+    db=c("go", "kegg"), 
+    cache=TRUE,
+    go.onto=c("BP", "MF", "CC"),
+    go.mode=c("GO.db", "biomart"))
+{
+    stopifnot(length(org) == 1 && is.character(org))
+    if(file.exists(org)) gs <- .parseGMT(org)
+    else
+    {
+        if(!grepl("^[a-z]{3}$", org))
+            stop(paste("\'org\' must be an organism in KEGG three letter code",
+                        "or a file in GMT format"))
+
+        db <- match.arg(db)
+        if(db == "go") gs <- .getGO(org, go.onto, go.mode, cache)
+        else gs <- .getKEGG(org, cache) 
+    }
+    return(gs)
+}
+
+#' @export
+#' @keywords internal
 get.go.genesets <- function(org, 
+    onto=c("BP", "MF", "CC"), mode=c("GO.db","biomart"), cache=TRUE)
+{
+    .Deprecated("getGenesets")
+    .getGO(org, onto, mode, cache)
+}
+
+.getGO <- function(org, 
     onto=c("BP", "MF", "CC"), mode=c("GO.db","biomart"), cache=TRUE)
 {
     onto <- match.arg(onto)
@@ -126,53 +181,15 @@ get.go.genesets <- function(org,
     return(gs)
 }
 
-#
-# (2) KEGG
-#
-
-
-#' Definition of gene sets according to KEGG pathways for a specified organism
-#' 
-#' This function retrieves KEGG gene sets for an organism under investigation
-#' either via download from the KEGG REST server.
-#' 
-#' The GMT (Gene Matrix Transposed) file format is a tab delimited file format
-#' that describes gene sets.  In the GMT format, each row represents a gene
-#' set.  Each gene set is described by a name, a description, and the genes in
-#' the gene set. See references.
-#' 
-#' @param pwys Either a list of \code{\linkS4class{KEGGPathway}} objects or an
-#' absolute file path of a zip compressed archive of pathway xml files in KGML
-#' format.  Alternatively, an organism in KEGG three letter code, e.g.
-#' \sQuote{hsa} for \sQuote{Homo sapiens}.
-#' @param cache Logical.  Should a locally cached version used if available?
-#' Defaults to \code{TRUE}.
-#' @param gmt.file Gene set file in GMT format. See details.
-#' @return A list of gene sets (vectors of gene IDs).
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
-#' @seealso \code{\link{keggList}}, \code{\link{keggLink}},
-#' \code{\linkS4class{KEGGPathway}}, \code{\link{parseKGML}}
-#' @references GMT file format
-#' \url{http://www.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats}
-#' 
-#' KEGG Organism code \url{http://www.genome.jp/kegg/catalog/org_list.html}
-#' @examples
-#' 
-#'     # WAYS TO DEFINE GENE SETS ACCORDING TO HUMAN KEGG PATHWAYS
-#' 
-#'     # (1) from scratch: via organism ID 
-#'     \donttest{
-#'     gs <- get.kegg.genesets("hsa")
-#'     }
-#' 
-#'     # (2) extract from pathways
-#'     # download human pathways via: 
-#'     # pwys <- download.kegg.pathways("hsa")
-#'     pwys <- system.file("extdata/hsa_kegg_pwys.zip", package="EnrichmentBrowser")
-#'     gs <- get.kegg.genesets(pwys)
-#' 
-#' @export get.kegg.genesets
+#' @export
+#' @keywords internal
 get.kegg.genesets <- function(pwys, cache=TRUE, gmt.file=NULL)
+{    
+    .Deprecated("getGenesets")
+    .getKEGG(pwys, cache, gmt.file)
+}
+
+.getKEGG <- function(pwys, cache=TRUE, gmt.file=NULL)
 {
     if(class(pwys) == "character")
     {
@@ -301,40 +318,16 @@ get.kegg.genesets <- function(pwys, cache=TRUE, gmt.file=NULL)
 }
 
 
-#' @name parseGMT
-#' 
-#' @title Reading from and writing to GMT file format for gene sets
-#' 
-#' @description Functionaliy for parsing and writing a list of gene sets from/to a flat text
-#' file in GMT format.
-#' 
-#' The GMT (Gene Matrix Transposed) file format is a tab delimited file format
-#' that describes gene sets.  In the GMT format, each row represents a gene
-#' set.  Each gene set is described by a name, a description, and the genes in
-#' the gene set. See references.
-#' 
-#' @param gs A list of gene sets (character vectors of gene IDs).
-#' @param gmt.file Gene set file in GMT format. See details.
-#' @return For \code{parse.genesets.from.GMT}: a list of gene sets (vectors of
-#' gene IDs).
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
-#' @references GMT file format
-#' \url{http://www.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats}
-#' @examples
-#' 
-#'     # parsing gene sets from GMT
-#'     gmt.file <- system.file("extdata/hsa_kegg_gs.gmt", package="EnrichmentBrowser")
-#'     gs <- parse.genesets.from.GMT(gmt.file)     
-#'     
-#'     # writing gene sets to file
-#'     writeGMT(gs, gmt.file)
-#' 
-NULL
-
 ## parse geneset database
 #' @export
-#' @rdname parseGMT
+#' @keywords internal
 parse.genesets.from.GMT <- function(gmt.file)
+{
+    .Deprecated("getGenesets")
+    .parseGMT(gmt.file)
+}
+
+.parseGMT <- function(gmt.file)
 {
     content <- readLines(gmt.file, warn=FALSE)
     le <- length(content)
@@ -353,7 +346,7 @@ parse.genesets.from.GMT <- function(gmt.file)
 
 # write genesets to file in GMT format
 #' @export
-#' @rdname parseGMT
+#' @rdname getGenesets
 writeGMT <- function(gs, gmt.file)
 {
     ## collapse geneset members to one tab separated string 
@@ -394,7 +387,7 @@ writeGMT <- function(gs, gmt.file)
             {
 			    # gmt file
 			    if(file.exists(gsets[1])) 
-                    gsets <- parse.genesets.from.GMT(gsets)
+                    gsets <- getGenesets(gsets)
 			    # char vector
 			    else gsets <- .createGS(gsets)
 		    }
@@ -438,8 +431,8 @@ writeGMT <- function(gs, gmt.file)
 .createGS <- function(gs.ids)
 {
 	gs.type <- .detectGSType(gs.ids[1])
-	if(gs.type == "GO") gs <- get.go.genesets(gs.ids)
-	else if(gs.type == "KEGG") gs <- get.kegg.genesets(gs.ids)
+	if(gs.type == "GO") gs <- .getGO(gs.ids)
+	else if(gs.type == "KEGG") gs <- .getKEGG(gs.ids)
 	else stop(paste("Automatic gene set recognition 
         is currently only supported for GO and KEGG"))
 	return(gs)

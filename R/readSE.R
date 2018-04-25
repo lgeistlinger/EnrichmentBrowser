@@ -107,14 +107,13 @@ readSE <- function(assay.file, cdat.file, rdat.file,
     colData(se) <- DataFrame(cdat, row.names=colnames(se))
     rowData(se) <- DataFrame(rdat, row.names=rownames(se))
     
-    colnames(colData(se))[1:2] <- sapply(c("SMPL.COL", "GRP.COL"), config.ebrowser)
-    if(ncol.cdat > 2) colnames(colData(se))[3] <- config.ebrowser("BLK.COL")
-    if(ncol.rdat == 1) colnames(rowData(se))[1] <- config.ebrowser("EZ.COL") 
-    else colnames(rowData(se))[1:2] <- sapply(c("PRB.COL", "EZ.COL"), config.ebrowser)
+    colnames(colData(se))[1:2] <- sapply(c("SMPL.COL", "GRP.COL"), configEBrowser)
+    if(ncol.cdat > 2) colnames(colData(se))[3] <- configEBrowser("BLK.COL")
+    if(ncol.rdat == 1) colnames(rowData(se))[1] <- configEBrowser("EZ.COL") 
+    else colnames(rowData(se))[1:2] <- sapply(c("PRB.COL", "EZ.COL"), configEBrowser)
    
     # ma or rseq?
-    if(!(data.type %in% c("ma", "rseq"))) 
-        data.type <- .detectDataType(expr)
+    if(!(data.type %in% c("ma", "rseq"))) data.type <- .detectDataType(expr)
     metadata(se)$dataType <- data.type
  
     return(se)
@@ -133,7 +132,6 @@ read.eset <- function(exprs.file, pdat.file, fdat.file,
 .naTreat <- function(expr, NA.method=c("mean", "rm", "keep"))
 {
     NA.method <- match.arg(NA.method)
-    # replace NAs by mean expression values
     if(!(NA.method %in% c("mean", "rm"))) return(expr)
 
     na.indr <- which(apply(expr, 1, function(x) any(is.na(x))))

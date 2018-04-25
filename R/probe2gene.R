@@ -57,7 +57,7 @@ probe2gene <- function(probeSE, use.mean=TRUE)
         probeSE <- as(probeSE, "RangedSummarizedExperiment")
     ### 
 
-    EZ.COL <- config.ebrowser("EZ.COL")
+    EZ.COL <- configEBrowser("EZ.COL")
     se <- probeSE
     if(!(EZ.COL %in% colnames(rowData(se)))) se <- .annoP2G(se)
     
@@ -85,7 +85,7 @@ probe2gene <- function(probeSE, use.mean=TRUE)
                 if(use.mean) curr.exprs <- colMeans(curr.exprs, na.rm=TRUE)
                 else
                 { 
-                    FC.COL <- config.ebrowser("FC.COL") 
+                    FC.COL <- configEBrowser("FC.COL") 
                     if(!(FC.COL %in% colnames(rowData(se))))
                         stop(paste("use.mean=FALSE, but did not find differential", 
                             "expression in rowData. Run deAna first."))
@@ -115,8 +115,8 @@ probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
 
 .annoP2G <- function(se) 
 {
-    PRB.COL <- config.ebrowser("PRB.COL")
-    EZ.COL <- config.ebrowser("EZ.COL")
+    PRB.COL <- configEBrowser("PRB.COL")
+    EZ.COL <- configEBrowser("EZ.COL")
 
     is.se <- is(se, "SummarizedExperiment")
     if(is.se) anno <- metadata(se)$annotation

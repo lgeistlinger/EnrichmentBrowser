@@ -9,18 +9,13 @@
 #
 ###############################################################################
 
-#
-# USING KEGGREST
-#
-
-
-
 #' Download of KEGG pathways for a particular organism
 #' 
 #' The function downloads all metabolic and non-metabolic pathways in KEGG XML
 #' format for a specified organism.
 #' 
 #' 
+#' @aliases download.kegg.pathways
 #' @param org Organism in KEGG three letter code, e.g. \sQuote{hsa} for
 #' \sQuote{homo sapiens}.
 #' @param cache Logical.  Should a locally cached version used if available?
@@ -37,11 +32,11 @@
 #' @examples
 #' 
 #'     \donttest{
-#'         pwys <- download.kegg.pathways("hsa")
+#'         pwys <- downloadPathways("hsa")
 #'     }
 #' 
-#' @export download.kegg.pathways
-download.kegg.pathways <- function(org, cache=TRUE, out.dir=NULL, zip=FALSE)
+#' @export downloadPathways
+downloadPathways <- function(org, cache=TRUE, out.dir=NULL, zip=FALSE)
 {
     # should a cached version be used?
     pwys.name <- paste(org, "kegg", "pwys", sep=".") 
@@ -84,3 +79,10 @@ download.kegg.pathways <- function(org, cache=TRUE, out.dir=NULL, zip=FALSE)
     }
 }
 
+#' @export
+#' @keywords internal
+download.kegg.pathways <- function(org, cache=TRUE, out.dir=NULL, zip=FALSE)
+{
+    .Deprecated("downloadPathways")
+    downloadPathways(org, cache, out.dir, zip)
+}

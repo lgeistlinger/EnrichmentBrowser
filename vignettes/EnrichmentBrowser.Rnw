@@ -401,19 +401,19 @@ Entrez Gene IDs.
 It is thus, in this regard, beneficial to initially map gene IDs of a different
 type to NCBI Entrez IDs.
 
-The function \Rfunction{id.types} lists the available ID types for the mapping 
+The function \Rfunction{idTypes} lists the available ID types for the mapping 
 depending on the organism under investigation.
 
 <<idmap-idtypes>>=
-id.types("hsa")
+idTypes("hsa")
 @
 
 ID mapping for the airway dataset (from ENSEMBL to ENTREZ gene ids) can then be
-carried out using the function \Rfunction{map.ids}.
+carried out using the function \Rfunction{idMap}.
 
 <<idmap-airway>>=
 head(rownames(airSE))
-airSE <- map.ids(airSE, org="hsa", from="ENSEMBL", to="ENTREZID")
+airSE <- idMap(airSE, org="hsa", from="ENSEMBL", to="ENTREZID")
 head(rownames(airSE))
 @
 
@@ -429,39 +429,40 @@ In the following, we introduce how the \Biocpkg{EnrichmentBrowser} package
 can be used to perform state-of-the-art enrichment analysis of gene sets. 
 We consider the ALL and the airway gene expression data as processed in the 
 previous sections. We are now interested in whether pre-defined sets of genes 
-that are known to work together, e.g. as defined in the Gene Ontology 
+that are known to work together, e.g. as defined in the Gene Ontology (GO)
 or the KEGG pathway annotation, are coordinately differentially expressed.
 
-The function \Rfunction{get.kegg.genesets}, which is based on 
-functionality from the \Biocpkg{KEGGREST} package, downloads all KEGG 
-pathways for a chosen organism (here: \emph{Homo sapiens}) as gene sets.
+The function \Rfunction{getGenesets} can be used to download gene sets from
+databases such as GO and KEGG. 
+Here, we use the function to download all KEGG pathways for a chosen organism 
+(here: \emph{Homo sapiens}) as gene sets.
 
 <<get-kegg-gs, eval=FALSE>>=
-kegg.gs <- get.kegg.genesets("hsa")
+kegg.gs <- getGenesets(org="hsa", db="kegg")
 @
 
-Analogously, the function \Rfunction{get.go.genesets} retrieves GO 
+Analogously, the function \Rfunction{getGenesets} can be used to retrieve GO 
 terms of a selected ontology (here: biological process, BP) as defined in the
 \Biocpkg{GO.db} annotation package.
 
 <<get-go-gs, eval=FALSE>>=
-go.gs <- get.go.genesets(org="hsa", onto="BP", mode="GO.db")
+go.gs <- getGenesets(org="hsa", db="go", go.onto="BP", go.mode="GO.db")
 @
 
-User-defined gene sets can be parsed from GMT file format.
+If provided a file, the function parses user-defined gene sets from GMT file format.
 Here, we use this functionality for reading a list of already downloaded
 KEGG gene sets for \emph{Homo sapiens} containing NCBI Entrez Gene IDs.
  
 <<parseGMT>>=
 gmt.file <- file.path(data.dir, "hsa_kegg_gs.gmt")
-hsa.gs <- parse.genesets.from.GMT(gmt.file)
+hsa.gs <- getGenesets(gmt.file)
 length(hsa.gs)
 hsa.gs[1:2]
 @
 
 Currently, the following set-based enrichment analysis methods are supported
-<<sbea-methods>>=
-sbea.methods()
+<<sbeaMethods>>=
+sbeaMethods()
 @
 
 \begin{itemize}
@@ -520,24 +521,24 @@ For demonstration, we perform a basic ORA choosing a significance level
 $\alpha$ of 0.1
 <<sbea>>=
 sbea.res <- sbea(method="ora", se=allSE, gs=hsa.gs, perm=0, alpha=0.1)
-gs.ranking(sbea.res)
+gsRanking(sbea.res)
 @
 
 The result of every enrichment analysis is a ranking of gene sets by the 
-corresponding $p$-value. The \Rfunction{gs.ranking} function displays only those
+corresponding $p$-value. The \Rfunction{gsRanking} function displays only those
 gene sets satisfying the chosen significance level $\alpha$.
 
 While such a ranked list is the standard output of existing enrichment tools, 
 the \Biocpkg{EnrichmentBrowser} package provides visualization 
 and interactive exploration of resulting gene sets far beyond that point.
-Using the \Rfunction{ea.browse} function creates a HTML summary from which each
+Using the \Rfunction{eaBrowse} function creates a HTML summary from which each
 gene set can be inspected in detail (this builds on functionality from the
 \Biocpkg{ReportingTools} package). 
 
 The various options are described in Figure \ref{fig:oraRes}. 
 
-<<ea-browse, eval=FALSE>>=
-ea.browse(sbea.res)
+<<eaBrowse, eval=FALSE>>=
+eaBrowse(sbea.res)
 @
 
 \begin{figure*}
@@ -565,8 +566,8 @@ named accordingly (i.e.~\Rcode{names(ps) == names(gs)}).
 Let us consider the following dummy enrichment method, which randomly renders 
 five gene sets significant and the remaining insignificant.
 
-<<dummy-sbea>>=
-dummy.sbea <- function(se, gs, alpha, perm)
+<<dummySBEA>>=
+dummySBEA <- function(se, gs, alpha, perm)
 {
         sig.ps <- sample(seq(0,0.05, length=1000),5)
         insig.ps <- sample(seq(0.1,1, length=1000), length(gs)-5)
@@ -579,8 +580,8 @@ dummy.sbea <- function(se, gs, alpha, perm)
 We can plug this method into \Rfunction{sbea} as before.
 
 <<sbea2>>=
-sbea.res2 <- sbea(method=dummy.sbea, se=allSE, gs=hsa.gs)
-gs.ranking(sbea.res2)
+sbea.res2 <- sbea(method=dummySBEA, se=allSE, gs=hsa.gs)
+gsRanking(sbea.res2)
 @ 
 
 \subsection{Network-based enrichment analysis}
@@ -611,8 +612,8 @@ head(hsa.grn)
 Now, we are able to perform enrichment analysis using the compiled network.
 Currently, the following network-based enrichment analysis methods are supported
 
-<<nbea-methods>>=
-nbea.methods()
+<<nbeaMethods>>=
+nbeaMethods()
 @
  
 \begin{itemize}
@@ -654,7 +655,7 @@ For demonstration, we perform GGEA using the compiled KEGG regulatory network.
 
 <<nbea>>=
 nbea.res <- nbea(method="ggea", se=allSE, gs=hsa.gs, grn=hsa.grn)
-gs.ranking(nbea.res)
+gsRanking(nbea.res)
 @
 
 The resulting ranking lists, for each statistically significant gene set, the 
@@ -692,20 +693,19 @@ the \Biocpkg{EnrichmentBrowser} package allows to combine results from the
 different set-based and network-based enrichment analysis methods.
 The combination of results yields a new ranking of the gene sets under 
 investigation by specified ranking criteria, e.g.~the average rank across methods.
-% or a combined $p$-value using Fisher's method or Stouffer's method \cite{Kim13}.\\
 We consider the ORA result and the GGEA result from the previous sections and 
-use the function \Rfunction{comb.ea.results}.
+use the function \Rfunction{combResults}.
 
 <<combine>>=
 res.list <- list(sbea.res, nbea.res)
-comb.res <- comb.ea.results(res.list)
+comb.res <- combResults(res.list)
 @
  
 The combined result can be detailedly inspected as before and interactively 
 ranked as depicted in Figure \ref{fig:combRes}. 
 
 <<browse-comb, eval=FALSE>>=
-ea.browse(comb.res, graph.view=hsa.grn, nr.show=5)
+eaBrowse(comb.res, graph.view=hsa.grn, nr.show=5)
 @
 
 \begin{figure*}[!h]
@@ -738,18 +738,18 @@ Similar to \R's options settings, the \Biocpkg{EnrichmentBrowser} uses certain
 package-wide configuration parameters, which affect the way in which analysis is
 carried out and how results are displayed.
 The settings of these parameters can be examined and, to some extent, also 
-changed using the function \Rfunction{config.ebrowser}.
+changed using the function \Rfunction{configEBrowser}.
 For instance, the default directory where the \Biocpkg{EnrichmentBrowser} writes
 results to can be updated via
 
 <<config-set>>=
-config.ebrowser(key="OUTDIR.DEFAULT", value="/my/out/dir")
+configEBrowser(key="OUTDIR.DEFAULT", value="/my/out/dir")
 @
 
 and examined via
 
 <<config-get>>=
-config.ebrowser("OUTDIR.DEFAULT")
+configEBrowser("OUTDIR.DEFAULT")
 @
 
 Note that changing these defaults should be done with care, as inappropriate 
@@ -758,7 +758,7 @@ The complete list of incorporated configuration parameters along with their
 default settings can be inspected via
 
 <<config-man, eval=FALSE>>=
-?config.ebrowser
+?configEBrowser
 @
 
 \newpage

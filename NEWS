@@ -1,74 +1,59 @@
+CHANGES IN VERSION 2.10.0
+-------------------------
+
+    o Adding scripts to inst/scripts to invoke the EnrichmentBrowser from the 
+      command line (for non-R users)   
+    o GRN compilation: supporting additional pathway databases (via graphite)   
+    o Caching for download of GO and KEGG gene sets (via BiocFileCache)
+    o Default output destination changed to
+      rappdirs::user_data_dir("EnrichmentBrowser")   
+    o Function names: deprecation of x.x notation  
+      - read.eset -> readSE
+      - probe.2.gene.eset -> probe2gene
+      - de.ana -> deAna
+      - compile.grn.from.kegg -> compileGRN
+      - ggea.graph -> ggeaGraph   
+      - make.example.data -> makeExampleData    
+  
 CHANGES IN VERSION 2.8.0
 ------------------------
 
     o Major migration from ExpressionSet to SummarizedExperiment
 
-CHANGES IN VERSION 2.4.1
+CHANGES IN VERSION 2.4.0
 ------------------------
 
     o Adding a min.cpm filter for RNA-seq data to de.ana
-
-CHANGES IN VERSION 2.3.2
-------------------------
-
     o Additional sbea methods: gsa, mgsa, padog, globaltest, roast, camera, gsva
     o Additional nbea methods: netgsa, degraph, topologygsa, ganpa, cepa 
 
-CHANGES IN VERSION 2.1.15
+CHANGES IN VERSION 2.2.0
 -------------------------
 
     o Slight modification on ORA's hypergeometric p-value calculation according to 
       http://mengnote.blogspot.de/2012/12/calculate-correct-hypergeometric-p.html 
-
-CHANGES IN VERSION 2.1.14
--------------------------
-
     o Adapting GGEA to also deal with 2-column GRNs
-
-CHANGES IN VERSION 2.1.12
--------------------------
-
     o Adapting SPIA to deal with non-kegg gene sets
-
-CHANGES IN VERSION 2.1.10
--------------------------
-
     o Including EmpiricalBrownsMethod (ebm) among sbea methods
 
-CHANGES IN VERSION 1.99.6
--------------------------
-
-    o adaption of specific local statistics for RNA-seq data 
-        for sample-permutation methods GSEA, SAFE, and SAMGS
-
-CHANGES IN VERSION 1.99.5
--------------------------
-
-    o Including PathNet among nbea methods
-
-CHANGES IN VERSION 1.99.3
--------------------------
-
-    o GSEA permutation approximation based on npGSEA
-    o extended combination functionality
-
-CHANGES IN VERSION 1.99.1
+CHANGES IN VERSION 2.0.0
 -------------------------
 
     o major overhaul of the look'n'feel based on ReportingTools
     o interactive graphics using imageMap
     o reworked set and graph view
     o new kegg view based on pathview
-
-CHANGES IN VERSION 1.1.3
+    o adaption of specific local statistics for RNA-seq data 
+      for sample-permutation methods GSEA, SAFE, and SAMGS
+    o Including PathNet among nbea methods
+    o GSEA permutation approximation based on npGSEA
+    o extended combination functionality
+    
+CHANGES IN VERSION 1.2.0
 ------------------------
 
     o de.ana: extensions for RNA-seq now includes DESeq and edgeR
     o get.go.genesets: new getter for GO genesets
-
-CHANGES IN VERSION 1.1.1
-------------------------
-
     o de.ana: now based on limma functionality 
     o ggea.graph: extended control of layout
     o ggea: 
@@ -79,4 +64,4 @@ CHANGES IN VERSION 1.1.1
 CHANGES IN VERSION 1.0.0
 ------------------------
 
-    o EnrichmentBrowser 1.0.0: Initial release of the 'EnrichmentBrowser' package
+    o Initial release of the 'EnrichmentBrowser' package

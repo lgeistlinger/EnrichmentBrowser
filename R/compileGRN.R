@@ -54,7 +54,7 @@
 #' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
 #' @seealso \code{\link{pathwayDatabases}}, \code{\link{pathways}},
 #' \code{\linkS4class{KEGGPathway}}, \code{\link{parseKGML}},
-#' \code{\link{download.kegg.pathways}}
+#' \code{\link{downloadPathways}}
 #' @examples
 #' 
 #'     kegg.grn <- compileGRN(org="hsa", db="kegg")
@@ -219,7 +219,7 @@ compile.grn.from.kegg <- function(pwys, out.file=NULL)
 {
     if(is.character(pwys))
     {
-        if(nchar(pwys) == 3) pwys <- download.kegg.pathways(pwys)
+        if(nchar(pwys) == 3) pwys <- downloadPathways(pwys)
         else pwys <- .extractPwys(pwys)
     }
 
@@ -228,7 +228,7 @@ compile.grn.from.kegg <- function(pwys, out.file=NULL)
     if(is.null(out.file))
     {
         no.out <- TRUE
-        out.dir <- config.ebrowser("OUTDIR.DEFAULT")
+        out.dir <- configEBrowser("OUTDIR.DEFAULT")
         if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)
         out.file <- file.path(out.dir, paste(org, "rels.txt", sep="_"))
     }

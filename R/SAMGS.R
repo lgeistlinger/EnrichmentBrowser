@@ -249,7 +249,7 @@ SAMGS <- function(GS,
     #GeneSets.pval <- GeneSets.qval
     norm.stat <- sam.sumsquareT.ok / lengths(GS)
     res.tbl <- cbind(sam.sumsquareT.ok, norm.stat, GeneSets.pval)
-    colnames(res.tbl) <- c("SUMSQ.STAT", "NSUMSQ.STAT", config.ebrowser("GSP.COL")) 
+    colnames(res.tbl) <- c("SUMSQ.STAT", "NSUMSQ.STAT", configEBrowser("GSP.COL")) 
     rownames(res.tbl) <- names(GS)
     
     return(res.tbl)
@@ -351,7 +351,7 @@ SAMGS2 <- function(GS,
     #GeneSets.pval <- GeneSets.qval
     norm.stat <- sam.sumsquareT.ok / lengths(GS)
     res.tbl <- cbind(sam.sumsquareT.ok, norm.stat, GeneSets.pval)
-    colnames(res.tbl) <- c("SUMSQ.STAT", "NSUMSQ.STAT", config.ebrowser("GSP.COL")) 
+    colnames(res.tbl) <- c("SUMSQ.STAT", "NSUMSQ.STAT", configEBrowser("GSP.COL")) 
     rownames(res.tbl) <- names(GS)
     
     return(res.tbl)

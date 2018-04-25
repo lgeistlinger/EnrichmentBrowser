@@ -4,14 +4,14 @@
 \alias{plots}
 \alias{pdistr}
 \alias{volcano}
-\alias{exprs.heatmap}
+\alias{exprsHeatmap}
 \title{Visualization of gene expression}
 \usage{
 pdistr(p)
 
 volcano(fc, p)
 
-exprs.heatmap(expr, grp, scale.rows = TRUE, log.thresh = 100)
+exprsHeatmap(expr, grp, scale.rows = TRUE, log.thresh = 100)
 }
 \arguments{
 \item{p}{Numeric vector of p-values for each gene.}
@@ -47,7 +47,7 @@ and volcano plot (fold change vs. p-value).
     se <- makeExampleData(what="SE") 
     
     # plot heatmap
-    exprs.heatmap(expr=assay(se), grp=as.factor(se$GROUP))
+    exprsHeatmap(expr=assay(se), grp=as.factor(se$GROUP))
 
     # (2) DE analysis
     se <- deAna(se)

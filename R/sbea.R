@@ -470,7 +470,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
     return(res.tbl)
 }
 
-.isSig <- function(fdat, alpha=0.05, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
+.isSig <- function(rdat, alpha=0.05, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
 {
     FC.COL <- configEBrowser("FC.COL")
     ADJP.COL <- configEBrowser("ADJP.COL")
@@ -478,48 +478,48 @@ local.deAna <- function (X.mat, y.vec, args.local)
     sig.stat <- sig.stat[1]
     if(grepl("P$", sig.stat))
     {
-        if(sig.stat == "xxP") sig <- fdat[, ADJP.COL] < alpha
+        if(sig.stat == "xxP") sig <- rdat[, ADJP.COL] < alpha
         else
         {
             perc <- as.integer(substring(sig.stat, 1, 2))
-            p <- fdat[,ADJP.COL]
-            names(p) <- rownames(fdat) 
+            p <- rdat[,ADJP.COL]
+            names(p) <- rownames(rdat) 
             ordp <- sort(p)
             nr.sig <- round( length(p) * (perc / 100) )
             sigs <- names(ordp)[seq_len(nr.sig)]
-            sig <- rownames(fdat) %in% sigs
+            sig <- rownames(rdat) %in% sigs
         }
     }
     else if(grepl("FC$", sig.stat))
     { 
-        if(sig.stat == "xxFC") sig <- abs(fdat[, FC.COL]) > beta
+        if(sig.stat == "xxFC") sig <- abs(rdat[, FC.COL]) > beta
         else
         {
             perc <- as.integer(substring(sig.stat, 1, 2))
-            fc <- fdat[,FC.COL]
-            names(fc) <- rownames(fdat) 
+            fc <- rdat[,FC.COL]
+            names(fc) <- rownames(rdat) 
             ordfc <- fc[order(abs(fc), decreasing=TRUE)]
             nr.sig <- round( length(fc) * (perc / 100) )
             sigs <- names(ordfc)[seq_len(nr.sig)]
-            sig <- rownames(fdat) %in% sigs
+            sig <- rownames(rdat) %in% sigs
         }
     }
     else 
     {
-        psig <- fdat[, ADJP.COL] < alpha
-        fcsig <- abs(fdat[, FC.COL]) > beta
+        psig <- rdat[, ADJP.COL] < alpha
+        fcsig <- abs(rdat[, FC.COL]) > beta
         sig <- do.call(sig.stat, list(psig, fcsig))
     }
     return(sig)
 }
 
 # 1 HYPERGEOM ORA
-.oraHypergeom <- function(fdat, cmat, 
+.oraHypergeom <- function(rdat, cmat, 
     alpha=0.05, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
 {
     # determine sig. diff. exp. genes of se, 
     # corresponds to sample size from urn
-    isig <- .isSig(fdat, alpha, beta, sig.stat)
+    isig <- .isSig(rdat, alpha, beta, sig.stat)
     nr.sigs <- sum(isig)
     
     # determine overlap of sig and set genes for each set
@@ -531,7 +531,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
     # white balls in the urn  (genes in gene set)
     gs.sizes <- colSums(cmat) 
     # black balls in the urn (genes not in gene set)
-    uni.sizes <- nrow(fdat) - gs.sizes 
+    uni.sizes <- nrow(rdat) - gs.sizes 
 
     # determine significance of overlap 
     # based on hypergeom. distribution
@@ -567,8 +567,8 @@ local.deAna <- function (X.mat, y.vec, args.local)
     y <- colData(se)[, GRP.COL]
 
     # execute hypergeom ORA if no permutations
-    fdat <- rowData(se, use.names=TRUE)
-    if(perm == 0) res.tbl <- .oraHypergeom(fdat, cmat, alpha, beta, sig.stat)
+    rdat <- rowData(se, use.names=TRUE)
+    if(perm == 0) res.tbl <- .oraHypergeom(rdat, cmat, alpha, beta, sig.stat)
     # else do resampling using functionality of SAFE
     else{
         # use built-in p-adjusting?
@@ -582,7 +582,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
 
         # resampl ORA
         if(mode == 1){
-            nr.sigs <- sum(.isSig(fdat, alpha, beta, sig.stat))
+            nr.sigs <- sum(.isSig(rdat, alpha, beta, sig.stat))
             args <- list(one.sided=FALSE, genelist.length=nr.sigs)
 
             gs.ps <- safe::safe(X.mat=x, y.vec=y, global="Fisher", C.mat=cmat, 

@@ -9,7 +9,7 @@
 
 .onLoad <- function(libname, pkgname) 
 {
-    # (1) important pData, fData, and result column names
+    # (1) important colData, rowData, and result column names
     .ebrowser_config_cache[["ADJP.COL"]] <- "ADJ.PVAL"
     .ebrowser_config_cache[["FC.COL"]] <- "FC"
     .ebrowser_config_cache[["PRB.COL"]] <- "PROBEID"

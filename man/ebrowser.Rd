@@ -4,7 +4,7 @@
 \alias{ebrowser}
 \title{Seamless navigation through enrichment analysis results}
 \usage{
-ebrowser(meth, exprs, pdat, fdat, org, data.type = c(NA, "ma", "rseq"),
+ebrowser(meth, exprs, cdat, rdat, org, data.type = c(NA, "ma", "rseq"),
   norm.method = "quantile", de.method = "limma", gs, grn = NULL,
   perm = 1000, alpha = 0.05, beta = 1, comb = FALSE, browse = TRUE,
   nr.show = -1)
@@ -24,7 +24,7 @@ different data types.  Alternatively, this can be a
 \code{\linkS4class{SummarizedExperiment}}, assuming the expression matrix in
 the \code{\link{assays}} slot.}
 
-\item{pdat}{Phenotype data.  A tab separated text file containing annotation
+\item{cdat}{Column (phenotype) data.  A tab separated text file containing annotation
 information for the samples in either *two or three* columns.  NO headers,
 row or column names.  The number of rows/samples in this file should match
 the number of columns/samples of the expression matrix.  The 1st column is
@@ -32,17 +32,17 @@ reserved for the sample IDs; The 2nd column is reserved for a *BINARY* group
 assignment.  Use '0' and '1' for unaffected (controls) and affected (cases)
 sample class, respectively.  For paired samples or sample blocks a third
 column is expected that defines the blocks.  If 'exprs' is a
-\code{\linkS4class{SummarizedExperiment}}, the 'pdat' argument can be left
+\code{\linkS4class{SummarizedExperiment}}, the 'cdat' argument can be left
 unspecified, which then expects group and optional block assignments in
 respectively named columns 'GROUP' (mandatory) and 'BLOCK' (optional) in the
 \code{\link{colData}} slot.}
 
-\item{fdat}{Feature data.  A tab separated text file containing annotation
+\item{rdat}{Row (feature) data.  A tab separated text file containing annotation
 information for the features.  Exactly *TWO* columns; 1st col = feature IDs;
 2nd col = corresponding KEGG gene ID for each feature ID in 1st col; NO
 headers, row or column names.  The number of rows/features in this file
 should match the number of rows/features of the expression matrix.  If
-'exprs' is a \code{\linkS4class{SummarizedExperiment}}, the 'fdat' argument
+'exprs' is a \code{\linkS4class{SummarizedExperiment}}, the 'rdat' argument
 can be left unspecified, which then expects probe and corresponding Entrez
 Gene IDs in respectively named columns 'PROBEID' and 'ENTREZID' in the
 \code{\link{rowData}} slot.}
@@ -121,8 +121,8 @@ detail in the default browser.
 
     # expression data from file
     exprs.file <- system.file("extdata/exprs.tab", package="EnrichmentBrowser")
-    pdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
-    fdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
+    cdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
+    rdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
     
     # getting all human KEGG gene sets
     # hsa.gs <- getGenesets(org="hsa", db="kegg")
@@ -131,7 +131,7 @@ detail in the default browser.
 
     # set-based enrichment analysis
     ebrowser(   meth="ora", 
-            exprs=exprs.file, pdat=pdat.file, fdat=fdat.file, 
+            exprs=exprs.file, cdat=cdat.file, rdat=rdat.file, 
             gs=hsa.gs, org="hsa", nr.show=3)
 
     # compile a gene regulatory network from KEGG pathways
@@ -139,12 +139,12 @@ detail in the default browser.
    
     # network-based enrichment analysis
     ebrowser(   meth="ggea", 
-            exprs=exprs.file, pdat=pdat.file, fdat=fdat.file, 
+            exprs=exprs.file, cdat=cdat.file, rdat=rdat.file, 
             gs=hsa.gs, grn=hsa.grn, org="hsa", nr.show=3 )
 
     # combining results
     ebrowser(   meth=c("ora", "ggea"), comb=TRUE,
-            exprs=exprs.file, pdat=pdat.file, fdat=fdat.file, 
+            exprs=exprs.file, cdat=cdat.file, rdat=rdat.file, 
             gs=hsa.gs, grn=hsa.grn, org="hsa", nr.show=3 )
 
 }

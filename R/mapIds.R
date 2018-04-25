@@ -22,7 +22,7 @@
 #' @param org Organism in KEGG three letter code, e.g. \sQuote{hsa} for
 #' \sQuote{Homo sapiens}.  See references.
 #' @param from Gene ID type from which should be mapped.  Corresponds to the
-#' gene ID type of the featureNames of argument 'se'.  Defaults to 'ENSEMBL'.
+#' gene ID type of the names of argument 'se'.  Defaults to 'ENSEMBL'.
 #' @param to Gene ID type to which should be mapped.  Corresponds to the gene
 #' ID type the featuresNames of argument 'se' should be updated with.  Defaults
 #' to 'ENTREZID'.

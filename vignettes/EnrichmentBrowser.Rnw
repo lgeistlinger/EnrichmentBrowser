@@ -728,7 +728,7 @@ produced from scratch via
 
 <<all-in-one, eval=FALSE>>=
 ebrowser(   meth=c("ora", "ggea"), 
-        exprs=exprs.file, pdat=pdat.file, fdat=fdat.file, 
+        exprs=exprs.file, cdat=cdat.file, rdat=rdat.file, 
         org="hsa", gs=hsa.gs, grn=hsa.grn, comb=TRUE, nr.show=5)
 @
 

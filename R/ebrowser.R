@@ -153,7 +153,7 @@ config.ebrowser <- function(key, value=NULL)
 #' different data types.  Alternatively, this can be a
 #' \code{\linkS4class{SummarizedExperiment}}, assuming the expression matrix in
 #' the \code{\link{assays}} slot.
-#' @param pdat Phenotype data.  A tab separated text file containing annotation
+#' @param cdat Column (phenotype) data.  A tab separated text file containing annotation
 #' information for the samples in either *two or three* columns.  NO headers,
 #' row or column names.  The number of rows/samples in this file should match
 #' the number of columns/samples of the expression matrix.  The 1st column is
@@ -161,16 +161,16 @@ config.ebrowser <- function(key, value=NULL)
 #' assignment.  Use '0' and '1' for unaffected (controls) and affected (cases)
 #' sample class, respectively.  For paired samples or sample blocks a third
 #' column is expected that defines the blocks.  If 'exprs' is a
-#' \code{\linkS4class{SummarizedExperiment}}, the 'pdat' argument can be left
+#' \code{\linkS4class{SummarizedExperiment}}, the 'cdat' argument can be left
 #' unspecified, which then expects group and optional block assignments in
 #' respectively named columns 'GROUP' (mandatory) and 'BLOCK' (optional) in the
 #' \code{\link{colData}} slot.
-#' @param fdat Feature data.  A tab separated text file containing annotation
+#' @param rdat Row (feature) data.  A tab separated text file containing annotation
 #' information for the features.  Exactly *TWO* columns; 1st col = feature IDs;
 #' 2nd col = corresponding KEGG gene ID for each feature ID in 1st col; NO
 #' headers, row or column names.  The number of rows/features in this file
 #' should match the number of rows/features of the expression matrix.  If
-#' 'exprs' is a \code{\linkS4class{SummarizedExperiment}}, the 'fdat' argument
+#' 'exprs' is a \code{\linkS4class{SummarizedExperiment}}, the 'rdat' argument
 #' can be left unspecified, which then expects probe and corresponding Entrez
 #' Gene IDs in respectively named columns 'PROBEID' and 'ENTREZID' in the
 #' \code{\link{rowData}} slot.
@@ -235,8 +235,8 @@ config.ebrowser <- function(key, value=NULL)
 #' 
 #'     # expression data from file
 #'     exprs.file <- system.file("extdata/exprs.tab", package="EnrichmentBrowser")
-#'     pdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
-#'     fdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
+#'     cdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
+#'     rdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
 #'     
 #'     # getting all human KEGG gene sets
 #'     # hsa.gs <- getGenesets(org="hsa", db="kegg")
@@ -245,7 +245,7 @@ config.ebrowser <- function(key, value=NULL)
 #' 
 #'     # set-based enrichment analysis
 #'     ebrowser(   meth="ora", 
-#'             exprs=exprs.file, pdat=pdat.file, fdat=fdat.file, 
+#'             exprs=exprs.file, cdat=cdat.file, rdat=rdat.file, 
 #'             gs=hsa.gs, org="hsa", nr.show=3)
 #' 
 #'     # compile a gene regulatory network from KEGG pathways
@@ -253,17 +253,17 @@ config.ebrowser <- function(key, value=NULL)
 #'    
 #'     # network-based enrichment analysis
 #'     ebrowser(   meth="ggea", 
-#'             exprs=exprs.file, pdat=pdat.file, fdat=fdat.file, 
+#'             exprs=exprs.file, cdat=cdat.file, rdat=rdat.file, 
 #'             gs=hsa.gs, grn=hsa.grn, org="hsa", nr.show=3 )
 #' 
 #'     # combining results
 #'     ebrowser(   meth=c("ora", "ggea"), comb=TRUE,
-#'             exprs=exprs.file, pdat=pdat.file, fdat=fdat.file, 
+#'             exprs=exprs.file, cdat=cdat.file, rdat=rdat.file, 
 #'             gs=hsa.gs, grn=hsa.grn, org="hsa", nr.show=3 )
 #' 
 #' @export ebrowser
 ebrowser <- function(
-    meth, exprs, pdat, fdat, org, data.type=c(NA, "ma", "rseq"),
+    meth, exprs, cdat, rdat, org, data.type=c(NA, "ma", "rseq"),
     norm.method="quantile", de.method="limma",
     gs, grn=NULL, perm=1000, alpha=0.05, beta=1, 
     comb=FALSE, browse=TRUE, nr.show=-1)
@@ -291,13 +291,13 @@ ebrowser <- function(
     {
         message("Read expression data ...")
         se <- readSE( assay.file=exprs, 
-            cdat.file=pdat, rdat.file=fdat, data.type=data.type )
+            cdat.file=cdat, rdat.file=rdat, data.type=data.type )
     }
     else
     { 
         ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
-        if(is(se, "ExpressionSet")) 
-            se <- as(se, "RangedSummarizedExperiment")
+        if(is(exprs, "ExpressionSet")) 
+            exprs <- as(exprs, "RangedSummarizedExperiment")
         ###  
         se <- exprs
         if(is.na(data.type))

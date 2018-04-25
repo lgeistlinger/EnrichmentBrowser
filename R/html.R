@@ -269,11 +269,11 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
         html2.tag <- bkp
     }
 
-    f1.tag <- hwriter::hmakeTag("framse", 
+    f1.tag <- hwriter::hmakeTag("frameset", 
         paste0(sub("</frame>", "", c(html1.tag, html2.tag)), collapse=""), 
         cols=paste0(configEBrowser("PLOT.WIDTH") + 30, ",*"), border=0)
     html3.tag <- sub("</frame>", "", html3.tag)
-    f2.tag <- hwriter::hmakeTag("framse", paste(f1.tag, html3.tag),
+    f2.tag <- hwriter::hmakeTag("frameset", paste(f1.tag, html3.tag),
         rows=paste0(configEBrowser("PLOT.HEIGHT") + 30, ",*"), border=0)
     cont <- hwriter::hmakeTag("html", paste0(head,f2.tag))
     return(cont)

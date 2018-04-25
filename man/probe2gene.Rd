@@ -37,9 +37,9 @@ summarizing all probes that are annotated to a particular gene.
 
     # (1) reading the expression data from file
     exprs.file <- system.file("extdata/exprs.tab", package="EnrichmentBrowser")
-    pdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
-    fdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
-    probeSE <- readSE(exprs.file, pdat.file, fdat.file)
+    cdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
+    rdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
+    probeSE <- readSE(exprs.file, cdat.file, rdat.file)
     geneSE <- probe2gene(probeSE) 
 
 }

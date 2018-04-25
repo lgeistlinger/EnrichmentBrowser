@@ -18,7 +18,7 @@ Expects the names to be of gene ID type given in argument 'from'.}
 \sQuote{Homo sapiens}.  See references.}
 
 \item{from}{Gene ID type from which should be mapped.  Corresponds to the
-gene ID type of the featureNames of argument 'se'.  Defaults to 'ENSEMBL'.}
+gene ID type of the names of argument 'se'.  Defaults to 'ENSEMBL'.}
 
 \item{to}{Gene ID type to which should be mapped.  Corresponds to the gene
 ID type the featuresNames of argument 'se' should be updated with.  Defaults

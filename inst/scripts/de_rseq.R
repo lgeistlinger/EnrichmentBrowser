@@ -24,7 +24,7 @@ if(length(commandArgs()) != 10)
 }
 
 message("Loading EnrichmentBrowser")
-suppressWarnings(suppressPackageStartupMessages(library(EnrichmentBrowser)))
+suppressPackageStartupMessages(library(EnrichmentBrowser))
 
 exprs.file <- commandArgs()[6]
 cdat.file <- commandArgs()[7]
@@ -38,7 +38,7 @@ se <- readSE(exprs.file, cdat.file, rdat.file)
 message("DE analysis ...")
 se <- deAna(se, de.method=de.method, padj.method="none")
 
-de.tbl <- rowData(se)[,sapply(c("FC.COL","ADJP.COL"), config.ebrowser)]
+de.tbl <- rowData(se)[,sapply(c("FC.COL","ADJP.COL"), configEBrowser)]
 de.tbl <- cbind(de.tbl, p.adjust(de.tbl[,2], method="BH"))
 de.tbl <- cbind(names(se), de.tbl)
 colnames(de.tbl) <- c("GENE.ID", "log2FC", "RAW.PVAL", "ADJ.PVAL")

@@ -9,7 +9,7 @@ Contents:
     1. What's the EnrichmentBrowser?
     2. Usage
     3. Examples
-	4. Troubleshooting
+    4. Troubleshooting
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 1. What's the EnrichmentBrowser?

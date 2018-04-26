@@ -732,7 +732,7 @@ ebrowser(   meth=c("ora", "ggea"),
         org="hsa", gs=hsa.gs, grn=hsa.grn, comb=TRUE, nr.show=5)
 @
 
-\section{Advanced: configuration parameters}
+\section{Advanced: configuration parameters}\label{sec:config}
 
 Similar to \R's options settings, the \Biocpkg{EnrichmentBrowser} uses certain
 package-wide configuration parameters, which affect the way in which analysis is
@@ -760,6 +760,22 @@ default settings can be inspected via
 <<config-man, eval=FALSE>>=
 ?configEBrowser
 @
+
+\section{For non-R users: command line invocation}\label{sec:cmd}
+
+The package source contains two scripts in \Rcode{inst/scripts} to invoke the 
+EnrichmentBrowser from the command line using \software{Rscript}. 
+
+The \Rcode{de\_rseq.R} script is a lightweight wrapper script to carry out 
+differential expression analysis of RNA-seq data either based on \Biocpkg{limma} 
+(using the \Rfunction{voom}-transformation), \Biocpkg{edgeR}, or \Biocpkg{DESeq2}.
+
+The \Rcode{eBrowserCMD.R} implements the full functionality and allows to carry 
+out the various enrichment methods and to produce HTML reports for interactive
+exploration of results.
+
+The \Rcode{inst/scripts} folder also contains a \Rcode{README} file that 
+comprehensively documents the usage of both scripts.
 
 \newpage
 

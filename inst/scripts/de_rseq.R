@@ -1,8 +1,6 @@
 ############################################################
 # 
 # author: Ludwig Geistlinger
-# date: 2015-07-02 13:10:08
-#
 # last update: 2018-04-16 
 # 
 # descr: differential expression analysis of RNA-seq data

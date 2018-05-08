@@ -286,7 +286,6 @@ sbea <- function(
             {
                 # gs2cmat
                 #cmat <- .gmt2cmat(gs, rownames(se), GS.MIN.SIZE, GS.MAX.SIZE)
-                #if(nrow(cmat) < nrow(se)) se <- se[rownames(cmat),] 
                 f <- file()
                 sink(file=f)
                 cmat <- safe::getCmatrix(gs, as.matrix=TRUE)

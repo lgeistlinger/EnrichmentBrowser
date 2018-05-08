@@ -104,7 +104,7 @@ deAna <- function(expr, grp=NULL, blk=NULL,
     
 	de.method <- match.arg(de.method)
 	data.type <- .detectDataType(expr)
-	if(data.type == "rseq")
+	if(data.type == "rseq" && !stat.only)
 	{
 		# filter low-expressed genes
 		rs <- rowSums(edgeR::cpm(expr) > min.cpm)
@@ -118,20 +118,13 @@ deAna <- function(expr, grp=NULL, blk=NULL,
 			if(isSE) se <- se[keep,]
 		}	
 	}
-	else
-	{
-		# check for appropriate choice of DE method
-		if(de.method %in% c("edgeR", "DESeq"))
-			stop(paste(de.method, "only applicable to integer read counts"))
-	} 
+	if(data.type != "rseq" && de.method %in% c("edgeR", "DESeq"))
+	    stop(paste(de.method, "only applicable to integer read counts"))
 
 
     # EDGER
     if(de.method == "edgeR")
     {
-        # TODO: wait for edgeR_3.18.1 to remove this
-        isAvailable("edgeR", type="software")
-
         y <- edgeR::DGEList(counts=expr,group=group)
         y <- edgeR::calcNormFactors(y)
         design <- model.matrix(f)

@@ -14,8 +14,7 @@
 #' @export
 nbeaMethods <- function() 
     c("ggea", "spia", "pathnet", "degraph", 
-		"ganpa", "cepa", "topologygsa", "netgsa", "nea")
-
+		"ganpa", "cepa", "topologygsa", "netgsa")
 
 
 #' Network-based enrichment analysis (NBEA)
@@ -36,7 +35,7 @@ nbeaMethods <- function()
 #' 
 #' 'spia': signaling pathway impact analysis, combines ORA with the probability
 #' that expression changes are propagated across the pathway topology;
-#' implemented in Bioconductor's SPIA package.
+#' implemented in Bioconductor's SPIA package (Tarca et al., 2009).
 #' 
 #' 'pathnet': pathway analysis using network information, applies ORA on
 #' combined evidence for the observed signal for gene nodes and the signal
@@ -45,7 +44,7 @@ nbeaMethods <- function()
 #' 
 #' 'degraph': differential expression testing for gene graphs, multivariate
 #' testing of differences in mean incorporating underlying graph structure;
-#' implemented in Bioconductor's DEGraph package
+#' implemented in Bioconductor's DEGraph package.
 #' 
 #' 'topologygsa': topology-based gene set analysis, uses Gaussian graphical
 #' models to incorporate the dependence structure among genes as implied by
@@ -63,9 +62,6 @@ nbeaMethods <- function()
 #' about interactions among genes as well as novel interactions learned from
 #' data; implemented in CRAN's NetGSA package.
 #' 
-#' 'nea': network enrichment analysis, applies ORA on interactions instead of
-#' genes; implemented in Bioconductor's neaGUI package.
-#' 
 #' It is also possible to use additional network-based enrichment methods.
 #' This requires to implement a function that takes 'se', 'gs', 'grn', 'alpha',
 #' and 'perm' as arguments and returns a numeric matrix 'res.tbl' with a
@@ -77,8 +73,8 @@ nbeaMethods <- function()
 #' @param method Network-based enrichment analysis method.  Currently, the
 #' following network-based enrichment analysis methods are supported:
 #' \sQuote{ggea}, \sQuote{spia}, \sQuote{pathnet}, \sQuote{degraph},
-#' \sQuote{topologygsa}, \sQuote{ganpa}, \sQuote{cepa}, \sQuote{netgsa}, and
-#' \sQuote{nea}.  Default is 'ggea'.  This can also be the name of a
+#' \sQuote{topologygsa}, \sQuote{ganpa}, \sQuote{cepa}, and \sQuote{netgsa}.
+#' Default is 'ggea'.  This can also be the name of a
 #' user-defined function implementing network-based enrichment. See Details.
 #' @param se Expression dataset.  An object of class
 #' \code{\linkS4class{SummarizedExperiment}}.  Mandatory minimal annotations:
@@ -145,13 +141,13 @@ nbeaMethods <- function()
 #' 
 #' Other: \code{\link{sbea}} to perform set-based enrichment analysis.
 #' \code{\link{combResults}} to combine results from different methods.
-#' the SPIA package for more information on signaling pathway impact analysis.
-#' the neaGUI package for more information on network enrichment analysis.  the
-#' PathNet package for more information on pathway analysis using network
-#' information.
 #' @references Geistlinger et al. (2011) From sets to graphs: towards a
 #' realistic enrichment analysis of transcriptomic systems.  Bioinformatics,
-#' 27(13), i366--73.
+#' 27(13), i366-73.
+#'
+#' Tarca et al. (2009) A novel signaling pathway impact analysis. 
+#' Bioinformatics, 25(1):75-82.
+#'
 #' @examples
 #' 
 #'     # currently supported methods
@@ -249,7 +245,6 @@ nbea <- function(
     {
         method <- match.arg(method)
         if(method == "spia") res.tbl <- .spia(se, gs, grn, alpha, perm, ...)
-        else if(method == "nea") res.tbl <- .nea(se, gs, grn, alpha, perm, ...)
         else if(method == "pathnet") res.tbl <- .pathnet(se, gs, grn, alpha, perm)
         else if(method == "netgsa") res.tbl <- .netgsa(se, gs, grn)
         else if(method == "ganpa") res.tbl <- .ganpa(se, gs, grn, perm)

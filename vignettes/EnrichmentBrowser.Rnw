@@ -645,10 +645,7 @@ nbeaMethods()
 \item NetGSA: Network-based Gene Set Analysis
 	(incorporates external information about interactions among genes
 	as well as novel interactions learned from data;
-	implemented in the \CRANpkg{NetGSA} package),
-\item NEA: Network Enrichment Analysis 
-    (applies ORA on interactions instead of genes; 
-	implemented in the \Biocpkg{neaGUI} package).
+	implemented in the \CRANpkg{NetGSA} package).
 \end{itemize}
 
 For demonstration, we perform GGEA using the compiled KEGG regulatory network.

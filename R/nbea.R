@@ -346,7 +346,7 @@ nbea <- function(
         path.info <- .makeSPIAData(gs, grn)
         data.dir <- system.file("extdata", package="SPIA")
         save(path.info, file=file.path(data.dir, "SPIA.RData"))
-        data.dir <- file.path(data.dir, "")
+        data.dir <- paste0(data.dir, "/")
     }
     res <- SPIA::spia(de=de, all=all, organism=organism, data.dir=data.dir, nB=perm)
     res[,"Name"] <- gsub(" ", "_", res[,"Name"])

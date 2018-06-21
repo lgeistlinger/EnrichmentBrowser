@@ -294,7 +294,7 @@ nbea <- function(
 .pruneGRN <- function(grn)
 {
     # remove duplicates
-    grn <- unique(grn)
+    grn <- grn[!duplicated(grn[,1:2]),]
 
     # rm self edges
     grn <- grn[grn[,1] != grn[,2],]
@@ -571,12 +571,13 @@ nbea <- function(
     if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)
     out.file <- file.path(out.dir, "grn.txt")
     write.table(grn[,1:2], file=out.file, row.names=FALSE)
-    adjm <- edgelist2adj(out.file, vertex.names=unique(as.vector(grn[,1:2])))
+    vnames <- sort(unique(as.vector(grn[,1:2])))
+    adjm <- edgelist2adj(out.file, vertex.names=vnames)
     file.remove(out.file)
     ind <- intersect(rownames(x), rownames(adjm))
     adjm <- adjm[ind, ind]
     x <- x[rownames(adjm),]
-    cmat <- cmat[,rownames(adjm)]
+    cmat <- cmat[rownames(adjm),]
     cmat <- cmat[rowSums(cmat) > 2,]
     
     message("Estimating weighted adjacency matrix for GRN (group 0)")

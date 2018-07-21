@@ -180,8 +180,14 @@ deAna <- function(expr, grp=NULL, blk=NULL,
     else stop(paste(de.method, "is not supported.", 
                     "See man page for supported de.method."))
 
-    de.tbl[,2] <- p.adjust(de.tbl[,2], method=padj.method)
-    colnames(de.tbl)[1:2] <- sapply(c("FC.COL", "ADJP.COL"), configEBrowser)
+    colnames(de.tbl)[1:2] <- sapply(c("FC.COL", "PVAL.COL"), configEBrowser)
+	de.tbl <- de.tbl[,c(1,3,2)]
+    if(padj.method != "none")
+	{ 
+		adjp <- p.adjust(de.tbl[,3], method=padj.method)
+		de.tbl <- cbind(de.tbl, adjp)
+		colnames(de.tbl)[4] <- configEBrowser("ADJP.COL")
+	}
 
     if(isSE)
     {

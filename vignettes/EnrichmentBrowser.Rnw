@@ -348,11 +348,11 @@ Resulting fold changes and $t$-test derived $p$-values for each gene are
 appended to the \Robject{rowData} slot.
 
 <<DE-ana-ALL>>=
-allSE <- deAna(allSE)
+allSE <- deAna(allSE, padj.method="BH")
 rowData(allSE, use.names=TRUE)
 @
  
-Raw $p$-values are already corrected for multiple testing 
+Nominal $p$-values (\Robject{PVAL}) are corrected for multiple testing 
 (\Robject{ADJ.PVAL}) using the method from Benjamini and Hochberg implemented 
 in the function \Rfunction{p.adjust} from the \CRANpkg{stats} package.
 
@@ -362,7 +362,7 @@ plot (fold change against $p$-value).
 \begin{center}
 <<plot-DE, fig.width=12, fig.height=6>>=
 par(mfrow=c(1,2))
-pdistr(rowData(allSE)$ADJ.PVAL)
+pdistr(rowData(allSE)$PVAL)
 volcano(rowData(allSE)$FC, rowData(allSE)$ADJ.PVAL)
 @
 \end{center}

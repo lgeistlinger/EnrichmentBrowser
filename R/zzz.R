@@ -21,7 +21,6 @@
     .ebrowser_config_cache[["SMPL.COL"]] <- "SAMPLE"
     .ebrowser_config_cache[["BLK.COL"]] <- "BLOCK"
     .ebrowser_config_cache[["GS.COL"]] <- "GENE.SET"
-    .ebrowser_config_cache[["GSP.COL"]] <- "P.VALUE"
     .ebrowser_config_cache[["PMID.COL"]] <- "PUBMED"
 
     # (2) URLs

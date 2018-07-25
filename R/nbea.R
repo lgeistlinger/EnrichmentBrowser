@@ -65,7 +65,7 @@ nbeaMethods <- function()
 #' It is also possible to use additional network-based enrichment methods.
 #' This requires to implement a function that takes 'se', 'gs', 'grn', 'alpha',
 #' and 'perm' as arguments and returns a numeric matrix 'res.tbl' with a
-#' mandatory column named 'P.VALUE' storing the resulting p-value for each gene
+#' mandatory column named 'PVAL' storing the resulting p-value for each gene
 #' set in 'gs'. The rows of this matrix must be named accordingly (i.e.
 #' rownames(res.tbl) == names(gs)). See examples.
 #' 
@@ -185,7 +185,7 @@ nbeaMethods <- function()
 #'         ps <- sample(c(sig.ps, insig.ps), length(gs))
 #'         score <- sample(1:100, length(gs), replace=TRUE)
 #'         res.tbl <- cbind(score, ps)
-#'         colnames(res.tbl) <- c("SCORE", "P.VALUE")
+#'         colnames(res.tbl) <- c("SCORE", "PVAL")
 #'         rownames(res.tbl) <- names(gs)
 #'         return(res.tbl[order(ps),])
 #'     }
@@ -209,7 +209,7 @@ nbea <- function(
     # get configuration
     GS.MIN.SIZE <- configEBrowser("GS.MIN.SIZE")
     GS.MAX.SIZE <- configEBrowser("GS.MAX.SIZE")
-    GSP.COL <- configEBrowser("GSP.COL")
+    PVAL.COL <- configEBrowser("PVAL.COL")
     FC.COL <-  configEBrowser("FC.COL")
     ADJP.COL <-  configEBrowser("ADJP.COL")
 
@@ -261,10 +261,10 @@ nbea <- function(
     sorting.df <- res.tbl[,ncol(res.tbl)]
     if(ncol(res.tbl) > 1)
         sorting.df <- cbind(sorting.df, -res.tbl[,rev(seq_len(ncol(res.tbl)-1))])
-    else colnames(res.tbl)[1] <- GSP.COL
+    else colnames(res.tbl)[1] <- PVAL.COL
     res.tbl <- res.tbl[do.call(order, as.data.frame(sorting.df)), , drop=FALSE]
     
-    res.tbl[,GSP.COL] <- p.adjust(res.tbl[,GSP.COL], method=padj.method)
+    res.tbl[,PVAL.COL] <- p.adjust(res.tbl[,PVAL.COL], method=padj.method)
 
     res.tbl <- DataFrame(rownames(res.tbl), res.tbl)
     colnames(res.tbl)[1] <- configEBrowser("GS.COL") 
@@ -280,7 +280,7 @@ nbea <- function(
     {
         res <- list(
             method=method, res.tbl=res.tbl, 
-            nr.sigs=sum(res.tbl[,GSP.COL] < alpha),
+            nr.sigs=sum(res.tbl[,PVAL.COL] < alpha),
             se=se, gs=gs, alpha=alpha)
 
         if(browse) eaBrowse(res)
@@ -329,7 +329,7 @@ nbea <- function(
 {
     FC.COL <- configEBrowser("FC.COL")
     ADJP.COL <- configEBrowser("ADJP.COL")
-    GSP.COL <- configEBrowser("GSP.COL")
+    PVAL.COL <- configEBrowser("PVAL.COL")
 
     de.genes <- .isSig(rowData(se, use.names=TRUE), alpha, beta, sig.stat)
     de <- rowData(se, use.names=TRUE)[de.genes, FC.COL]
@@ -352,7 +352,7 @@ nbea <- function(
     res[,"Name"] <- gsub(" ", "_", res[,"Name"])
     rownames(res) <- paste(paste0(organism, res[,"ID"]), res[,"Name"], sep="_")
     res <- res[, c("pSize", "NDE", "tA", "Status", "pG")]
-    colnames(res) <- c("SIZE", "NDE", "T.ACT", "STATUS", GSP.COL)
+    colnames(res) <- c("SIZE", "NDE", "T.ACT", "STATUS", PVAL.COL)
     res[,"STATUS"] <- ifelse(res[,"STATUS"] == "Activated", 1, -1)
     res <- as.matrix(res)
     message("Finished SPIA analysis")
@@ -444,8 +444,8 @@ nbea <- function(
     colnames(res) <- gsub("_", ".", colnames(res))
     colnames(res) <- toupper(colnames(res))
     res <- as.matrix(res)
-    GSP.COL <- configEBrowser("GSP.COL")
-    res <- res[order(res[,GSP.COL]),]
+    PVAL.COL <- configEBrowser("PVAL.COL")
+    res <- res[order(res[,PVAL.COL]),]
     return(res) 
 }
 
@@ -458,7 +458,7 @@ nbea <- function(
     isAvailable("PathNet", type="software")
     
     ADJP.COL <- configEBrowser("ADJP.COL")
-    GSP.COL <- configEBrowser("GSP.COL")
+    PVAL.COL <- configEBrowser("PVAL.COL")
 
     dir.evid <- -log(rowData(se, use.names=TRUE)[,ADJP.COL], base=10)
     dir.evid <- cbind(as.integer(rownames(se)), dir.evid)
@@ -483,7 +483,7 @@ nbea <- function(
         function(s) grep(unlist(strsplit(s,"_"))[1], names(gs), value=TRUE),
         character(1))
     res <- res[-1]    
-    colnames(res) <- c("NR.GENES", "NR.SIG.GENES", "NR.SIG.COMB.GENES", GSP.COL)
+    colnames(res) <- c("NR.GENES", "NR.SIG.GENES", "NR.SIG.COMB.GENES", PVAL.COL)
     res <- as.matrix(res)
     return(res)
 }
@@ -591,7 +591,7 @@ nbea <- function(
     res <- NetGSA(A1$wAdj, A2$wAdj, x, y, B=cmat, directed=TRUE)
 
     res <- cbind(res$teststat, res$p.value)
-    colnames(res) <- c("STAT", configEBrowser("GSP.COL"))
+    colnames(res) <- c("STAT", configEBrowser("PVAL.COL"))
     rownames(res) <- rownames(cmat)
     return(res)
 }
@@ -610,7 +610,7 @@ nbea <- function(
     OUT.DIR <- configEBrowser("OUTDIR.DEFAULT")
     GS.MIN.SIZE <- configEBrowser("GS.MIN.SIZE")
     GS.MAX.SIZE <- configEBrowser("GS.MAX.SIZE")
-    GSP.COL <- configEBrowser("GSP.COL")
+    PVAL.COL <- configEBrowser("PVAL.COL")
     
     if(!file.exists(OUT.DIR)) dir.create(OUT.DIR, recursive=TRUE)
     out.prefix <- file.path(OUT.DIR, "ganpa")
@@ -634,7 +634,7 @@ nbea <- function(
     res <- read.csv(paste(out.prefix, "MeanAbs.OrigW.csv", sep=".")) 
     n <- res[,1]
     res <- as.matrix(res[,c("Size", "S", "NS", "permP")])
-    colnames(res)[c(1,4)] <- c("SIZE", GSP.COL)
+    colnames(res)[c(1,4)] <- c("SIZE", PVAL.COL)
     rownames(res) <- n
     return(res)
 }
@@ -682,7 +682,7 @@ nbea <- function(
     }
     rownames(res.mat) <- names(res)
     n <- paste(toupper(names(res[[1]])), "PVAL" , sep=".")
-    colnames(res.mat) <- c(n, configEBrowser("GSP.COL"))
+    colnames(res.mat) <- c(n, configEBrowser("PVAL.COL"))
     return(res.mat)
 }
 

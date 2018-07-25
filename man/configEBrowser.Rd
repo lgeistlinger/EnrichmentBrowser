@@ -40,8 +40,8 @@ column storing adjusted (corrected for multiple testing) p-values of
 differential expression between sample groups (default: "ADJ.PVAL")
 
 \item GS.COL: result table column storing gene set IDs (default: "GENE.SET")
-\item GSP.COL: result table column storing gene set significance (default:
-"P.VALUE") \item PMID.COL: gene table column storing PUBMED IDs ("PUBMED",
+\item PVAL.COL: result table column storing gene set significance (default:
+"PVAL") \item PMID.COL: gene table column storing PUBMED IDs ("PUBMED",
 read-only) }
 
 Important URLs (all read-only): \itemize{ \item NCBI.URL:

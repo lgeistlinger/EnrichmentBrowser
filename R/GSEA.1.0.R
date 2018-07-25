@@ -599,7 +599,7 @@ random.seed = 123456)
     report <- DataFrame(gs.names, size.G, Obs.ES, Obs.ES.norm, p.vals)
 #       p.vals[,1], FDR.mean.sorted, p.vals[,2], tag.frac, 
 #         gene.frac, signal.strength, FDR.median.sorted, glob.p.vals.sorted))
-    colnames(report) <- c("GS", "SIZE", "ES", "NES", configEBrowser("GSP.COL"))#, 
+    colnames(report) <- c("GS", "SIZE", "ES", "NES", configEBrowser("PVAL.COL"))#, 
     rownames(report) <- NULL
     return(report)
 #         "FDR q-val", "FWER p-val", "Tag \\%", "Gene \\%", "Signal", 

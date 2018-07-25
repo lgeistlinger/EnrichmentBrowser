@@ -90,13 +90,13 @@
 #' 
 #' @export combResults
 combResults <- function(res.list, 
-    rank.col=configEBrowser("GSP.COL"),
+    rank.col=configEBrowser("PVAL.COL"),
     decreasing=FALSE,
     rank.fun=c("comp.ranks", "rel.ranks", "abs.ranks"), 
     comb.fun=c("mean", "median", "min", "max", "sum"))
 {
     GS.COL <- configEBrowser("GS.COL")
-    GSP.COL <- configEBrowser("GSP.COL")
+    PVAL.COL <- configEBrowser("PVAL.COL")
 
     # requires min. 2 results
     stopifnot(length(res.list) > 1)   
@@ -126,7 +126,7 @@ combResults <- function(res.list,
         ranks <- .getRanks(res.tbl, 
             rank.fun=rank.fun, rank.col=rank.col[i], decreasing=decreasing[i])
         ord <- match(gs, res.tbl[,GS.COL])
-        pvalm[,i] <- res.tbl[ord, GSP.COL]
+        pvalm[,i] <- res.tbl[ord, PVAL.COL]
         rankm[,i] <- ranks[ord] 
     }
 
@@ -163,7 +163,7 @@ combResults <- function(res.list,
 #' @export
 #' @keywords internal
 comb.ea.results <- function(res.list, 
-    rank.col=configEBrowser("GSP.COL"),
+    rank.col=configEBrowser("PVAL.COL"),
     decreasing=FALSE,
     rank.fun=c("comp.ranks", "rel.ranks", "abs.ranks"), 
     comb.fun=c("mean", "median", "min", "max", "sum"))
@@ -202,7 +202,7 @@ comb.ea.results <- function(res.list,
 # names(res) <- c("gs1", "gs2", ..)
 .getRanks <- function(res, 
     rank.fun=c("comp.ranks", "rel.ranks", "abs.ranks"), 
-    rank.col=configEBrowser("GSP.COL"),
+    rank.col=configEBrowser("PVAL.COL"),
     decreasing=FALSE)
 {
     if(is.function(rank.fun)) ranks <- rank.fun(res)

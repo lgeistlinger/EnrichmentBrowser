@@ -135,7 +135,7 @@ data; implemented in CRAN's NetGSA package.
 It is also possible to use additional network-based enrichment methods.
 This requires to implement a function that takes 'se', 'gs', 'grn', 'alpha',
 and 'perm' as arguments and returns a numeric matrix 'res.tbl' with a
-mandatory column named 'P.VALUE' storing the resulting p-value for each gene
+mandatory column named 'PVAL' storing the resulting p-value for each gene
 set in 'gs'. The rows of this matrix must be named accordingly (i.e.
 rownames(res.tbl) == names(gs)). See examples.
 }
@@ -176,7 +176,7 @@ rownames(res.tbl) == names(gs)). See examples.
         ps <- sample(c(sig.ps, insig.ps), length(gs))
         score <- sample(1:100, length(gs), replace=TRUE)
         res.tbl <- cbind(score, ps)
-        colnames(res.tbl) <- c("SCORE", "P.VALUE")
+        colnames(res.tbl) <- c("SCORE", "PVAL")
         rownames(res.tbl) <- names(gs)
         return(res.tbl[order(ps),])
     }

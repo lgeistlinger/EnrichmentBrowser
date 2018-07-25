@@ -74,7 +74,7 @@
         ps <- .permEdgesPval(res.tbl, grn.cons, perm)
     else ps <- .approxPval(res.tbl, grn.cons)
     res.tbl <- cbind(res.tbl, ps)
-    colnames(res.tbl)[ncol(res.tbl)] <- configEBrowser("GSP.COL") 
+    colnames(res.tbl)[ncol(res.tbl)] <- configEBrowser("PVAL.COL") 
     return(res.tbl)
 }
 

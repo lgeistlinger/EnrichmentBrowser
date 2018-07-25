@@ -143,7 +143,7 @@ makeExampleData <- function(
     p.res <- round(p.res, digits=3)
     
     res.tbl <- DataFrame(gs.res, p.res)
-    colnames(res.tbl) <- c(configEBrowser("GS.COL"), configEBrowser("GSP.COL"))
+    colnames(res.tbl) <- c(configEBrowser("GS.COL"), configEBrowser("PVAL.COL"))
 
     ea.res <- list(method=method,
         res.tbl=res.tbl, nr.sigs=nr.sigs, se=se, gs=gs, alpha=alpha)

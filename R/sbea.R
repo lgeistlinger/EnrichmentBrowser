@@ -201,7 +201,7 @@ sbea <- function(
     # get configuration
     GS.MIN.SIZE <- configEBrowser("GS.MIN.SIZE")
     GS.MAX.SIZE <- configEBrowser("GS.MAX.SIZE")
-    GSP.COL <- configEBrowser("GSP.COL")
+    PVAL.COL <- configEBrowser("PVAL.COL")
     FC.COL <-  configEBrowser("FC.COL")
     ADJP.COL <-  configEBrowser("ADJP.COL")
 
@@ -325,13 +325,19 @@ sbea <- function(
     sorting.df <- res.tbl[,ncol(res.tbl)]
     if(ncol(res.tbl) > 1) 
         sorting.df <- cbind(sorting.df, -res.tbl[,rev(seq_len(ncol(res.tbl)-1))])
-    else colnames(res.tbl)[1] <- GSP.COL 
+    else colnames(res.tbl)[1] <- PVAL.COL 
     res.tbl <- res.tbl[do.call(order, as.data.frame(sorting.df)), , drop=FALSE]
 
     # use built-in FDR control for safe and gsea
-    fdr.methods <- c("gsea", "safe") 
-    if(is.function(method) || !(method %in% fdr.methods))
-        res.tbl[,GSP.COL] <- p.adjust(res.tbl[,GSP.COL], method=padj.method)
+    #fdr.methods <- c("gsea", "safe") 
+    #if(is.function(method) || !(method %in% fdr.methods))
+	
+	if(padj.method != "none")
+    {   
+        adjp <- p.adjust(res.tbl[,PVAL.COL], method=padj.method)
+        res.tbl <- cbind(res.tbl, adjp)
+        colnames(res.tbl)[ncol(res.tbl)] <- configEBrowser("ADJP.COL")
+    }     
 
     res.tbl <- DataFrame(rownames(res.tbl), res.tbl)
     colnames(res.tbl)[1] <- configEBrowser("GS.COL")
@@ -347,7 +353,7 @@ sbea <- function(
     { 
         res <- list(
             method=method, res.tbl=res.tbl,
-            nr.sigs=sum(res.tbl[,GSP.COL] < alpha),
+            nr.sigs=sum(res.tbl[,PVAL.COL] < alpha),
             se=se, gs=gs, alpha=alpha)
         if(browse) eaBrowse(res)
         else return(res)
@@ -464,7 +470,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
             gs.ps@global.stat / colSums(cmat), 
             gs.ps@global.pval)
     
-    colnames(res.tbl) <- c("GLOB.STAT", "NGLOB.STAT", configEBrowser("GSP.COL"))
+    colnames(res.tbl) <- c("GLOB.STAT", "NGLOB.STAT", configEBrowser("PVAL.COL"))
     
     return(res.tbl)
 }
@@ -537,7 +543,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
     gs.ps <- phyper(ovlp.sizes-1, gs.sizes, uni.sizes, nr.sigs, lower.tail=FALSE) 
     
     res.tbl <- cbind(gs.sizes, ovlp.sizes, gs.ps)
-    colnames(res.tbl) <- c("NR.GENES", "NR.SIG.GENES", configEBrowser("GSP.COL"))
+    colnames(res.tbl) <- c("NR.GENES", "NR.SIG.GENES", configEBrowser("PVAL.COL"))
     rownames(res.tbl) <- colnames(cmat)
 
     return(res.tbl)
@@ -595,7 +601,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
             gs.ps@global.stat, 
             gs.ps@global.stat / colSums(cmat), 
             pval)
-        colnames(res.tbl) <- c("GLOB.STAT", "NGLOB.STAT", configEBrowser("GSP.COL"))
+        colnames(res.tbl) <- c("GLOB.STAT", "NGLOB.STAT", configEBrowser("PVAL.COL"))
     }
     return(res.tbl)
 }
@@ -705,7 +711,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
     ps <- 2 * apply(ps, 1, min)
     scores <- res$GSA.scores
     res.tbl <- cbind(scores, ps)
-    colnames(res.tbl) <- c("SCORE", configEBrowser("GSP.COL"))
+    colnames(res.tbl) <- c("SCORE", configEBrowser("PVAL.COL"))
     rownames(res.tbl) <- names(gs)
 
     return(res.tbl)
@@ -763,7 +769,7 @@ global.GSA <- function(cmat, u, ...)
   
     res.tbl <- res[, c("meanAbsT0", "padog0", "PmeanAbsT", "Ppadog")]
     colnames(res.tbl) <- c("MEAN.ABS.T0", 
-        "PADOG0", "P.MEAN.ABS.T",  configEBrowser("GSP.COL"))
+        "PADOG0", "P.MEAN.ABS.T",  configEBrowser("PVAL.COL"))
     rownames(res.tbl) <- as.vector(res[,"ID"]) 
     return(res.tbl)
 }
@@ -823,7 +829,7 @@ global.PADOG <- function(cmat, u, args.global)
     res <- mgsa(o=obs, sets=gs, population=pop)
     res <- setsResults(res)[,1:3]
     res[,3] <- 1 - res[,3]
-    colnames(res)[3] <- configEBrowser("GSP.COL")
+    colnames(res)[3] <- configEBrowser("PVAL.COL")
     return(res)
 }
 
@@ -837,7 +843,7 @@ global.PADOG <- function(cmat, u, args.global)
     se <- as(se, "ExpressionSet")
     res <- gt(grp, se, subsets=gs, permutations=perm)
     res <- res@result[,2:1]
-    colnames(res) <- c("STAT", configEBrowser("GSP.COL"))
+    colnames(res) <- c("STAT", configEBrowser("PVAL.COL"))
     return(res)
 }
 
@@ -882,7 +888,7 @@ global.PADOG <- function(cmat, u, args.global)
                                 nrot=perm, adjust.method="none", sort="none")
     else res <- limma::camera(y, gs.index, design, sort=FALSE)
     res <- res[,c("NGenes", "Direction", "PValue")]
-    colnames(res) <- c("NR.GENES", "DIR", configEBrowser("GSP.COL"))
+    colnames(res) <- c("NR.GENES", "DIR", configEBrowser("PVAL.COL"))
     res[,"DIR"] <- ifelse(res[,"DIR"] == "Up", 1, -1)
 
     return(res)
@@ -923,7 +929,7 @@ global.PADOG <- function(cmat, u, args.global)
     
     # process output
     res <- res[,c("t", "P.Value")]
-    colnames(res) <- c("t.SCORE", configEBrowser("GSP.COL"))
+    colnames(res) <- c("t.SCORE", configEBrowser("PVAL.COL"))
     
     return(res)
 }

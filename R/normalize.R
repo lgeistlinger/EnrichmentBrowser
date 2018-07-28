@@ -28,10 +28,10 @@
 #' out, e.g. using \code{\link{normalizeWithinArrays}} from limma.
 #' 
 #' RNA-seq data is expected to be raw read counts.  Please note that
-#' normalization for downstream DE analysis, e.g. with edgeR and DESeq, is not
+#' normalization for downstream DE analysis, e.g. with edgeR and DESeq2, is not
 #' ultimately necessary (and in some cases even discouraged) as many of these
 #' tools implement specific normalization approaches.  See the vignette of
-#' EDASeq, edgeR, and DESeq for details.
+#' EDASeq, edgeR, and DESeq2 for details.
 #' 
 #' @param se An object of class \code{\linkS4class{SummarizedExperiment}}.
 #' @param norm.method Determines how the expression data should be normalized.

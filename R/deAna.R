@@ -19,7 +19,7 @@
 #' 'expr' is a \code{\linkS4class{SummarizedExperiment}}.
 #' @param de.method Differential expression method.  Use 'limma' for microarray
 #' and RNA-seq data.  Alternatively, differential expression for RNA-seq data
-#' can be also calculated using edgeR ('edgeR') or DESeq2 ('DESeq').  Defaults
+#' can be also calculated using edgeR ('edgeR') or DESeq2 ('DESeq2').  Defaults
 #' to 'limma'.
 #' @param padj.method Method for adjusting p-values to multiple testing.  For
 #' available methods see the man page of the stats function
@@ -43,7 +43,7 @@
 #' \code{\link{voom}} for preprocessing of RNA-seq data, \code{\link{p.adjust}}
 #' for multiple testing correction, \code{\link{eBayes}} for DE analysis with
 #' limma, \code{\link{glmFit}} for DE analysis with edgeR, and
-#' \code{\link{DESeq}} for DE analysis with DESeq.
+#' \code{\link{DESeq}} for DE analysis with DESeq2.
 #' @examples
 #' 
 #'     # (1) microarray data: intensity measurements
@@ -53,12 +53,12 @@
 #'     
 #'     # (2) RNA-seq data: read counts
 #'     rseqSE <- makeExampleData(what="SE", type="rseq")
-#'     rseqSE <- deAna(rseqSE, de.method="DESeq")
+#'     rseqSE <- deAna(rseqSE, de.method="DESeq2")
 #'     rowData(rseqSE, use.names=TRUE)
 #' 
 #' @export deAna
 deAna <- function(expr, grp=NULL, blk=NULL, 
-                    de.method=c("limma", "edgeR", "DESeq"), 
+                    de.method=c("limma", "edgeR", "DESeq2"), 
                     padj.method="BH", stat.only=FALSE, min.cpm=2)
 {
     ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
@@ -118,7 +118,7 @@ deAna <- function(expr, grp=NULL, blk=NULL,
 			if(isSE) se <- se[keep,]
 		}	
 	}
-	if(data.type != "rseq" && de.method %in% c("edgeR", "DESeq"))
+	if(data.type != "rseq" && de.method %in% c("edgeR", "DESeq2"))
 	    stop(paste(de.method, "only applicable to integer read counts"))
 
 
@@ -145,7 +145,7 @@ deAna <- function(expr, grp=NULL, blk=NULL,
         colnames(de.tbl)[3] <- "edgeR.STAT"
     }
     # DESEQ
-    else if(de.method == "DESeq")
+    else if(de.method == "DESeq2")
     {
         colData <- data.frame(group=group)
         if(paired) colData$block <- block
@@ -157,7 +157,7 @@ deAna <- function(expr, grp=NULL, blk=NULL,
         res <- DESeq2::results(dds, pAdjustMethod="none")
         if(stat.only) return(res[,"stat"])
         de.tbl <- data.frame(res[,c("log2FoldChange","pvalue","stat")])
-        colnames(de.tbl)[3] <- "DESeq.STAT"
+        colnames(de.tbl)[3] <- "DESeq2.STAT"
     }
     # LIMMA  
     else if(de.method == "limma")

@@ -6,7 +6,7 @@
 \title{Differential expression analysis between two sample groups}
 \usage{
 deAna(expr, grp = NULL, blk = NULL, de.method = c("limma", "edgeR",
-  "DESeq"), padj.method = "BH", stat.only = FALSE, min.cpm = 2)
+  "DESeq2"), padj.method = "BH", stat.only = FALSE, min.cpm = 2)
 }
 \arguments{
 \item{expr}{Expression data.  A numeric matrix. Rows correspond to genes,
@@ -25,7 +25,7 @@ defined via a column named 'BLOCK' in the \code{\link{colData}} slot if
 
 \item{de.method}{Differential expression method.  Use 'limma' for microarray
 and RNA-seq data.  Alternatively, differential expression for RNA-seq data
-can be also calculated using edgeR ('edgeR') or DESeq2 ('DESeq').  Defaults
+can be also calculated using edgeR ('edgeR') or DESeq2 ('DESeq2').  Defaults
 to 'limma'.}
 
 \item{padj.method}{Method for adjusting p-values to multiple testing.  For
@@ -63,7 +63,7 @@ Raw p-values are corrected for multiple testing.
     
     # (2) RNA-seq data: read counts
     rseqSE <- makeExampleData(what="SE", type="rseq")
-    rseqSE <- deAna(rseqSE, de.method="DESeq")
+    rseqSE <- deAna(rseqSE, de.method="DESeq2")
     rowData(rseqSE, use.names=TRUE)
 
 }
@@ -73,7 +73,7 @@ Raw p-values are corrected for multiple testing.
 \code{\link{voom}} for preprocessing of RNA-seq data, \code{\link{p.adjust}}
 for multiple testing correction, \code{\link{eBayes}} for DE analysis with
 limma, \code{\link{glmFit}} for DE analysis with edgeR, and
-\code{\link{DESeq}} for DE analysis with DESeq.
+\code{\link{DESeq}} for DE analysis with DESeq2.
 }
 \author{
 Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>

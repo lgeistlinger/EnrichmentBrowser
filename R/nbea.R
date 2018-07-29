@@ -218,6 +218,8 @@ nbea <- function(
     ###  
     
     # dealing with NA's
+	# TODO: add informative error message if DE measures are not there
+	# TODO: disentangle DE and EA analysis
     se <- se[!is.na(rowData(se)[,FC.COL]), ]
     se <- se[!is.na(rowData(se)[,ADJP.COL]), ]
 

@@ -45,6 +45,8 @@
 #' @export idMap
 idMap <- function(se, org=NA, from="ENSEMBL", to="ENTREZID")
 {
+	# 'to' should also accept a rowData col  
+
     ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
     if(is(se, "ExpressionSet")) se <- as(se, "RangedSummarizedExperiment")
     ###
@@ -83,19 +85,33 @@ idTypes <- function(org)
     org.pkg <- .org2pkg(org)
     isAvailable(org.pkg)
     org.pkg <- get(org.pkg) 
-    x <- mapIds(org.pkg, keys=ids, keytype=from, column=to)
+    x <- mapIds(org.pkg, keys=ids, keytype=from, column=to, multiVals="list")
+
+	# case 1: multiple to.IDs (1:n) -> take one / first
+    nr.multi <- sum(lengths(x) > 1)
+    if(nr.multi)
+    { 
+        message(paste("Encountered", nr.multi, 
+            "from.IDs with >1 corresponding to.ID", 
+            "(a single to.ID was chosen for each of them)"))
+    }
+    x <- vapply(x, function(i) i[1], character(1)) 
+
+	# case 2: no to.ID -> exclude
     nr.na <- sum(is.na(x))
     if(nr.na)
     { 
         message(paste("Excluded", nr.na, "genes without a corresponding to.ID"))
         x <- x[!is.na(x)]
     }
-    nr.dupl <- sum(table(x) > 1)
+
+	# case 3: multiple from.IDs (n:1) -> select / summarize
+	nr.dupl <- sum(table(x) > 1)
     if(nr.dupl)
     { 
         message(paste("Encountered", nr.dupl, 
-            "from.IDs with >1 corresponding to.ID", 
-            "(a single to.ID was chosen for each of them)"))
+            "from.IDs that map to the same to.ID", 
+            "(a single from.ID was chosen for each of them)"))
         x <- x[!duplicated(x)]
     }
     return(x)

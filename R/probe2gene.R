@@ -11,9 +11,6 @@
 #
 ###############################################################################
 
-# fast conversion of probe 2 gene expression
-
-
 #' Transformation of probe level expression to gene level expression
 #' 
 #' Transforms expression data on probe level to gene level expression by

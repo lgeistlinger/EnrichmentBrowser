@@ -89,28 +89,30 @@ idTypes <- function(org)
 
 	# case 1: multiple to.IDs (1:n) -> take one / first
     nr.multi <- sum(lengths(x) > 1)
-    if(nr.multi)
+    x <- vapply(x, function(i) i[1], character(1)) 
+
+	# case 2: no to.ID -> exclude
+    nr.na <- sum(is.na(x))
+
+	# case 3: multiple from.IDs (n:1) -> select / summarize
+	nr.dupl <- sum(table(x) > 1)
+   
+	# verbose information loss 
+	if(nr.na)
+    { 
+        message(paste("Excluded", nr.na, "genes without a corresponding to.ID"))
+        x <- x[!is.na(x)]
+    }
+	if(nr.multi)
     { 
         message(paste("Encountered", nr.multi, 
             "from.IDs with >1 corresponding to.ID", 
             "(a single to.ID was chosen for each of them)"))
     }
-    x <- vapply(x, function(i) i[1], character(1)) 
-
-	# case 2: no to.ID -> exclude
-    nr.na <- sum(is.na(x))
-    if(nr.na)
-    { 
-        message(paste("Excluded", nr.na, "genes without a corresponding to.ID"))
-        x <- x[!is.na(x)]
-    }
-
-	# case 3: multiple from.IDs (n:1) -> select / summarize
-	nr.dupl <- sum(table(x) > 1)
-    if(nr.dupl)
+	if(nr.dupl)
     { 
         message(paste("Encountered", nr.dupl, 
-            "from.IDs that map to the same to.ID", 
+            "to.IDs with >1 from.ID", 
             "(a single from.ID was chosen for each of them)"))
         x <- x[!duplicated(x)]
     }

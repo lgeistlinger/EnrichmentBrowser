@@ -61,9 +61,7 @@ deAna <- function(expr, grp=NULL, blk=NULL,
                     de.method=c("limma", "edgeR", "DESeq2"), 
                     padj.method="BH", stat.only=FALSE, min.cpm=2)
 {
-    ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
-    if(is(expr, "ExpressionSet")) expr <- as(expr, "RangedSummarizedExperiment")
-    ###
+    if(is(expr, "ExpressionSet")) expr <- as(expr, "SummarizedExperiment")
 
     isSE <- is(expr, "SummarizedExperiment")
     if(isSE) 

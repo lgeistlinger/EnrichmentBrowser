@@ -6,7 +6,8 @@
 \alias{idTypes}
 \title{Mapping between gene ID types for the rownames of a SummarizedExperiment}
 \usage{
-idMap(se, org = NA, from = "ENSEMBL", to = "ENTREZID")
+idMap(se, org = NA, from = "ENSEMBL", to = "ENTREZID",
+  multi.to = "first", multi.from = "first")
 
 idTypes(org)
 }
@@ -18,11 +19,37 @@ Expects the names to be of gene ID type given in argument 'from'.}
 \sQuote{Homo sapiens}.  See references.}
 
 \item{from}{Gene ID type from which should be mapped.  Corresponds to the
-gene ID type of the names of argument 'se'.  Defaults to 'ENSEMBL'.}
+gene ID type of the names of argument 'se'. Note that 'from' is ignored if 
+'to' is a \code{\link{rowData}} column of 'se'. Defaults to 'ENSEMBL'.}
 
-\item{to}{Gene ID type to which should be mapped.  Corresponds to the gene
-ID type the featuresNames of argument 'se' should be updated with.  Defaults
-to 'ENTREZID'.}
+\item{to}{Gene ID type to which should be mapped. Corresponds to the gene
+ID type the rownames of argument 'se' should be updated with.
+Note that this can also be the name of a column in the \code{\link{rowData}} 
+slot to specify user-defined mappings in which conflicts have been manually
+resolved. Defaults to 'ENTREZID'.}
+
+\item{multi.to}{How to resolve 1:many mappings, i.e. multiple to.IDs for a 
+single from.ID? This is passed on to the \code{multiVals} argument of 
+\code{\link{mapIds}} and can thus take several pre-defined values, but also
+the form of a user-defined function. However, note that this requires that a 
+single to.ID is returned for each from.ID. Default is 'first', which accordingly
+returns the first to.ID the respective from.ID has been mapped to.}
+
+\item{multi.from}{How to resolve many:1 mappings, i.e. multiple from.IDs map
+to the same to.ID? Pre-defined options include: 
+\itemize{ \item 'first' (Default): returns the first from.ID for each to.ID
+with multiple from.IDs 
+\item 'minp' selects the from.ID with minimum p-value (according to the 
+\code{\link{rowData}} column 'PVAL' of 'se')
+\item 'maxfc' selects the from.ID with maximum absolute log2 fold change 
+(according to the \code{\link{rowData}} column 'FC' of 'se').}
+Note that a user-defined function can also be supplied for custom behaviors.
+This will be applied for each case where there are multiple from.IDs for a 
+single to.ID, and accordingly takes the arguments 'ids' and 'se'. 
+The argument 'ids' are the multiple from.IDs from which a single one should 
+be chosen e.g. data-driven via information available in argument 'se'. 
+See Examples for a case where ids are selected based on a user-defined  
+\code{\link{rowData}} column.}
 }
 \value{
 idTypes: character vector listing the available gene ID types for
@@ -44,8 +71,28 @@ types for the mapping.
     # create an expression dataset with 3 genes and 3 samples
     se <- makeExampleData("SE", nfeat=3, nsmpl=3)
     names(se) <- paste0("ENSG00000000", c("003","005", "419"))
-    se <- idMap(se, org="hsa")
+    mse <- idMap(se, org="hsa")
 
+    # user-defined mapping
+    rowData(se)$MYID <- c("g1", "g1", "g2")
+    mse <- idMap(se, to="MYID")    
+
+    # data-driven resolving of many:1 mappings
+    
+    ## e.g. select from.ID with lowest p-value
+    pcol <- configEBrowser("PVAL.COL")
+    rowData(se)[[pcol]] <- c("0.001", "0.32", "0.15")
+    mse <- idMap(se, to="MYID", multi.from="minp") 
+   
+    ## ... or using a customized function
+    maxScore <- function(ids, se)
+    {
+         scores <- rowData(se, use.names=TRUE)[ids, "SCORE"]
+         ind <- which.max(scores)
+         return(ids[ind])
+    }
+    rowData(se)$SCORE <- c("125.7", "33.4", "58.6")
+    mse <- idMap(se, to="MYID", multi.from=maxScore) 
 }
 \references{
 KEGG Organism code

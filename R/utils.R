@@ -129,7 +129,7 @@ isAvailable <- function(pkg, type=c("annotation", "software", "data"))
             "packages/", repo.type, "/data/annotation/src/contrib"))[, "Package"]
     }
     type <- match.arg(type)
-    org.string <- "^org.[A-z][a-z]+.[a-z]+.db$"
+    org.string <- "^org.[A-Za-z0-9]+.[a-z]+.db$"
     if(type == "TxDb") 
         org.string <- "^TxDb.[A-Z][a-z]+.UCSC.[a-z]{2}[A-Za-z]*[0-9]{1,3}.[a-z]{3,5}Gene$"
     else if(type == "BSgenome") 

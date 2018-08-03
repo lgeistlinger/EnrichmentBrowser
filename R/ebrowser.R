@@ -358,14 +358,17 @@ ebrowser <- function(
         # link gene statistics
         sam.file <- file.path(out.dir, "samt.RData")    
         if(m == "samgs" && file.exists(sam.file))
-            rowData(geneSE)$SAM.T <- 
-                round(get(load(sam.file)), digits=2)
-       
+        {
+            samt <- round(get(load(sam.file)), digits=2)
+            rowData(geneSE)[names(s2n), "SAM.T"] <- unname(samt) 
+        }       
+
         s2n.file <- file.path(out.dir, "gsea_s2n.RData")
         if(m == "gsea" && file.exists(s2n.file))
-            rowData(geneSE)$GSEA.S2N <- 
-                round(get(load(s2n.file)), digits=2)
-        
+        {
+            s2n <- round(get(load(s2n.file)), digits=2)
+            rowData(geneSE)[names(s2n),"GSEA.S2N"] <- unname(s2n) 
+        }
         if(comb) res.list[[i]] <- res
     }
 

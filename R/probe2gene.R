@@ -47,12 +47,28 @@
 #'     geneSE <- probe2gene(probeSE) 
 #' 
 #' @export probe2gene
-probe2gene <- function(probeSE, use.mean=TRUE)
+probe2gene <- function(probeSE, chip=NA, from="PROBEID", to="ENTREZID", 
+    multi.to="first", multi.from="mean")
 {
-    ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
+    if(multi.from == "mean") geneSE <- .probe2geneAverage(probeSE)
+    else geneSE <- idMap(probeSE, chip, from, to, multi.to, multi.from)
+    return(geneSE)
+}
+
+#' @export
+#' @keywords internal
+probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
+{
+    .Deprecated("probe2gene")
+    multi.from <- ifelse(use.mean, "mean", "minp")
+    probe2gene(probe.eset, multi.from=multi.from)
+}
+
+
+.probe2geneAverage <- function(probeSE, use.mean=TRUE)
+{
     if(is(probeSE, "ExpressionSet")) 
-        probeSE <- as(probeSE, "RangedSummarizedExperiment")
-    ### 
+        probeSE <- as(probeSE, "SummarizedExperiment")  
 
     EZ.COL <- configEBrowser("EZ.COL")
     se <- probeSE
@@ -98,16 +114,8 @@ probe2gene <- function(probeSE, use.mean=TRUE)
     # create new SE
     geneSE <- SummarizedExperiment(assays=list(exprs=gene.exprs), 
         colData=colData(se), metadata=metadata(se))  
-    
-    return(geneSE)
-}
 
-#' @export
-#' @keywords internal
-probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
-{
-    .Deprecated("probe2gene")
-    probe2gene(probe.eset, use.mean=use.mean)
+    return(geneSE)
 }
 
 .annoP2G <- function(se) 
@@ -190,11 +198,9 @@ probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
 # e.g. hgu95av2.db -> hsa
 .annoPkg2Org <- function(anno.pkg)
 {
-    info <- suppressMessages(capture.output(get(anno.pkg)))
-    org.line <- grep(" ORGANISM: ", info, value=TRUE)
-    org <- tolower(unlist(strsplit(org.line, ": "))[2])
-    org.spl <- unlist(strsplit(org, " "))
-    org.id <- paste0(substring(org.spl[1],1,1), substring(org.spl[2],1,2))
-    return(org.id)
+    org <- AnnotationDbi::species(anno.pkg) 
+    data(korg, package="pathview")
+    suppressMessages(org <- pathview::kegg.species.code(org))
+    return(unname(org))
 }
 

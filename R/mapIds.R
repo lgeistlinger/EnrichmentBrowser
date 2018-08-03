@@ -67,7 +67,7 @@
 #'     # create an expression dataset with 3 genes and 3 samples
 #'     se <- makeExampleData("SE", nfeat=3, nsmpl=3)
 #'     names(se) <- paste0("ENSG00000000", c("003","005", "419"))
-#'     mse <- idMap(se, org="hsa")
+#'     mse <- idMap(se, anno="hsa")
 #'
 #'     # user-defined mapping
 #'     rowData(se)$MYID <- c("g1", "g1", "g2")
@@ -98,24 +98,31 @@ idMap <- function(se, org=NA,
     multi.to="first", multi.from="first")
 {
     if(is(se, "ExpressionSet")) se <- as(se, "SummarizedExperiment")
-
-    if(is.na(org)) org <- metadata(se)$annotation
-    ids <- names(se)
-   
-    is.first <- is.character(multi.from) && multi.from == "first" 
-    is.col <- to %in% colnames(rowData(se)) 
   
-    # simple ID-based resolving: needs org, from & to as char
-    if(is.first && !is.col) x <- .idmap(ids, org, from, to, multi.to=multi.to) 
+    # user-defined mapping in rowData? 
+    is.col <- to %in% colnames(rowData(se)) 
+    if(!is.col)
+    {
+        # get annotation
+        anno <- org
+        if(is.na(anno)) anno <- metadata(se)$annotation
+        if(!length(anno)) stop("Organism under investigation not annotated")
+    }
+
+    ids <- names(se)
+    # simple ID-based resolving: needs anno, from & to as char
+    is.first <- is.character(multi.from) && multi.from == "first" 
+    if(is.first && !is.col) x <- .idmap(ids, anno, from, to, multi.to=multi.to) 
     # data-driven resolving 
     else
     { 
 	    # 'to' can also be a rowData col  
 	    if(!is.col) # needs org, from, to as char
         {
-            x <- .idmap(ids, org, from, to, excl.na=FALSE, 
+            x <- .idmap(ids, anno, from, to, excl.na=FALSE, 
                             multi.to=multi.to, resolve.multiFrom=FALSE)
             rowData(se)[[to]] <- unname(x)
+            se <- .annotateSE(se, anno)
         }
         x <- .idmapSE(se, to, multi.from) # only needs to as a col
         
@@ -128,7 +135,7 @@ idMap <- function(se, org=NA,
     names(x) <- NULL
     names(se) <- x
     
-    if(!length(metadata(se)$annotation)) metadata(se)$annotation <- org
+    
     return(se)
 }
 
@@ -142,25 +149,21 @@ map.ids <- function(se, org=NA, from="ENSEMBL", to="ENTREZID")
 
 #' @rdname idMap
 #' @export
-idTypes <- function(org)
+idTypes <- function(anno)
 {
-    org.pkg <- .org2pkg(org)
-    isAvailable(org.pkg)
-    org.pkg <- get(org.pkg) 
-    return(keytypes(org.pkg))
+    anno.pkg <- .getAnnoPkg(anno)
+    return(keytypes(anno.pkg))
 }
 
-.idmap <- function(ids, org, from, to, 
+.idmap <- function(ids, anno, from, to, 
     excl.na=TRUE, multi.to="first", resolve.multiFrom=TRUE)
 {
-    if(!length(org)) stop("Organism under investigation not annotated")
-    org.pkg <- .org2pkg(org)
-    isAvailable(org.pkg)
-    org.pkg <- get(org.pkg) 
-    x <- mapIds(org.pkg, keys=ids, keytype=from, column=to, multiVals="list")
-
+    anno.pkg <- .getAnnoPkg(anno) 
+    suppressMessages(
+        x <- mapIds(anno.pkg, keys=ids, keytype=from, column=to, multiVals="list")
+    )
 	# case 1: multiple to.IDs (1:n) -> select one
-    x <- .resolveMultiTo(x, org.pkg, from, to, multi.to)
+    x <- .resolveMultiTo(x, anno.pkg, from, to, multi.to)
  
     # case 2: no to.ID -> exclude
     if(excl.na) x <- .exclNaIds(x)
@@ -171,7 +174,31 @@ idTypes <- function(org)
     return(x)
 }
 
-.resolveMultiTo <- function(x, org.pkg, from, to, multi.to)
+.getAnnoPkg <- function(anno)
+{
+    # org or chip?
+    is.org <- grepl("^[a-z]{3}$", anno)
+    if(is.org) anno.pkg <- .org2pkg(anno)
+    else anno.pkg <- paste0(anno, ".db")
+    
+    isAvailable(anno.pkg)
+    anno.pkg <- get(anno.pkg)
+    return(anno.pkg)
+}
+
+.annotateSE <- function(se, anno)
+{
+    is.org <- grepl("^[a-z]{3}$", anno)
+    if(!is.org)
+    { 
+        anno.pkg <- .getAnnoPkg(anno)
+        anno <- .annoPkg2Org(anno.pkg)
+    }
+    metadata(se)$annotation <- anno
+    return(se)
+}
+
+.resolveMultiTo <- function(x, anno.pkg, from, to, multi.to)
 {
     nr.multi <- sum(lengths(x) > 1)
     if(nr.multi)
@@ -179,9 +206,10 @@ idTypes <- function(org)
         message(paste("Encountered", nr.multi, 
                 "from.IDs with >1 corresponding to.ID")) 
         ids <- names(x)
-        x <- mapIds(org.pkg, keys=ids, 
+        suppressMessages(
+            x <- mapIds(anno.pkg, keys=ids, 
                         keytype=from, column=to, multiVals=multi.to)
-
+        )
         # valid mapping?
         is.valid <- is.vector(x) && is.character(x) && length(x) == length(ids)
         if(!is.valid)
@@ -206,11 +234,12 @@ idTypes <- function(org)
 
 .exclNaIds <- function(x)
 {
-    nr.na <- sum(is.na(x))
-    if(nr.na)
+    isna <- is.na(x)
+    nr.na <- sum(isna)
+	if(nr.na)
     { 
-        message(paste("Excluded", nr.na, "genes without a corresponding to.ID"))
-        x <- x[!is.na(x)]
+        message(paste("Excluded", nr.na, "from.IDs without a corresponding to.ID"))
+        x <- x[!isna]
     }
     return(x)
 }
@@ -241,13 +270,7 @@ idTypes <- function(org)
     names(x) <- names(se)
 
 	# no to.ID -> exclude
-    isna <- is.na(x)
-    nr.na <- sum(isna)
-	if(nr.na)
-    { 
-        message(paste("Excluded", nr.na, "rows without a corresponding to.ID"))
-        x <- x[!isna]
-    }
+    x <- .exclNaIds(x)
 
     # to.IDs with > 1 from.ID: select / summarize according to multiFUN
     x <- .resolveDuplicateIDs(x, multiFUN, se)   	

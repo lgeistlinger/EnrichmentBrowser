@@ -76,8 +76,6 @@ suppressMessages(suppressWarnings(suppressPackageStartupMessages({
 library(EnrichmentBrowser)
 library(ALL)
 library(airway)
-library(edgeR)
-library(limma)
 })))
 @
 
@@ -128,7 +126,7 @@ eset <- as(se, "ExpressionSet")
 and vice versa
 
 <<eset2sexp>>=
-se <- as(eset, "RangedSummarizedExperiment")
+se <- as(eset, "SummarizedExperiment")
 @
 
 \section{Types of expression data}

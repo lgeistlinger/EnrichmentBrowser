@@ -360,7 +360,7 @@ ebrowser <- function(
         if(m == "samgs" && file.exists(sam.file))
         {
             samt <- round(get(load(sam.file)), digits=2)
-            rowData(geneSE)[names(s2n), "SAM.T"] <- unname(samt) 
+            rowData(geneSE)[names(samt), "SAM.T"] <- unname(samt) 
         }       
 
         s2n.file <- file.path(out.dir, "gsea_s2n.RData")

@@ -9,7 +9,7 @@
 idMap(se, org = NA, from = "ENSEMBL", to = "ENTREZID",
   multi.to = "first", multi.from = "first")
 
-idTypes(anno)
+idTypes(org)
 }
 \arguments{
 \item{se}{An object of class \code{\linkS4class{SummarizedExperiment}}.
@@ -21,45 +21,42 @@ Expects the names to be of gene ID type given in argument \code{from}.}
 \item{from}{Character. Gene ID type from which should be mapped.  Corresponds to the
 gene ID type of the names of argument \code{se}. Note that \code{from} is 
 ignored if \code{to} is a \code{\link{rowData}} column of \code{se}. 
-Defaults to \code{\sQuote{ENSEMBL}}.}
+Defaults to \code{ENSEMBL}.}
 
 \item{to}{Character. Gene ID type to which should be mapped. Corresponds to the gene
 ID type the rownames of argument \code{se} should be updated with.
 Note that this can also be the name of a column in the \code{\link{rowData}} 
 slot of \code{se} to specify user-defined mappings in which conflicts have been 
-manually resolved. Defaults to \code{\sQuote{ENTREZID}}.}
+manually resolved. Defaults to \code{ENTREZID}.}
 
 \item{multi.to}{How to resolve 1:many mappings, i.e. multiple to.IDs for a 
 single from.ID? This is passed on to the \code{multiVals} argument of 
 \code{\link{mapIds}} and can thus take several pre-defined values, but also
 the form of a user-defined function. However, note that this requires that a 
-single to.ID is returned for each from.ID. Default is \code{\sQuote{first"}},
+single to.ID is returned for each from.ID. Default is \code{"first"},
 which accordingly returns the first to.ID mapped onto the respective from.ID.}
 
 \item{multi.from}{How to resolve many:1 mappings, i.e. multiple from.IDs 
 mapping to the same to.ID? Pre-defined options include: 
 \itemize{ \item 'first' (Default): returns the first from.ID for each to.ID
 with multiple from.IDs, 
-\item 'minp' selects the from.ID with minimum p-value (according to the 
+\item 'minp': selects the from.ID with minimum p-value (according to the 
 \code{\link{rowData}} column \code{PVAL} of \code{se}),
-\item 'maxfc' selects the from.ID with maximum absolute log2 fold change 
+\item 'maxfc': selects the from.ID with maximum absolute log2 fold change 
 (according to the \code{\link{rowData}} column \code{FC} of \code{se}).}
 Note that a user-defined function can also be supplied for custom behaviors.
 This will be applied for each case where there are multiple from.IDs for a 
 single to.ID, and accordingly takes the arguments \code{ids} and \code{se}. 
 The argument \code{ids} corresponds to the multiple from.IDs from which a 
-single ID should be chosen e.g. via information available in argument 
-\code{se}. See Examples for a case where ids are selected based on a 
+single ID should be chosen, e.g. via information available in argument 
+\code{se}. See examples for a case where ids are selected based on a 
 user-defined \code{\link{rowData}} column.}
-
-\item{anno}{Character. Either an organism in KEGG three letter code or the
-ID of a recognized microarray platform.}
 }
 \value{
 idTypes: character vector listing the available gene ID types for
 the mapping;
 
-idMap: An object of \code{\linkS4class{SummarizedExperiment}}.
+idMap: An object of class \code{\linkS4class{SummarizedExperiment}}.
 }
 \description{
 Functionality to map the rownames of a SummarizedExperiment between common
@@ -75,7 +72,7 @@ types for the mapping.
     # create an expression dataset with 3 genes and 3 samples
     se <- makeExampleData("SE", nfeat=3, nsmpl=3)
     names(se) <- paste0("ENSG00000000", c("003","005", "419"))
-    mse <- idMap(se, anno="hsa")
+    mse <- idMap(se, org="hsa")
 
     # user-defined mapping
     rowData(se)$MYID <- c("g1", "g1", "g2")

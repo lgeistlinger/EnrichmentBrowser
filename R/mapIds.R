@@ -43,23 +43,21 @@
 #' mapping to the same to.ID? Pre-defined options include: 
 #' \itemize{ \item 'first' (Default): returns the first from.ID for each to.ID
 #' with multiple from.IDs, 
-#' \item 'minp' selects the from.ID with minimum p-value (according to the 
+#' \item 'minp': selects the from.ID with minimum p-value (according to the 
 #' \code{\link{rowData}} column \code{PVAL} of \code{se}),
-#' \item 'maxfc' selects the from.ID with maximum absolute log2 fold change 
+#' \item 'maxfc': selects the from.ID with maximum absolute log2 fold change 
 #' (according to the \code{\link{rowData}} column \code{FC} of \code{se}).}
 #' Note that a user-defined function can also be supplied for custom behaviors.
 #' This will be applied for each case where there are multiple from.IDs for a 
 #' single to.ID, and accordingly takes the arguments \code{ids} and \code{se}. 
 #' The argument \code{ids} corresponds to the multiple from.IDs from which a 
-#' single ID should be chosen e.g. via information available in argument 
-#' \code{se}. See Examples for a case where ids are selected based on a 
+#' single ID should be chosen, e.g. via information available in argument 
+#' \code{se}. See examples for a case where ids are selected based on a 
 #' user-defined \code{\link{rowData}} column.
-#' @param anno Character. Either an organism in KEGG three letter code or the
-#' ID of a recognized microarray platform.
 #' @return idTypes: character vector listing the available gene ID types for
 #' the mapping;
 #' 
-#' idMap: An object of \code{\linkS4class{SummarizedExperiment}}.
+#' idMap: An object of class \code{\linkS4class{SummarizedExperiment}}.
 #' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
 #' @seealso \code{\linkS4class{SummarizedExperiment}}, \code{\link{mapIds}},
 #' \code{\link{keytypes}}
@@ -70,7 +68,7 @@
 #'     # create an expression dataset with 3 genes and 3 samples
 #'     se <- makeExampleData("SE", nfeat=3, nsmpl=3)
 #'     names(se) <- paste0("ENSG00000000", c("003","005", "419"))
-#'     mse <- idMap(se, anno="hsa")
+#'     mse <- idMap(se, org="hsa")
 #'
 #'     # user-defined mapping
 #'     rowData(se)$MYID <- c("g1", "g1", "g2")
@@ -152,9 +150,9 @@ map.ids <- function(se, org=NA, from="ENSEMBL", to="ENTREZID")
 
 #' @rdname idMap
 #' @export
-idTypes <- function(anno)
+idTypes <- function(org)
 {
-    anno.pkg <- .getAnnoPkg(anno)
+    anno.pkg <- .getAnnoPkg(org)
     return(keytypes(anno.pkg))
 }
 

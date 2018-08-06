@@ -27,7 +27,7 @@ Only required if not provided in the \code{\link{metadata}} of \code{probeSE}
 via an element named \code{annotation}.}
 
 \item{from}{Character. ID type from which should be mapped. Corresponds to the
-ID type of the names of argument \code{se} with the default \code{\sQuote{PROBEID}}
+ID type of the names of argument \code{se}, with the default \code{PROBEID}
 being appropriate if the mapping is based on Bioconductor annotation packages. 
 Note that \code{from} is ignored if \code{to} is a \code{\link{rowData}} column 
 of \code{probeSE}.}
@@ -36,13 +36,13 @@ of \code{probeSE}.}
 the gene ID type the rownames of argument \code{probeSE} should be updated with.
 Note that this can also be the name of a column in the \code{\link{rowData}} 
 slot of \code{probeSE} to specify user-defined mappings in which conflicts 
-have been manually resolved. Defaults to \code{\sQuote{ENTREZID}}.}
+have been manually resolved. Defaults to \code{ENTREZID}.}
 
 \item{multi.to}{How to resolve 1:many mappings, i.e. multiple gene IDs for a
-single single probe ID? This is passed on to the \code{multiVals} argument of
+single probe ID? This is passed on to the \code{multiVals} argument of
 \code{\link{mapIds}} and can thus take several pre-defined values, but also
 the form of a user-defined function. However, note that this requires that a
-single gene ID is returned for each probe ID. Default is \code{\sQuote{first}}, 
+single gene ID is returned for each probe ID. Default is \code{"first"}, 
 which accordingly returns the first gene ID mapped onto the respective probe ID.}
 
 \item{multi.from}{How to resolve many:1 mappings, i.e. multiple probe IDs 

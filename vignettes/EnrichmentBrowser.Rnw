@@ -120,13 +120,13 @@ Furthermore, users can always coerce from \Rclass{SummarizedExperiment} to
  \Rclass{ExpressionSet} via
 
 <<sexp2eset>>=
-eset <- as(se, "ExpressionSet")
+#eset <- as(se, "ExpressionSet")
 @
 
 and vice versa
 
 <<eset2sexp>>=
-se <- as(eset, "SummarizedExperiment")
+#se <- as(eset, "SummarizedExperiment")
 @
 
 \section{Types of expression data}

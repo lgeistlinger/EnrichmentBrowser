@@ -5,12 +5,11 @@
 \alias{get.go.genesets}
 \alias{get.kegg.genesets}
 \alias{parse.genesets.from.GMT}
-\alias{getGenesets}
 \alias{writeGMT}
 \title{Definition of gene sets according to different sources}
 \usage{
-getGenesets(org, db = c("go", "kegg"), cache = TRUE, go.onto = c("BP",
-  "MF", "CC"), go.mode = c("GO.db", "biomart"))
+getGenesets(org, db = c("go", "kegg"), cache = TRUE,
+  go.onto = c("BP", "MF", "CC"), go.mode = c("GO.db", "biomart"))
 
 writeGMT(gs, gmt.file)
 }

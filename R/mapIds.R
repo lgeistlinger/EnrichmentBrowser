@@ -21,38 +21,41 @@
 #' 
 #' @aliases map.ids
 #' @param se An object of class \code{\linkS4class{SummarizedExperiment}}.
-#' Expects the names to be of gene ID type given in argument 'from'.
-#' @param org Organism in KEGG three letter code, e.g. \sQuote{hsa} for
+#' Expects the names to be of gene ID type given in argument \code{from}.
+#' @param org Character. Organism in KEGG three letter code, e.g. \sQuote{hsa} for
 #' \sQuote{Homo sapiens}.  See references.
-#' @param from Gene ID type from which should be mapped.  Corresponds to the
-#' gene ID type of the names of argument 'se'. Note that 'from' is ignored if 
-#' 'to' is a \code{\link{rowData}} column of 'se'. Defaults to 'ENSEMBL'.
-#' @param to Gene ID type to which should be mapped. Corresponds to the gene
-#' ID type the rownames of argument 'se' should be updated with.
+#' @param from Character. Gene ID type from which should be mapped.  Corresponds to the
+#' gene ID type of the names of argument \code{se}. Note that \code{from} is 
+#' ignored if \code{to} is a \code{\link{rowData}} column of \code{se}. 
+#' Defaults to \code{ENSEMBL}.
+#' @param to Character. Gene ID type to which should be mapped. Corresponds to the gene
+#' ID type the rownames of argument \code{se} should be updated with.
 #' Note that this can also be the name of a column in the \code{\link{rowData}} 
-#' slot to specify user-defined mappings in which conflicts have been manually
-#' resolved. Defaults to 'ENTREZID'.
+#' slot of \code{se} to specify user-defined mappings in which conflicts have been 
+#' manually resolved. Defaults to \code{ENTREZID}.
 #' @param multi.to How to resolve 1:many mappings, i.e. multiple to.IDs for a 
 #' single from.ID? This is passed on to the \code{multiVals} argument of 
 #' \code{\link{mapIds}} and can thus take several pre-defined values, but also
 #' the form of a user-defined function. However, note that this requires that a 
-#' single to.ID is returned for each from.ID. Default is 'first', which accordingly
-#' returns the first to.ID the respective from.ID has been mapped to. 
-#' @param multi.from How to resolve many:1 mappings, i.e. multiple from.IDs map
-#' to the same to.ID? Pre-defined options include: 
+#' single to.ID is returned for each from.ID. Default is \code{"first"},
+#' which accordingly returns the first to.ID mapped onto the respective from.ID.
+#' @param multi.from How to resolve many:1 mappings, i.e. multiple from.IDs 
+#' mapping to the same to.ID? Pre-defined options include: 
 #' \itemize{ \item 'first' (Default): returns the first from.ID for each to.ID
-#' with multiple from.IDs 
+#' with multiple from.IDs, 
 #' \item 'minp' selects the from.ID with minimum p-value (according to the 
-#' \code{\link{rowData}} column 'PVAL' of 'se')
+#' \code{\link{rowData}} column \code{PVAL} of \code{se}),
 #' \item 'maxfc' selects the from.ID with maximum absolute log2 fold change 
-#' (according to the \code{\link{rowData}} column 'FC' of 'se').}
+#' (according to the \code{\link{rowData}} column \code{FC} of \code{se}).}
 #' Note that a user-defined function can also be supplied for custom behaviors.
 #' This will be applied for each case where there are multiple from.IDs for a 
-#' single to.ID, and accordingly takes the arguments 'ids' and 'se'. 
-#' The argument 'ids' are the multiple from.IDs from which a single one should 
-#' be chosen e.g. data-driven via information available in argument 'se'. 
-#' See Examples for a case where ids are selected based on a user-defined  
-#' \code{\link{rowData}} column.
+#' single to.ID, and accordingly takes the arguments \code{ids} and \code{se}. 
+#' The argument \code{ids} corresponds to the multiple from.IDs from which a 
+#' single ID should be chosen e.g. via information available in argument 
+#' \code{se}. See Examples for a case where ids are selected based on a 
+#' user-defined \code{\link{rowData}} column.
+#' @param anno Character. Either an organism in KEGG three letter code or the
+#' ID of a recognized microarray platform.
 #' @return idTypes: character vector listing the available gene ID types for
 #' the mapping;
 #' 
@@ -107,6 +110,7 @@ idMap <- function(se, org=NA,
         anno <- org
         if(is.na(anno)) anno <- metadata(se)$annotation
         if(!length(anno)) stop("Organism under investigation not annotated")
+        se <- .annotateSE(se, anno)
     }
 
     ids <- names(se)
@@ -122,7 +126,6 @@ idMap <- function(se, org=NA,
             x <- .idmap(ids, anno, from, to, excl.na=FALSE, 
                             multi.to=multi.to, resolve.multiFrom=FALSE)
             rowData(se)[[to]] <- unname(x)
-            se <- .annotateSE(se, anno)
         }
         x <- .idmapSE(se, to, multi.from) # only needs to as a col
         

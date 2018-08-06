@@ -20,8 +20,9 @@ Description: The EnrichmentBrowser package implements essential functionality
     Besides, the package facilitates the visualization and exploration of such 
     sets and pathways.
 License: Artistic-2.0
+Encoding: UTF-8
 VignetteBuilder: knitr
 biocViews: Microarray, RNASeq, GeneExpression, DifferentialExpression,
         Pathways, GraphAndNetwork, Network, GeneSetEnrichment,
         NetworkEnrichment, Visualization, ReportWriting
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0

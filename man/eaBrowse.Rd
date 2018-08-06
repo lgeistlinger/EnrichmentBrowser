@@ -5,7 +5,6 @@
 \alias{ea.browse}
 \alias{gsRanking}
 \alias{gs.ranking}
-\alias{gsRanking}
 \title{Exploration of enrichment analysis results}
 \usage{
 eaBrowse(res, nr.show = -1, graph.view = NULL, html.only = FALSE)

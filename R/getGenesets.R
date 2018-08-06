@@ -242,8 +242,13 @@ get.kegg.genesets <- function(pwys, cache=TRUE, gmt.file=NULL)
                 names(genes) <- NULL
                 return(genes)
             })
-        titles <- vapply(pwys, function(pwy) 
-            KEGGREST::keggList(paste0("map", sub("^[a-z]{3}", "", pwy))), character(1))
+        .makeTitle <- function(pwy)
+        {
+            ti <- paste0("map", sub("^[a-z]{3}", "", pwy))
+            ti <- KEGGREST::keggList(ti)
+            return(ti)
+        }
+        titles <- vapply(pwys, .makeTitle, character(1))
         names(titles) <- pwys
         pwys <- titles
     }

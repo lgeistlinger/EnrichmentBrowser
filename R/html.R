@@ -485,10 +485,10 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     # 1: make the plot
     # run pathview for getting native overplotted image
     out.dir <- dirname(img.file)
-    #suppressWarnings(suppressMessages(
-    pathview::pathview(gene.data=fc, 
-        pathway.id=pwy.id, species=org, kegg.dir=out.dir, out.suffix="kpath")
-    # ))
+    suppressWarnings(
+        pathview::pathview(gene.data=fc, 
+            pathway.id=pwy.id, species=org, kegg.dir=out.dir, out.suffix="kpath")
+    )
     pv.out <- file.path(getwd(), paste0(org, pwy.id, ".kpath.png"))
     file.rename(from=pv.out, to=img.file)
     

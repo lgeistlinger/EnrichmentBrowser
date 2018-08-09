@@ -75,7 +75,8 @@
 probe2gene <- function(probeSE, chip=NA, from="PROBEID", to="ENTREZID", 
     multi.to="first", multi.from="mean")
 {
-    if(multi.from == "mean") geneSE <- .probe2geneAverage(probeSE)
+    if(multi.from == "mean") 
+        geneSE <- .probe2geneAverage(probeSE, chip, from, to, multi.to)
     else geneSE <- idMap(probeSE, chip, from, to, multi.to, multi.from)
     return(geneSE)
 }
@@ -90,21 +91,28 @@ probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
 }
 
 
-.probe2geneAverage <- function(probeSE, use.mean=TRUE)
+.probe2geneAverage <- function(se, chip, from, to, multi.to)
 {
-    if(is(probeSE, "ExpressionSet")) 
-        probeSE <- as(probeSE, "SummarizedExperiment")  
+    if(is(se, "ExpressionSet")) 
+        se <- as(se, "SummarizedExperiment")  
 
-    EZ.COL <- configEBrowser("EZ.COL")
-    se <- probeSE
-    if(!(EZ.COL %in% colnames(rowData(se)))) se <- .annoP2G(se)
+    if(!(to %in% colnames(rowData(se))))
+    {
+        anno <- chip 
+        if(is.na(anno)) anno <- metadata(se)$annotation
+        if(!length(anno)) stop("Chip under investigation not annotated")
+        x <- .idmap(names(se), anno, from, to, excl.na=FALSE, 
+                        multi.to=multi.to, resolve.multiFrom=FALSE)
+        rowData(se)[[to]] <- unname(x)
+        se <- .annotateSE(se, anno)
+    }
     
     # remove probes without gene annotation
-    not.na <- !is.na(rowData(se)[, EZ.COL])
+    not.na <- !is.na(rowData(se)[,to])
     if(sum(not.na) < nrow(se)) se <- se[not.na,]
 
     probe.exprs <- assay(se)
-    p2g <- as.vector(rowData(se)[, EZ.COL])
+    p2g <- as.vector(rowData(se)[, to])
     
     # determine unique genes
     genes <- unique(p2g)
@@ -113,26 +121,21 @@ probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
     gene.grid <- seq_along(genes)
     names(gene.grid) <- genes
     gene.int.map <- gene.grid[p2g]
-    gene.exprs <- t(sapply(gene.grid, 
+
+    .summarizeP2G <-
         function(g)
         {
             curr.probes <- which(gene.int.map == g)
             curr.exprs <- probe.exprs[curr.probes,]
             if(is.matrix(curr.exprs))
-            { 
-                if(use.mean) curr.exprs <- colMeans(curr.exprs, na.rm=TRUE)
-                else
-                { 
-                    FC.COL <- configEBrowser("FC.COL") 
-                    if(!(FC.COL %in% colnames(rowData(se))))
-                        stop(paste("use.mean=FALSE, but did not find differential", 
-                            "expression in rowData. Run deAna first."))
-                    curr.exprs <- curr.exprs[
-                        which.max(abs(rowData(se)[curr.probes, FC.COL])),]
-                }
-            }
+                curr.exprs <- colMeans(curr.exprs, na.rm=TRUE)
             return(curr.exprs)
-        })) 
+        }
+
+
+    gene.exprs <- vapply(gene.grid, .summarizeP2G, numeric(ncol(se))) 
+    gene.exprs <- t(gene.exprs)    
+
     colnames(gene.exprs) <- colnames(se)
     rownames(gene.exprs) <- genes
 
@@ -170,10 +173,10 @@ probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
         probes <- names(p2g.map)
 
         # check whether EntrezID is used by KEGG
-        first.nna <- p2g.map[!is.na(p2g.map)][1]
-        first.keggid <- KEGGREST::keggConv("genes", 
-            paste("ncbi-geneid", first.nna, sep=":"))
-        kegg.uses.entrez <- sub(org.start, "", first.keggid) == first.nna
+#        first.nna <- p2g.map[!is.na(p2g.map)][1]
+#        first.keggid <- KEGGREST::keggConv("genes", 
+#            paste("ncbi-geneid", first.nna, sep=":"))
+#        kegg.uses.entrez <- sub(org.start, "", first.keggid) == first.nna
 
         # otherwise convert from EntrezID to KEGGID
 #        if(!kegg.uses.entrez)
@@ -209,13 +212,14 @@ probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
     }
     if(is.se)
     {
-        p2g.map <- p2g.map[rownames(se)]
+        p2g.map <- p2g.map[names(se)]
         rowData(se)[,PRB.COL] <- names(p2g.map)
-        rowData(se)[,EZ.COL] <- p2g.map
+        rowData(se)[,EZ.COL] <- unname(p2g.map)
         metadata(se)$annotation <- org
         return(se)
     }
-    fDat <- cbind(names(p2g.map), p2g.map)
+    fDat <- data.frame(names(p2g.map), unname(p2g.map), stringsAsFactors=FALSE)
+    colnames(fDat) <- c("PRB.COL", "EZ.COL")
     return(fDat)
 }
 
@@ -227,5 +231,5 @@ probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
     data(korg, package="pathview")
     suppressMessages(org <- pathview::kegg.species.code(org))
     return(unname(org))
-}
+}   
 

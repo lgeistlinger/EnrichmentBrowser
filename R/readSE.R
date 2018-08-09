@@ -28,8 +28,8 @@
 #' @param rdat.file Row (feature) data.  A tab separated text file containing
 #' annotation information for the features.  In case of probe level data:
 #' exactly *TWO* columns; 1st col = probe/feature IDs; 2nd col = corresponding
-#' gene ID for each feature ID in 1st col; In case of gene level data: The list
-#' of gene IDs newline-separated (i.e. just one column).  It is recommended to
+#' gene ID for each feature ID in 1st col. In case of gene level data: the
+#' gene IDs newline-separated (i.e. just *one* column).  It is recommended to
 #' use *ENTREZ* gene IDs (to benefit from downstream visualization and
 #' exploration functionality of the enrichment analysis).  NO headers, row or
 #' column names.  The number of rows (features/probes/genes) in this file
@@ -43,8 +43,9 @@
 #' assumed to be microarray intensities.  Whole numbers are assumed to be
 #' RNA-seq read counts.  Defaults to NA.
 #' @param NA.method Determines how to deal with NA's (missing values).  This
-#' can be one out of: \itemize{ \item mean: replace NA's by the row means for a
-#' feature over all samples.  \item rm: rows (features) that contain NA's are
+#' can be one out of: \itemize{ \item mean: replace NA by the mean
+#' over all samples for one feature at a time.  
+#  \item rm: rows (features) that contain NA's are
 #' removed.  \item keep: do nothing. Missing values are kept (which, however,
 #' can then cause several issues in the downstream analysis) } Defaults to
 #' 'mean'.
@@ -94,7 +95,7 @@ readSE <- function(assay.file, cdat.file, rdat.file,
     # read expression values
     expr <- matrix(scan(assay.file, quiet=TRUE), 
         nrow=nr.features, ncol=nr.samples, byrow=TRUE)
-    rownames(expr) <- rdat[,1]
+    rownames(expr) <- unname(rdat[,1])
     colnames(expr) <- cdat[,1]
 
     # deal with NAs

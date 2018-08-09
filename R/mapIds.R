@@ -78,7 +78,7 @@
 #'     
 #'     ## e.g. select from.ID with lowest p-value
 #'     pcol <- configEBrowser("PVAL.COL")
-#'     rowData(se)[[pcol]] <- c("0.001", "0.32", "0.15")
+#'     rowData(se)[[pcol]] <- c(0.001, 0.32, 0.15)
 #'     mse <- idMap(se, to="MYID", multi.from="minp") 
 #'    
 #'     ## ... or using a customized function
@@ -88,7 +88,7 @@
 #'          ind <- which.max(scores)
 #'          return(ids[ind])
 #'     }
-#'     rowData(se)$SCORE <- c("125.7", "33.4", "58.6")
+#'     rowData(se)$SCORE <- c(125.7, 33.4, 58.6)
 #'     mse <- idMap(se, to="MYID", multi.from=maxScore) 
 #'            
 #'

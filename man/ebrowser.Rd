@@ -7,7 +7,8 @@
 ebrowser(meth, exprs, cdat, rdat, org, data.type = c(NA, "ma", "rseq"),
   norm.method = "quantile", de.method = "limma", gs, grn = NULL,
   perm = 1000, alpha = 0.05, beta = 1, comb = FALSE,
-  browse = TRUE, nr.show = -1)
+  browse = TRUE, nr.show = -1, out.dir = NULL,
+  report.name = "index")
 }
 \arguments{
 \item{meth}{Enrichment analysis method.  See \code{\link{sbeaMethods}} and
@@ -102,12 +103,17 @@ number of gene sets for which additional visualization will be provided
 (typically only of interest for the top / signifcant gene sets).  Selected
 enrichment methods and resulting flat gene set rankings still include the
 complete number of gene sets under study.}
+
+\item{out.dir}{Output directory. If \code{NULL}, defaults to a 
+timestamp-generated subdirectory of \code{configEBrowser("OUTDIR.DEFAULT")}.}
+
+\item{report.name}{Character. Name of the HTML report. Defaults to \code{"index"}.}
 }
 \value{
 None, writes an HTML report and, if selected, opens the browser to 
 explore results.
-
-The main HTML report and associated files are written to 
+If not instructed otherwise (via argument \code{out.dir}), 
+the main HTML report and associated files are written to 
 \code{configEBrowser("OUTDIR.DEFAULT")}. 
 See \code{?configEBrowser} to change the location. 
 If \code{browse=TRUE}, the HTML report will automatically be opened in 
@@ -137,7 +143,7 @@ detail in the default browser.
     hsa.gs <- getGenesets(gs.file)
 
     # set-based enrichment analysis
-    ebrowser(   meth="ora", 
+    ebrowser( meth="ora", perm=0,
             exprs=exprs.file, cdat=cdat.file, rdat=rdat.file, 
             gs=hsa.gs, org="hsa", nr.show=3)
 
@@ -150,7 +156,7 @@ detail in the default browser.
             gs=hsa.gs, grn=hsa.grn, org="hsa", nr.show=3 )
 
     # combining results
-    ebrowser(   meth=c("ora", "ggea"), comb=TRUE,
+    ebrowser( meth=c("ora", "ggea"), perm=0, comb=TRUE,
             exprs=exprs.file, cdat=cdat.file, rdat=rdat.file, 
             gs=hsa.gs, grn=hsa.grn, org="hsa", nr.show=3 )
 

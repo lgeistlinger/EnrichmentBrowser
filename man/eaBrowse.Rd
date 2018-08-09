@@ -7,7 +7,8 @@
 \alias{gs.ranking}
 \title{Exploration of enrichment analysis results}
 \usage{
-eaBrowse(res, nr.show = -1, graph.view = NULL, html.only = FALSE)
+eaBrowse(res, nr.show = -1, graph.view = NULL, html.only = FALSE,
+  out.dir = NULL, report.name = NULL)
 
 gsRanking(res, signif.only = TRUE)
 }
@@ -28,6 +29,12 @@ file path to a tabular file or a character matrix with exactly *THREE* cols;
 \item{html.only}{Logical.  Should the html file only be written (without
 opening the browser to view the result page)? Defaults to FALSE.}
 
+\item{out.dir}{Output directory. If \code{NULL}, defaults to a 
+timestamp-generated subdirectory of \code{configEBrowser("OUTDIR.DEFAULT")}.}
+
+\item{report.name}{Name of the HTML report. If \code{NULL}, defaults to the
+the enrichment method used.}
+
 \item{signif.only}{Logical.  Display only those gene sets in the ranking,
 which satisfy the significance level? Defaults to TRUE.}
 }
@@ -37,11 +44,12 @@ the corresponding p-value;
 
 eaBrowse: none, opens the browser to explore results.
 
-The main HTML report and associated files are written to 
+If not instructed otherwise (via argument \code{out.dir}), 
+the main HTML report and associated files are written to 
 \code{configEBrowser("OUTDIR.DEFAULT")}. 
 See \code{?configEBrowser} to change the location. 
 If \code{html.only=FALSE}, the HTML report will automatically be opened in 
-the your default browser.
+your default browser.
 }
 \description{
 Functions to extract a flat gene set ranking from an enrichment analysis
@@ -51,7 +59,6 @@ result object and to detailedly explore it.
 
     
     # real data
-    # (1) reading the expression data from file
     exprs.file <- system.file("extdata/exprs.tab", package="EnrichmentBrowser")
     cdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
     rdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")

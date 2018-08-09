@@ -91,7 +91,7 @@
 normalize <- function(se, norm.method="quantile", within=FALSE, data.type=c(NA, "ma", "rseq"))
 {
     # dealing with an se?
-    if(is(se, "ExpressionSet")) se <- as(se, "RangedSummarizedExperiment")
+    if(is(se, "ExpressionSet")) se <- as(se, "SummarizedExperiment")
     
     if(!is(se, "SummarizedExperiment")) 
     {

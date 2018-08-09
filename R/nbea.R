@@ -213,9 +213,7 @@ nbea <- function(
     FC.COL <-  configEBrowser("FC.COL")
     ADJP.COL <-  configEBrowser("ADJP.COL")
 
-    ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
-    if(is(se, "ExpressionSet")) se <- as(se, "RangedSummarizedExperiment")
-    ###  
+    if(is(se, "ExpressionSet")) se <- as(se, "SummarizedExperiment")
     
     # dealing with NA's
 	# TODO: add informative error message if DE measures are not there

@@ -11,7 +11,7 @@ readSE(assay.file, cdat.file, rdat.file, data.type = c(NA, "ma", "rseq"),
 \arguments{
 \item{assay.file}{Expression matrix.  A tab separated text file containing
 expression values.  Columns = samples/subjects; rows =
-features/probes/genes; NO headers, row or column names.  See details.}
+features/probes/genes; NO headers, row or column names.}
 
 \item{cdat.file}{Column (phenotype) data.  A tab separated text file
 containing annotation information for the samples in either *two or three*
@@ -28,7 +28,7 @@ exactly *TWO* columns; 1st col = probe/feature IDs; 2nd col = corresponding
 gene ID for each feature ID in 1st col. In case of gene level data: the
 gene IDs newline-separated (i.e. just *one* column).  It is recommended to
 use *ENTREZ* gene IDs (to benefit from downstream visualization and
-exploration functionality of the enrichment analysis).  NO headers, row or
+exploration functionality of the EnrichmentBrowser).  NO headers, row or
 column names.  The number of rows (features/probes/genes) in this file
 should match the number of rows/features of the expression matrix.
 Alternatively, this can also be the ID of a recognized platform such as

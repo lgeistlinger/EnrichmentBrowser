@@ -218,10 +218,14 @@ config.ebrowser <- function(key, value=NULL)
 #' (typically only of interest for the top / signifcant gene sets).  Selected
 #' enrichment methods and resulting flat gene set rankings still include the
 #' complete number of gene sets under study.
+#' @param out.dir Output directory. If \code{NULL}, defaults to a 
+#' timestamp-generated subdirectory of \code{configEBrowser("OUTDIR.DEFAULT")}. 
+#' @param report.name Character. Name of the HTML report. Defaults to \code{"index"}.
 #' @return None, writes an HTML report and, if selected, opens the browser to 
 #' explore results.
-#'
-#' The main HTML report and associated files are written to 
+#
+#' If not instructed otherwise (via argument \code{out.dir}), 
+#' the main HTML report and associated files are written to 
 #' \code{configEBrowser("OUTDIR.DEFAULT")}. 
 #' See \code{?configEBrowser} to change the location. 
 #' If \code{browse=TRUE}, the HTML report will automatically be opened in 
@@ -251,7 +255,7 @@ config.ebrowser <- function(key, value=NULL)
 #'     hsa.gs <- getGenesets(gs.file)
 #' 
 #'     # set-based enrichment analysis
-#'     ebrowser(   meth="ora", 
+#'     ebrowser( meth="ora", perm=0,
 #'             exprs=exprs.file, cdat=cdat.file, rdat=rdat.file, 
 #'             gs=hsa.gs, org="hsa", nr.show=3)
 #' 
@@ -264,7 +268,7 @@ config.ebrowser <- function(key, value=NULL)
 #'             gs=hsa.gs, grn=hsa.grn, org="hsa", nr.show=3 )
 #' 
 #'     # combining results
-#'     ebrowser(   meth=c("ora", "ggea"), comb=TRUE,
+#'     ebrowser( meth=c("ora", "ggea"), perm=0, comb=TRUE,
 #'             exprs=exprs.file, cdat=cdat.file, rdat=rdat.file, 
 #'             gs=hsa.gs, grn=hsa.grn, org="hsa", nr.show=3 )
 #' 
@@ -273,7 +277,7 @@ ebrowser <- function(
     meth, exprs, cdat, rdat, org, data.type=c(NA, "ma", "rseq"),
     norm.method="quantile", de.method="limma",
     gs, grn=NULL, perm=1000, alpha=0.05, beta=1, 
-    comb=FALSE, browse=TRUE, nr.show=-1)
+    comb=FALSE, browse=TRUE, nr.show=-1, out.dir=NULL, report.name="index")
 {
     GRP.COL <- configEBrowser("GRP.COL")
     FC.COL <- configEBrowser("FC.COL")
@@ -288,7 +292,13 @@ ebrowser <- function(
         if(is.null(grn))
             stop("\'grn\' must be not null")
   
-    out.dir <- configEBrowser("OUTDIR.DEFAULT")
+    if(is.null(out.dir))
+    { 
+        out.dir <- configEBrowser("OUTDIR.DEFAULT")
+        stamp <- format(Sys.time(), "%a_%b%d_%Y_%H%M%S")
+        out.dir <- file.path(out.dir, stamp)
+    }
+    else out.dir <- path.expand(out.dir)
     if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)    
 
     # execution
@@ -302,10 +312,7 @@ ebrowser <- function(
     }
     else
     { 
-        ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
-        if(is(exprs, "ExpressionSet")) 
-            exprs <- as(exprs, "RangedSummarizedExperiment")
-        ###  
+        if(is(exprs, "ExpressionSet")) exprs <- as(exprs, "SummarizedExperiment")
         se <- exprs
         if(is.na(data.type))
             data.type <- .detectDataType(assay(se))
@@ -360,7 +367,8 @@ ebrowser <- function(
             quote=FALSE, row.names=FALSE, sep="\t")
 
         # produce html reports, if desired
-        if(browse) eaBrowse( res, nr.show, graph.view=grn, html.only=TRUE )
+        if(browse) eaBrowse(res, nr.show, 
+                            graph.view=grn, html.only=TRUE, out.dir=out.dir)
         
         # link gene statistics
         sam.file <- file.path(out.dir, "samt.RData")    
@@ -394,7 +402,7 @@ ebrowser <- function(
 
     if(comb)
     {
-        #combine results (average ranks, ztrans p-vals)
+        # combine results (average ranks, ztrans p-vals)
         message("Combine results ...")
         if(nr.meth == 1) 
             message(paste("Only one method given, \'comb\' ignored."))
@@ -407,8 +415,8 @@ ebrowser <- function(
                 file=out.file, quote=FALSE, row.names=FALSE, sep="\t")
 
             # produce html report, if desired
-            if(browse)
-                eaBrowse(res, nr.show, graph.view=grn, html.only=TRUE)
+            if(browse) eaBrowse(res, nr.show, 
+                                graph.view=grn, html.only=TRUE, out.dir=out.dir)
         }
     }
     
@@ -426,7 +434,7 @@ ebrowser <- function(
         vs <- .viewSet(geneSE, out.prefix=file.path(out.dir, "global"))
         
         message("Produce html report ...")
-        .createIndex(meth, comb)
+        .createIndex(meth, comb, out.dir, report.name)
     }
 }
 

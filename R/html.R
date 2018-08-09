@@ -13,16 +13,12 @@
 #
 ###############################################################################
 
-.createIndex <- function(meth, comb)
+.createIndex <- function(meth, comb, out.dir, report.name="index")
 {
-    out.dir <- configEBrowser("OUTDIR.DEFAULT")
-    indexPage <- ReportingTools::HTMLReport(shortName = 'index',
+    indexPage <- ReportingTools::HTMLReport(shortName = report.name,
                         title = 'EnrichmentBrowser: Index of Result Files',
-                        basePath=out.dir, reportDirectory="reports")
-    
-    res.files <- list.files(out.dir, pattern="txt|png|html$")
-    file.rename(from=file.path(out.dir, res.files), 
-                    to=file.path(out.dir, "reports", res.files))
+                        basePath = dirname(out.dir), 
+                        reportDirectory = basename(out.dir))
 
     vcol <- "global_sview.html"
     de.plot <- hwriter::hwriteImage(sub("sview.html", "volc.png", vcol),
@@ -55,13 +51,12 @@
     index <- ReportingTools::finish(indexPage)
     if(interactive())
     {
-        message("HTML report: index.html")
+        message(paste("HTML report:", paste0(report.name, ".html")))
         # this can be removed upon release of RStudio v1.2 (Summer 2018)
         if(Sys.getenv("RSTUDIO") == "1") index <- URLencode(index)
         browseURL(index)
     }
 }
-
 
 
 
@@ -84,6 +79,10 @@
 #' 3rd col = regulation effect; Use '+' and '-' for activation/inhibition.
 #' @param html.only Logical.  Should the html file only be written (without
 #' opening the browser to view the result page)? Defaults to FALSE.
+#' @param out.dir Output directory. If \code{NULL}, defaults to a 
+#' timestamp-generated subdirectory of \code{configEBrowser("OUTDIR.DEFAULT")}. 
+#' @param report.name Name of the HTML report. If \code{NULL}, defaults to the
+#' the enrichment method used.
 #' @param signif.only Logical.  Display only those gene sets in the ranking,
 #' which satisfy the significance level? Defaults to TRUE.
 #' @return gsRanking: \code{\linkS4class{DataFrame}} with gene sets ranked by
@@ -91,11 +90,12 @@
 #' 
 #' eaBrowse: none, opens the browser to explore results.
 #'
-#' The main HTML report and associated files are written to 
+#' If not instructed otherwise (via argument \code{out.dir}), 
+#' the main HTML report and associated files are written to 
 #' \code{configEBrowser("OUTDIR.DEFAULT")}. 
 #' See \code{?configEBrowser} to change the location. 
 #' If \code{html.only=FALSE}, the HTML report will automatically be opened in 
-#' the your default browser.
+#' your default browser.
 #' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
 #' @seealso \code{\link{sbea}}, \code{\link{nbea}},
 #' \code{\link{combResults}}
@@ -103,7 +103,6 @@
 #' 
 #'     
 #'     # real data
-#'     # (1) reading the expression data from file
 #'     exprs.file <- system.file("extdata/exprs.tab", package="EnrichmentBrowser")
 #'     cdat.file <- system.file("extdata/colData.tab", package="EnrichmentBrowser")
 #'     rdat.file <- system.file("extdata/rowData.tab", package="EnrichmentBrowser")
@@ -121,17 +120,24 @@
 #'     eaBrowse(ea.res)
 #' 
 #' @export eaBrowse
-eaBrowse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
+eaBrowse <- function(res, nr.show=-1, 
+    graph.view=NULL, html.only=FALSE, out.dir=NULL, report.name=NULL)
 {
     method <- ifelse( is(res$method, "character"), res$method, NA)
     se <- res$se
     alpha <- res$alpha
     gs <- res$gs
-    
+   
     # create out dir
-    out.dir <- configEBrowser("OUTDIR.DEFAULT")
+    if(is.null(out.dir)) 
+    {
+        out.dir <- configEBrowser("OUTDIR.DEFAULT")
+        stamp <- format(Sys.time(), "%a_%b%d_%Y_%H%M%S")
+        out.dir <- file.path(out.dir, stamp)
+    }
+    else out.dir <- path.expand(out.dir)
     if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)
-    rep.dir <- file.path(out.dir, "reports")
+    if(is.null(report.name)) report.name <- method
     
     # how many gene sets to show in the output?
     if(nr.show < 1) nr.show <- res$nr.sigs
@@ -189,7 +195,7 @@ eaBrowse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
    
     # set view: volcano, heatmap 
     message("Creating set view ...")
-    out.prefix <- file.path(rep.dir, names(gsc))
+    out.prefix <- file.path(out.dir, names(gsc))
     names(out.prefix) <- names(gsc)
     vcol <- sapply(gsc, function(s) 
         .viewSet(se[geneIds(s),], out.prefix[setName(s)]))
@@ -232,18 +238,16 @@ eaBrowse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     if(!is.null(link)) res[,GS.COL] <- 
         hwriter::hwrite(res[,GS.COL], link=link, table=FALSE)
 
-    htmlRep <- ReportingTools::HTMLReport(shortName=method,
+    htmlRep <- ReportingTools::HTMLReport(shortName=report.name,
         title=paste(toupper(method), configEBrowser("RESULT.TITLE"), sep=" - "),
-        basePath=out.dir, reportDirectory="reports")
+        basePath=dirname(out.dir), reportDirectory=basename(out.dir))
     res <- as.data.frame(res)
     ReportingTools::publish(res, htmlRep) 
-        #colClasses = c(rep("sort-string-robust", 3),
-        #    rep("sort-num-robust", ncol(gt)-3 )))
     rep <- ReportingTools::finish(htmlRep)
     if(!html.only && interactive())
     { 
-        message(paste("Your output files are in", rep.dir))
-        message(paste0("HTML report: ", method, ".html"))
+        message(paste("Your output files are in", out.dir))
+        message(paste0("HTML report: ", report.name, ".html"))
         # this can be removed upon release of RStudio v1.2 (Summer 2018)
         if(Sys.getenv("RSTUDIO") == "1") rep <- URLencode(rep)
         browseURL(rep)
@@ -627,15 +631,14 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     gt <- .sortGeneTable(gt)
         
     # (1) html table
-    htmlRep <- ReportingTools::HTMLReport(basePath=out.dir, reportDirectory="reports",
+    htmlRep <- ReportingTools::HTMLReport(basePath=dirname(out.dir), 
+        reportDirectory=basename(out.dir),
         shortName=setName(s), title=paste(setName(s), "Gene Report", sep=": "))
-    ReportingTools::publish(gt, htmlRep, .modifyDF=list(.ncbiGeneLink))#, .pubmedLink),
-        #colClasses = c(rep("sort-string-robust", 3), rep("sort-num-robust", ncol(gt)-3 )))
+    ReportingTools::publish(gt, htmlRep, .modifyDF=list(.ncbiGeneLink))
 
     # (2) flat file
     fname <- paste0(setName(s), "_genes.txt")
-    rep.dir <- file.path(out.dir, "reports")
-    ofname <- file.path(rep.dir, fname)
+    ofname <- file.path(out.dir, fname)
     if(!file.exists(ofname))
         write.table(gt, file=ofname, sep="\t", quote=FALSE, row.names=FALSE)
     dlink <- ReportingTools::Link("Download .txt", fname)

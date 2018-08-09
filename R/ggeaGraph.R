@@ -121,9 +121,7 @@ ggea.graph <- function(gs, grn, se,
 .constructGGEAGraph <- function(grn, se, 
     alpha=0.05, beta=1, max.edges=50, cons.thresh=0.7)
 {
-    ### TEMPORARY: will be replaced by as(eSet,SummarizedExperiment)
-    if(is(se, "ExpressionSet")) se <- as(se, "RangedSummarizedExperiment")
-    ###   
+    if(is(se, "ExpressionSet")) se <- as(se, "SummarizedExperiment")
 
     # consistency
     nodes <- intersect(names(se), grn[,1:2]) 

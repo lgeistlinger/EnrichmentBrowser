@@ -328,7 +328,11 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
         ##
         # 1 PLOT: kegg.native & kegg.graph
         ##
-        kpath.html <- .makeKPathHTML(fc, pwy.id, org, out.files[2])
+        kpath.html <- try(
+            .makeKPathHTML(fc, pwy.id, org, out.files[2]),
+            silent=TRUE
+        )
+
         kgraph.html <- .makeKGraphHTML(fc, gnam, pwy.id, org, out.files[3])
         cont <- .makeView(kgraph.html, kpath.html, gene.html.pos="topright") 
         cat(cont, file=out.files[1])

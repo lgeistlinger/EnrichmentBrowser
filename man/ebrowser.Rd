@@ -104,7 +104,14 @@ enrichment methods and resulting flat gene set rankings still include the
 complete number of gene sets under study.}
 }
 \value{
-None, opens the browser to explore results.
+None, writes an HTML report and, if selected, opens the browser to 
+explore results.
+
+The main HTML report and associated files are written to 
+\code{configEBrowser("OUTDIR.DEFAULT")}. 
+See \code{?configEBrowser} to change the location. 
+If \code{browse=TRUE}, the HTML report will automatically be opened in 
+the your default browser.
 }
 \description{
 This is the all-in-one wrapper function to perform the standard enrichment

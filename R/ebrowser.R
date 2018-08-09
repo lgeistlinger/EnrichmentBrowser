@@ -218,7 +218,14 @@ config.ebrowser <- function(key, value=NULL)
 #' (typically only of interest for the top / signifcant gene sets).  Selected
 #' enrichment methods and resulting flat gene set rankings still include the
 #' complete number of gene sets under study.
-#' @return None, opens the browser to explore results.
+#' @return None, writes an HTML report and, if selected, opens the browser to 
+#' explore results.
+#'
+#' The main HTML report and associated files are written to 
+#' \code{configEBrowser("OUTDIR.DEFAULT")}. 
+#' See \code{?configEBrowser} to change the location. 
+#' If \code{browse=TRUE}, the HTML report will automatically be opened in 
+#' the your default browser.
 #' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
 #' @seealso \code{\link{readSE}} to read expression data from file;
 #' \code{\link{probe2gene}} to transform probe to gene level expression;

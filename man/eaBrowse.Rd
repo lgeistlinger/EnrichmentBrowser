@@ -36,6 +36,12 @@ gsRanking: \code{\linkS4class{DataFrame}} with gene sets ranked by
 the corresponding p-value;
 
 eaBrowse: none, opens the browser to explore results.
+
+The main HTML report and associated files are written to 
+\code{configEBrowser("OUTDIR.DEFAULT")}. 
+See \code{?configEBrowser} to change the location. 
+If \code{html.only=FALSE}, the HTML report will automatically be opened in 
+the your default browser.
 }
 \description{
 Functions to extract a flat gene set ranking from an enrichment analysis

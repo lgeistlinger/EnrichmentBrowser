@@ -33,7 +33,7 @@ opening the browser to view the result page)? Defaults to FALSE.}
 timestamp-generated subdirectory of \code{configEBrowser("OUTDIR.DEFAULT")}.}
 
 \item{report.name}{Name of the HTML report. If \code{NULL}, defaults to the
-the enrichment method used.}
+enrichment method used.}
 
 \item{signif.only}{Logical.  Display only those gene sets in the ranking,
 which satisfy the significance level? Defaults to TRUE.}

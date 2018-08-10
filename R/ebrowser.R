@@ -140,19 +140,39 @@ config.ebrowser <- function(key, value=NULL)
 #' The results from different methods can be combined and investigated in
 #' detail in the default browser.
 #' 
+#' *On data type and normalization:*
+#'  
+#' Normalization of high-throughput expression data is essential to make
+#' results within and between experiments comparable.  Microarray (intensity
+#' measurements) and RNA-seq (read counts) data exhibit typically distinct
+#' features that need to be normalized for.  This function wraps commonly used 
+#' functionality from limma for microarray normalization and from EDASeq for 
+#' RNA-seq normalization. For specific needs that deviate
+#' from standard normalizations, the user should always refer to more
+#' specific functions/packages.  See also the limma's user guide
+#' \url{http://www.bioconductor.org/packages/limma} for definition and
+#' normalization of the different expression data types.
 #' 
-#' @param meth Enrichment analysis method.  See \code{\link{sbeaMethods}} and
+#' Microarray data is expected to be single-channel.  For two-color arrays, it
+#' is expected here that normalization within arrays has been already carried
+#' out, e.g. using \code{\link{normalizeWithinArrays}} from limma.
+#' 
+#' RNA-seq data is expected to be raw read counts.  Please note that
+#' normalization for downstream DE analysis, e.g. with edgeR and DESeq2, is not
+#' ultimately necessary (and in some cases even discouraged) as many of these
+#' tools implement specific normalization approaches.  See the vignette of
+#' EDASeq, edgeR, and DESeq2 for details.
+#' 
+#' 
+#' @param meth Enrichment analysis method(s).  See \code{\link{sbeaMethods}} and
 #' \code{\link{nbeaMethods}} for currently supported enrichment analysis
 #' methods.  See also \code{\link{sbea}} and \code{\link{nbea}} for details.
 #' @param exprs Expression matrix.  A tab separated text file containing
-#' *normalized* expression values on a *log* scale.  Columns =
-#' samples/subjects; rows = features/probes/genes; NO headers, row or column
-#' names.  Supported data types are log2 counts (microarray single-channel),
-#' log2 ratios (microarray two-color), and log2-counts per million (RNA-seq
-#' logCPMs).  See limma's user guide for definition and normalization of the
-#' different data types.  Alternatively, this can be a
+#' the expression values (microarray: intensity measurements, RNA-seq: read counts).  
+#' Columns = samples/subjects; rows = features/probes/genes; NO headers, row or 
+#' column names. Alternatively, this can be a
 #' \code{\linkS4class{SummarizedExperiment}}, assuming the expression matrix in
-#' the \code{\link{assays}} slot.
+#' the \code{\link{assays}} slot. See details.
 #' @param cdat Column (phenotype) data.  A tab separated text file containing annotation
 #' information for the samples in either *two or three* columns.  NO headers,
 #' row or column names.  The number of rows/samples in this file should match
@@ -166,11 +186,18 @@ config.ebrowser <- function(key, value=NULL)
 #' respectively named columns 'GROUP' (mandatory) and 'BLOCK' (optional) in the
 #' \code{\link{colData}} slot.
 #' @param rdat Row (feature) data.  A tab separated text file containing annotation
-#' information for the features.  Exactly *TWO* columns; 1st col = feature IDs;
-#' 2nd col = corresponding KEGG gene ID for each feature ID in 1st col; NO
-#' headers, row or column names.  The number of rows/features in this file
-#' should match the number of rows/features of the expression matrix.  If
-#' 'exprs' is a \code{\linkS4class{SummarizedExperiment}}, the 'rdat' argument
+#' information for the features. In case of probe level data:
+#' exactly *TWO* columns; 1st col = probe/feature IDs; 2nd col = corresponding
+#' gene ID for each feature ID in 1st col. In case of gene level data: the
+#' gene IDs newline-separated (i.e. just *one* column).  It is recommended to
+#' use *ENTREZ* gene IDs (to benefit from downstream visualization and
+#' exploration functionality of the EnrichmentBrowser).  NO headers, row or
+#' column names.  The number of rows (features/probes/genes) in this file
+#' should match the number of rows/features of the expression matrix.
+#' Alternatively, this can also be the ID of a recognized platform such as
+#' 'hgu95av2' (Affymetrix Human Genome U95 chip) or 'ecoli2' (Affymetrix E.
+#' coli Genome 2.0 Array).
+#' If 'exprs' is a \code{\linkS4class{SummarizedExperiment}}, the 'rdat' argument
 #' can be left unspecified, which then expects probe and corresponding Entrez
 #' Gene IDs in respectively named columns 'PROBEID' and 'ENTREZID' in the
 #' \code{\link{rowData}} slot.

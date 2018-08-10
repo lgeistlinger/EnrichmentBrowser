@@ -82,7 +82,7 @@
 #' @param out.dir Output directory. If \code{NULL}, defaults to a 
 #' timestamp-generated subdirectory of \code{configEBrowser("OUTDIR.DEFAULT")}. 
 #' @param report.name Name of the HTML report. If \code{NULL}, defaults to the
-#' the enrichment method used.
+#' enrichment method used.
 #' @param signif.only Logical.  Display only those gene sets in the ranking,
 #' which satisfy the significance level? Defaults to TRUE.
 #' @return gsRanking: \code{\linkS4class{DataFrame}} with gene sets ranked by

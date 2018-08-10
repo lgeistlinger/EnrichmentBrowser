@@ -18,7 +18,7 @@
 #' results within and between experiments comparable.  Microarray (intensity
 #' measurements) and RNA-seq (read counts) data exhibit typically distinct
 #' features that need to be normalized for.  For specific needs that deviate
-#' from these standard normalizations, the user should always refer to more
+#' from standard normalizations, the user should always refer to more
 #' specific functions/packages.  See also the limma's user guide
 #' \url{http://www.bioconductor.org/packages/limma} for definition and
 #' normalization of the different expression data types.

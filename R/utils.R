@@ -13,7 +13,7 @@
 #' 
 #' Checks whether a required package is available in the library.  If yes, the
 #' package is loaded via \code{\link{require}}.  If not, the package is
-#' optionally installed via \code{\link[BiocInstaller:biocLite]{biocLite}} and,
+#' optionally installed via \code{\link{install}} and,
 #' subsequently, loaded via \code{\link{require}}.
 #' 
 #' @param pkg Character vector of length 1.  A valid name of an existing R
@@ -21,8 +21,8 @@
 #' @param type Character vector of length 1.  What type of package is this?
 #' Choose one out of 'annotation', 'software', or 'data' package.
 #' @return None. See details.
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
-#' @seealso \code{require}, \code{biocLite}
+#' @author Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
+#' @seealso \code{require}, \code{install}
 #' @examples
 #' 
 #'     \donttest{
@@ -41,12 +41,7 @@ isAvailable <- function(pkg, type=c("annotation", "software", "data"))
         if(interactive()) choice <- readline("Install it now? (y/n): ")
         else choice <- "y"
         
-        if(choice == "y")
-        {   
-            biocLite <- NULL
-            source("http://bioconductor.org/biocLite.R")
-            biocLite(pkg, suppressUpdates=TRUE, suppressAutoUpdate=TRUE)
-        }   
+        if(choice == "y") BiocManager::install(pkg, update=FALSE)
         else stop(paste("Package", pkg, "is not available"))
     }   
     require(pkg, character.only=TRUE)

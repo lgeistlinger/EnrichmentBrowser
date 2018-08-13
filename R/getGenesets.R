@@ -438,8 +438,8 @@ writeGMT <- function(gs, gmt.file)
 	gs.type <- .detectGSType(gs.ids[1])
 	if(gs.type == "GO") gs <- .getGO(gs.ids)
 	else if(gs.type == "KEGG") gs <- .getKEGG(gs.ids)
-	else stop(paste("Automatic gene set recognition 
-        is currently only supported for GO and KEGG"))
+	else stop(paste("Automatic gene set recognition", 
+        "is currently only supported for GO and KEGG"))
 	return(gs)
 }
 

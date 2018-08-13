@@ -215,9 +215,13 @@ nbea <- function(
 
     if(is(se, "ExpressionSet")) se <- as(se, "SummarizedExperiment")
     
+    # TODO: disentangle DE and EA analysis
+    if(!(FC.COL %in% colnames(rowData(se))))
+        stop(paste("Required rowData column", FC.COL, "not found"))   
+    if(!(ADJP.COL %in% colnames(rowData(se))))
+        stop(paste("Required rowData column", ADJP.COL, "not found"))   
+
     # dealing with NA's
-	# TODO: add informative error message if DE measures are not there
-	# TODO: disentangle DE and EA analysis
     se <- se[!is.na(rowData(se)[,FC.COL]), ]
     se <- se[!is.na(rowData(se)[,ADJP.COL]), ]
 

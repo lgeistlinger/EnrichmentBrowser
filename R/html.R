@@ -658,7 +658,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     # (1) gene identification 
     EZ.COL <- configEBrowser("EZ.COL")
     gn.cols <- sapply(c("SYM.COL", "GN.COL"), configEBrowser)
-    gt <- suppressMessages(select(org.pkg, keys=ids,
+    gt <- suppressMessages(AnnotationDbi::select(org.pkg, keys=ids,
             columns=gn.cols, keytype=EZ.COL))
 	
 	if(biotype)
@@ -703,7 +703,8 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     # (1) gene identification 
     EZ.COL <- configEBrowser("EZ.COL")
     gn.cols <- sapply(c("SYM.COL", "GN.COL"), configEBrowser)
-    gt <- select(org.pkg, keys=colnames(im), columns=gn.cols, keytype=EZ.COL)
+    gt <- AnnotationDbi::select(org.pkg, 
+            keys=colnames(im), columns=gn.cols, keytype=EZ.COL)
 
     # (2) fold change
     if(!is.null(fcs))
@@ -729,7 +730,7 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
 #    colnames(gt)[ncol(gt)] <- "SETS"
 #
 #    # (5) pubmed
-#    pmids <- mapIds(org.pkg, keys=colnames(im), 
+#    pmids <- AnnotationDbi::mapIds(org.pkg, keys=colnames(im), 
 #        column="PMID", keytype=EZ.COL, multiVals="list")
 #
 #    # context search ?

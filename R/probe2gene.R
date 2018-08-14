@@ -165,11 +165,12 @@ probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
     data(korg, package="pathview")
     suppressMessages(org <- pathview::kegg.species.code(org))
     org.start <- paste0("^", org, ":")
+    anno.keys <- AnnotationDbi::keys(anno.pkg)
     # check whether there is a mapping to Entrez (= NCBI gene-ID)
-    if(EZ.COL %in% keytypes(anno.pkg))
+    if(EZ.COL %in% AnnotationDbi::keytypes(anno.pkg))
     {
-        p2g.map <- suppressMessages(mapIds(anno.pkg, 
-            keys=keys(anno.pkg), keytype=PRB.COL, column=EZ.COL))
+        p2g.map <- suppressMessages( AnnotationDbi::mapIds(anno.pkg, 
+            keys=anno.keys, keytype=PRB.COL, column=EZ.COL) )
         probes <- names(p2g.map)
 
         # check whether EntrezID is used by KEGG
@@ -194,21 +195,21 @@ probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
     {
         message(paste("Did not found mapping: probe -> EntrezID in", anno, ".db"))
         message("Try to find mapping: probe -> KEGGID")
-        avail.maps <-  keytypes(anno.pkg)
+        avail.maps <-  AnnotationDbi::keytypes(anno.pkg)
         kegg.ids <- KEGGREST::keggLink(paste0("path:", org, "00010"))
         kegg.ids <- grep(org.start, kegg.ids[,2], value=TRUE)[1:3]
         kegg.ids <- sub(org.start, "", kegg.ids)
         is.map <- sapply(avail.maps, 
             function(m)
             {
-                x <- mapIds(anno.pkg, 
-                    keys=keys(anno.pkg), keytype=PRB.COL, column=m)
+                x <- AnnotationDbi::mapIds(anno.pkg, 
+                    keys=anno.keys, keytype=PRB.COL, column=m)
                 return(all(kegg.ids %in% x))
            })
         if(!any(is.map)) stop("Found no suitable mapping")
         rel.map <- avail.maps[which(is.map)[1]]
-        p2g.map <- mapIds(anno.pkg, 
-            keys=keys(anno.pkg), keytype=PRB.COL, column=rel.map)
+        p2g.map <- AnnotationDbi::mapIds(anno.pkg, 
+            keys=anno.keys, keytype=PRB.COL, column=rel.map)
     }
     if(is.se)
     {

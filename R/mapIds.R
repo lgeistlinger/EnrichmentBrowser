@@ -153,7 +153,7 @@ map.ids <- function(se, org=NA, from="ENSEMBL", to="ENTREZID")
 idTypes <- function(org)
 {
     anno.pkg <- .getAnnoPkg(org)
-    return(keytypes(anno.pkg))
+    return(AnnotationDbi::keytypes(anno.pkg))
 }
 
 .idmap <- function(ids, anno, from, to, 
@@ -161,7 +161,8 @@ idTypes <- function(org)
 {
     anno.pkg <- .getAnnoPkg(anno) 
     suppressMessages(
-        x <- mapIds(anno.pkg, keys=ids, keytype=from, column=to, multiVals="list")
+        x <- AnnotationDbi::mapIds(anno.pkg, 
+                keys=ids, keytype=from, column=to, multiVals="list")
     )
 	# case 1: multiple to.IDs (1:n) -> select one
     x <- .resolveMultiTo(x, anno.pkg, from, to, multi.to)
@@ -208,7 +209,7 @@ idTypes <- function(org)
                 "from.IDs with >1 corresponding to.ID")) 
         ids <- names(x)
         suppressMessages(
-            x <- mapIds(anno.pkg, keys=ids, 
+            x <- AnnotationDbi::mapIds(anno.pkg, keys=ids, 
                         keytype=from, column=to, multiVals=multi.to)
         )
         # valid mapping?

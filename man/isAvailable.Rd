@@ -22,7 +22,7 @@ Convenience function for checking and installing required packages.
 \details{
 Checks whether a required package is available in the library.  If yes, the
 package is loaded via \code{\link{require}}.  If not, the package is
-optionally installed via \code{\link[BiocInstaller:biocLite]{biocLite}} and,
+optionally installed via \code{\link{install}} and,
 subsequently, loaded via \code{\link{require}}.
 }
 \examples{
@@ -33,7 +33,7 @@ subsequently, loaded via \code{\link{require}}.
 
 }
 \seealso{
-\code{require}, \code{biocLite}
+\code{require}, \code{install}
 }
 \author{
 Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>

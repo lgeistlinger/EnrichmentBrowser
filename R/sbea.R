@@ -353,15 +353,13 @@ sbea <- function(
             file=out.file, quote=FALSE, row.names=FALSE, sep="\t")
         message(paste("Gene set ranking written to", out.file)) 
     }
-    else
-    { 
-        res <- list(
-            method=method, res.tbl=res.tbl,
-            nr.sigs=sum(res.tbl[,PVAL.COL] < alpha),
-            se=se, gs=gs, alpha=alpha)
-        if(browse) eaBrowse(res)
-        else return(res)
-    }
+        
+    res <- list(
+        method=method, res.tbl=res.tbl,
+        nr.sigs=sum(res.tbl[,PVAL.COL] < alpha),
+        se=se, gs=gs, alpha=alpha)
+    if(browse) eaBrowse(res)
+    return(res)
 }
 
 #' @rdname eaBrowse

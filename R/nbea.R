@@ -209,22 +209,13 @@ nbea <- function(
     # get configuration
     GS.MIN.SIZE <- configEBrowser("GS.MIN.SIZE")
     GS.MAX.SIZE <- configEBrowser("GS.MAX.SIZE")
-    PVAL.COL <- configEBrowser("PVAL.COL")
     FC.COL <-  configEBrowser("FC.COL")
+    PVAL.COL <- configEBrowser("PVAL.COL")
     ADJP.COL <-  configEBrowser("ADJP.COL")
 
-    if(is(se, "ExpressionSet")) se <- as(se, "SummarizedExperiment")
-    
     # TODO: disentangle DE and EA analysis
-    if(!(FC.COL %in% colnames(rowData(se))))
-        stop(paste("Required rowData column", FC.COL, "not found"))   
-    if(!(ADJP.COL %in% colnames(rowData(se))))
-        stop(paste("Required rowData column", ADJP.COL, "not found"))   
-
-    # dealing with NA's
-    se <- se[!is.na(rowData(se)[,FC.COL]), ]
-    se <- se[!is.na(rowData(se)[,ADJP.COL]), ]
-
+    se <- .preprocSE(se)
+   
     # getting gene sets & grn
     if(!is.list(gs)) gs <- getGenesets(gs)
     if(!is.matrix(grn)) grn <- .readGRN(grn)
@@ -245,7 +236,7 @@ nbea <- function(
     grn <- grn[grn[,1] %in% rel.genes & grn[,2] %in% rel.genes,] 
     
     # execute ea
-    if(class(method) == "character")
+    if(is.character(method))
     {
         method <- match.arg(method)
         if(method == "spia") res.tbl <- .spia(se, gs, grn, alpha, perm, ...)
@@ -257,33 +248,16 @@ nbea <- function(
         else if(method == "topologygsa") res.tbl <- .topogsa(se, gs, grn, alpha, perm, ...)
         else res.tbl <- .ggea(se, gs, grn, alpha, perm=perm, ...)      
     }
-    else if(class(method) == "function") 
+    else if(is.function(method)) 
         res.tbl <- method(se=se, gs=gs, grn=grn, alpha=alpha, perm=perm, ...)
     else stop(paste(method, "is not a valid method for nbea"))
 
-    res.tbl <- data.frame(signif(res.tbl, digits=3))
-    sorting.df <- res.tbl[,ncol(res.tbl)]
-    if(ncol(res.tbl) > 1)
-        sorting.df <- cbind(sorting.df, -res.tbl[,rev(seq_len(ncol(res.tbl)-1))])
-    else colnames(res.tbl)[1] <- PVAL.COL
-    res.tbl <- res.tbl[do.call(order, as.data.frame(sorting.df)), , drop=FALSE]
-    
-    res.tbl[,PVAL.COL] <- p.adjust(res.tbl[,PVAL.COL], method=padj.method)
+    res.tbl <- .formatEAResult(res.tbl, padj.method, out.file)
 
-    res.tbl <- DataFrame(rownames(res.tbl), res.tbl)
-    colnames(res.tbl)[1] <- configEBrowser("GS.COL") 
-    rownames(res.tbl) <- NULL
-    
-    if(!is.null(out.file))
-    {
-        write.table(res.tbl, 
-            file=out.file, quote=FALSE, row.names=FALSE, sep="\t")
-        message(paste("Gene set ranking written to", out.file)) 
-    }
-    
+    pcol <- ifelse(padj.method == "none", PVAL.COL, ADJP.COL)
     res <- list(
             method=method, res.tbl=res.tbl, 
-            nr.sigs=sum(res.tbl[,PVAL.COL] < alpha),
+            nr.sigs=sum(res.tbl[,pcol] < alpha),
             se=se, gs=gs, alpha=alpha)
 
     if(browse) eaBrowse(res)

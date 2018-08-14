@@ -201,24 +201,13 @@ sbea <- function(
     # get configuration
     GS.MIN.SIZE <- configEBrowser("GS.MIN.SIZE")
     GS.MAX.SIZE <- configEBrowser("GS.MAX.SIZE")
-    PVAL.COL <- configEBrowser("PVAL.COL")
     FC.COL <-  configEBrowser("FC.COL")
+    PVAL.COL <- configEBrowser("PVAL.COL")
     ADJP.COL <-  configEBrowser("ADJP.COL")
 
-    if(is(se, "ExpressionSet")) se <- as(se, "SummarizedExperiment")
-
 	# TODO: disentangle DE and EA analysis
-    if(!(FC.COL %in% colnames(rowData(se))))
-        stop(paste("Required rowData column", FC.COL, "not found"))   
-    if(!(ADJP.COL %in% colnames(rowData(se))))
-        stop(paste("Required rowData column", ADJP.COL, "not found"))   
-
-    # dealing with NA's
-    nr.na <- sum(is.na(rowData(se)[,FC.COL]))
-    if(nr.na) se <- se[!is.na(rowData(se)[,FC.COL]),]
-    nr.na <- sum(is.na(rowData(se)[,ADJP.COL]))
-    if(nr.na) se <- se[!is.na(rowData(se)[,ADJP.COL]),]    
-
+    se <- .preprocSE(se)
+    
     # getting gene sets
     if(!is.list(gs)) gs <- getGenesets(gs)
 
@@ -325,38 +314,12 @@ sbea <- function(
         gs.ps <- method(se=se, gs=gs, alpha=alpha, perm=perm)
     else stop(paste(method, "is not a valid method for sbea"))
 
-    res.tbl <- data.frame(signif(gs.ps, digits=3))
-    sorting.df <- res.tbl[,ncol(res.tbl)]
-    if(ncol(res.tbl) > 1) 
-        sorting.df <- cbind(sorting.df, -res.tbl[,rev(seq_len(ncol(res.tbl)-1))])
-    else colnames(res.tbl)[1] <- PVAL.COL 
-    res.tbl <- res.tbl[do.call(order, as.data.frame(sorting.df)), , drop=FALSE]
-
-    # use built-in FDR control for safe and gsea
-    #fdr.methods <- c("gsea", "safe") 
-    #if(is.function(method) || !(method %in% fdr.methods))
-	
-	if(padj.method != "none")
-    {   
-        adjp <- p.adjust(res.tbl[,PVAL.COL], method=padj.method)
-        res.tbl <- cbind(res.tbl, adjp)
-        colnames(res.tbl)[ncol(res.tbl)] <- configEBrowser("ADJP.COL")
-    }     
-
-    res.tbl <- DataFrame(rownames(res.tbl), res.tbl)
-    colnames(res.tbl)[1] <- configEBrowser("GS.COL")
-    rownames(res.tbl) <- NULL
-       
-    if(!is.null(out.file))
-    {
-        write.table(res.tbl, 
-            file=out.file, quote=FALSE, row.names=FALSE, sep="\t")
-        message(paste("Gene set ranking written to", out.file)) 
-    }
-        
+    res.tbl <- .formatEAResult(gs.ps, padj.method, out.file)
+      
+    pcol <- ifelse(padj.method == "none", PVAL.COL, ADJP.COL) 
     res <- list(
         method=method, res.tbl=res.tbl,
-        nr.sigs=sum(res.tbl[,PVAL.COL] < alpha),
+        nr.sigs=sum(res.tbl[,pcol] < alpha),
         se=se, gs=gs, alpha=alpha)
     if(browse) eaBrowse(res)
     return(res)
@@ -389,6 +352,63 @@ gs.ranking <- function(res, signif.only=TRUE)
 # HELPER
 # 
 ###
+
+.formatEAResult <- function(res, padj.method, out.file)
+{
+    PVAL.COL <- configEBrowser("PVAL.COL")
+    ADJP.COL <-  configEBrowser("ADJP.COL")
+
+    res.tbl <- data.frame(signif(res, digits=3))
+    sorting.df <- res.tbl[,ncol(res.tbl)]
+    if(ncol(res.tbl) > 1) 
+        sorting.df <- cbind(sorting.df, -res.tbl[,rev(seq_len(ncol(res.tbl)-1))])
+    else colnames(res.tbl)[1] <- PVAL.COL 
+    res.tbl <- res.tbl[do.call(order, as.data.frame(sorting.df)), , drop=FALSE]
+
+    # use built-in FDR control for safe and gsea
+    #fdr.methods <- c("gsea", "safe") 
+    #if(is.function(method) || !(method %in% fdr.methods))
+	
+	if(padj.method != "none")
+    {   
+        adjp <- p.adjust(res.tbl[,PVAL.COL], method=padj.method)
+        res.tbl <- cbind(res.tbl, adjp)
+        colnames(res.tbl)[ncol(res.tbl)] <- ADJP.COL
+    }     
+
+    res.tbl <- DataFrame(rownames(res.tbl), res.tbl)
+    colnames(res.tbl)[1] <- configEBrowser("GS.COL")
+    rownames(res.tbl) <- NULL
+
+    if(!is.null(out.file))
+    {
+        write.table(res.tbl, 
+            file=out.file, quote=FALSE, row.names=FALSE, sep="\t")
+        message(paste("Gene set ranking written to", out.file)) 
+    }
+    return(res.tbl) 
+}
+
+.preprocSE <- function(se)
+{
+    FC.COL <-  configEBrowser("FC.COL")
+    PVAL.COL <- configEBrowser("PVAL.COL")
+    ADJP.COL <-  configEBrowser("ADJP.COL")
+
+    if(is(se, "ExpressionSet")) se <- as(se, "SummarizedExperiment")
+
+    if(!(FC.COL %in% colnames(rowData(se))))
+        stop(paste("Required rowData column", FC.COL, "not found"))   
+    if(!(ADJP.COL %in% colnames(rowData(se))))
+        stop(paste("Required rowData column", ADJP.COL, "not found"))   
+
+    # dealing with NA's
+    se <- se[!is.na(rowData(se)[,FC.COL]),]
+    se <- se[!is.na(rowData(se)[,ADJP.COL]),]    
+
+    return(se)
+}
+
 .gmt2cmat <- function(gs, features, min.size=0, max.size=Inf)
 {
     if(is.character(gs)) gs <- getGenesets(gs)

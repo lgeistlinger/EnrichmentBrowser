@@ -135,6 +135,7 @@ eaBrowse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     
     # how many gene sets to show in the output?
     if(nr.show < 1) nr.show <- res$nr.sigs
+    stopifnot(nr.show > 0)
     if(nr.show > nrow(res$res.tbl)) nr.show <- nrow(res$res.tbl)
 
     # add description & nr.genes per gene set

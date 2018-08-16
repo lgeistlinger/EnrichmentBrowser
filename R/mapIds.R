@@ -140,6 +140,84 @@ idMap <- function(se, org=NA,
     return(se)
 }
 
+#### NEW ID MAP
+
+# this is going to be the new all-in-one mapper
+idMap2 <- function(se, gs, grn, org=NA, 
+    from="ENSEMBL", to="ENTREZID", 
+    multi.to="first", multi.from="first")
+{
+    mse <- missing(se)
+    mgs <- missing(gs)
+    mgrn <- missing(grn)
+    mgg <- mgs && mgrn 
+
+    if(mse && mgg)
+        stop("Provide at least one of the arguments \'se\', \'gs\', or \'grn\'")
+   
+    # SE idmap 
+    if(!missing(se) && mgg){}
+
+    # GS idmap
+    if(!missing(gs)){}
+    
+    # GRN idmap
+    if(!missing(grn)){}
+    
+}
+
+# TODO: data-driven
+idMapGSC <- function(gsc, org=NA, from, to, multi.to, multi.from, se)
+{
+    if(is.na(org)) org <- GSEABase::organism(gsc[[1]])
+    if(!length(org)) stop("Organism under investigation not annotated")
+
+    from <- .createIdentifier(from)
+    to <- .createIdentifier(to, org)
+
+    .map <- function(s)
+    {
+        ms <- GSEABase::mapIdentifiers(s, from=from, to=to)
+        return(ms)
+    } 
+
+    mgsc <- lapply(gsc, .map)
+    mgsc <- GeneSetCollection(mgsc)
+    return(mgsc) 
+}
+
+# if 
+#map <- getAnnMap("ENTREZID", "org.Sc.sgd")
+#gs1m <- mapIdentifiers(gs1, from=map, to=EntrezIdentifier())
+
+.createIdentifier <- function(idtype, org=NA)
+{
+    idtypes <- c("Entrez", "Enzyme", "ENSEMBL", 
+                    "Genename", "Refseq", "Symbol", "Unigene", "Uniprot")
+    idtypes.uc <- toupper(idtypes)
+    if(idtype == "ENTREZID") idtype <- "ENTREZ"
+
+    ind <- match(idtype, idtypes.uc)
+    if(is.na(ind))
+    { 
+        istr <- paste(idtypes.uc, collapse=", ")
+        stop(paste("ID type must be one of", istr))
+    }
+    idobj <- idtypes[ind]
+    idobj <- paste0(idobj, "Identifier")
+
+    args <- list()   
+    if(!is.na(org))
+    { 
+        org.pkg <- .org2pkg(org)
+        args$annotation <- org.pkg
+    }
+    idobj <- do.call(idobj, args)
+    return(idobj)
+}
+
+####
+
 #' @export
 #' @keywords internal
 map.ids <- function(se, org=NA, from="ENSEMBL", to="ENTREZID")

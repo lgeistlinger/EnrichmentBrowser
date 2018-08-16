@@ -191,14 +191,13 @@ get.kegg.genesets <- function(pwys, cache=TRUE, gmt.file=NULL)
 
 .getKEGG <- function(pwys, cache=TRUE, gmt.file=NULL)
 {
-    if(class(pwys) == "character")
+    if(is.character(pwys))
     {
         if(length(pwys) == 1 && file.exists(pwys)) pwys <- .extractPwys(pwys)
         else return(.dwnldKeggGS(pwys, cache=cache, gmt.file=gmt.file))
     }
     return(.extractKeggGS(pwys, gmt.file=gmt.file))
 }
-
 
 
 .dwnldKeggGS <- function(pwys, cache=TRUE, gmt.file=NULL)
@@ -218,43 +217,56 @@ get.kegg.genesets <- function(pwys, cache=TRUE, gmt.file=NULL)
         pwys <- KEGGREST::keggList("pathway", org)
         pwy2gene <- KEGGREST::keggLink(org, "pathway")
 
+        org.start <- paste0("^", org, ":")
         gs <- lapply(names(pwys), 
             function(pwy)
             { 
                 genes <- pwy2gene[names(pwy2gene) == pwy]
-                genes <- sub("^[a-z]{3}:", "", genes)
-                genes <- sort(genes)
-                names(genes) <- NULL
+                genes <- sub(org.start, "", genes)
+                genes <- unname(sort(genes))
                 return(genes)
             })
+        # entrez id?
+        id.type <- .detectGeneIdType(gs[[1]][1])
+        if(is.na(id.type) || id.type != "entrez") 
+        {
+            map.k2e <- KEGGREST::keggConv("ncbi-geneid", org)
+            names(map.k2e) <- sub(org.start, "", names(map.k2e))
+            map.k2e <- sub("^ncbi-geneid:", "", map.k2e)
+            gs <- lapply(gs, function(s) unname(map.k2e[s]))
+        }
+        names(gs) <- .makeGSNames(names(pwys), pwys)
+        .cacheResource(gs, gsc.name)
     }
     # download selected ids
-    else
-    {
-        gs <- lapply(pwys, 
-            function(pwy)
-            { 
-                info <- KEGGREST::keggLink(paste0("path:", pwy))
-                genes <- grep(paste0("^", 
-                    substring(pwy, 1, 3), ":"), info, value=TRUE)
-                genes <- sub("^[a-z]{3}:", "", genes)
-                genes <- sort(genes)
-                names(genes) <- NULL
-                return(genes)
-            })
-        .makeTitle <- function(pwy)
-        {
-            ti <- paste0("map", sub("^[a-z]{3}", "", pwy))
-            ti <- KEGGREST::keggList(ti)
-            return(ti)
-        }
-        titles <- vapply(pwys, .makeTitle, character(1))
-        names(titles) <- pwys
-        pwys <- titles
-    }
-    names(gs) <- .makeGSNames(names(pwys), pwys)
-    if(is.org) .cacheResource(gs, gsc.name)
+    else gs <- .dwnldSelectedKeggGS(pwys)
     if(!is.null(gmt.file)) writeGMT(gs, gmt.file=gmt.file)
+    return(gs)
+}
+
+.dwnldSelectedKeggGS <- function(pwys)
+{
+    .dwnld <- function(pwy)
+    { 
+        info <- KEGGREST::keggLink(paste0("path:", pwy))
+        genes <- grep(paste0("^", 
+            substring(pwy, 1, 3), ":"), info, value=TRUE)
+        genes <- sub("^[a-z]{3}:", "", genes)
+        genes <- unname(sort(genes))
+        return(genes)
+    }
+    gs <- lapply(pwys, .dwnld) 
+            
+    .makeTitle <- function(pwy)
+    {
+        ti <- paste0("map", sub("^[a-z]{3}", "", pwy))
+        ti <- KEGGREST::keggList(ti)
+        return(ti)
+    }
+    titles <- vapply(pwys, .makeTitle, character(1))
+    names(titles) <- pwys
+    pwys <- titles
+    names(gs) <- .makeGSNames(names(pwys), pwys)
     return(gs)
 }
 

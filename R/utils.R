@@ -91,7 +91,7 @@ isAvailable <- function(pkg, type=c("annotation", "software", "data"))
     return(res)   
 }
 
-.autoDetectGeneIdType <- function(id)
+.detectGeneIdType <- function(id)
 {
     type <- NA
     if(grepl("^[Ee][Nn][Ss][A-Za-z]{0,3}[Gg][0-9]+", id)) type <- "ensembl"

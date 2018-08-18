@@ -9,7 +9,8 @@
 \title{Definition of gene sets according to different sources}
 \usage{
 getGenesets(org, db = c("go", "kegg"), cache = TRUE,
-  go.onto = c("BP", "MF", "CC"), go.mode = c("GO.db", "biomart"))
+  go.onto = c("BP", "MF", "CC"), go.mode = c("GO.db", "biomart"),
+  return.type = c("list", "GeneSetCollection"))
 
 writeGMT(gs, gmt.file)
 }
@@ -36,6 +37,10 @@ available for the currently supported model organisms in BioC.  The
 'biomart' mode downloads the mapping from BioMart - which can be time
 consuming, but allows to select from a larger range of organisms and
 contains the latest mappings.  Defaults to 'GO.db'.}
+
+\item{return.type}{Character. Determines whether gene sets are returned
+as a simple list of gene sets (each being a character vector of gene IDs), or
+as an object of class \code{\linkS4class{GeneSetCollection}}.}
 
 \item{gs}{A list of gene sets (character vectors of gene IDs).}
 

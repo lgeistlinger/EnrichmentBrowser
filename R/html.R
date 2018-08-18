@@ -175,7 +175,7 @@ eaBrowse <- function(res, nr.show=-1,
     # make gene pages
     im <- incidence(gsc)
     org <- organism(gsc[[1]])
-    if(org == "") org <- metadata(se)$annotation
+    if(is.na(org)) org <- metadata(se)$annotation
     if(!length(org)) stop("Organism annotation not found!\n", 
         "Organism under study must be annotated via metadata(se)$annotation")
 

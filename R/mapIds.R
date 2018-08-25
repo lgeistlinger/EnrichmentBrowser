@@ -182,7 +182,7 @@ idMapGSC <- function(gsc, org=NA, from, to, multi.to, multi.from, se)
     } 
 
     mgsc <- lapply(gsc, .map)
-    mgsc <- GeneSetCollection(mgsc)
+    mgsc <- GSEABase::GeneSetCollection(mgsc)
     return(mgsc) 
 }
 

@@ -113,7 +113,7 @@ sbeaMethods <- function()
 #' to.
 #' @param browse Logical. Should results be displayed in the browser for
 #' interactive exploration? Defaults to FALSE.
-#' @param ...  Additional arguments passed to individual sbeaMethods.  This
+#' @param ...  Additional arguments passed to individual sbea methods.  This
 #' includes currently for ORA and MGSA: \itemize{ \item beta: Log2 fold change
 #' significance level. Defaults to 1 (2-fold).  \item sig.stat: decides which
 #' statistic is used for determining significant DE genes.  Options are:
@@ -209,6 +209,7 @@ sbea <- function(
     se <- .preprocSE(se)
     
     # getting gene sets
+    if(is(gs, "GeneSetCollection")) gs <- GSEABase::geneIds(gs)
     if(!is.list(gs)) gs <- getGenesets(gs)
 
     # restrict se and gs to intersecting genes

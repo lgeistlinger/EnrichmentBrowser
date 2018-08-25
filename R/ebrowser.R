@@ -248,6 +248,7 @@ config.ebrowser <- function(key, value=NULL)
 #' @param out.dir Output directory. If \code{NULL}, defaults to a 
 #' timestamp-generated subdirectory of \code{configEBrowser("OUTDIR.DEFAULT")}. 
 #' @param report.name Character. Name of the HTML report. Defaults to \code{"index"}.
+#' @param ... Additional arguments passed on to the individual building blocks.
 #' @return None, writes an HTML report and, if selected, opens the browser to 
 #' explore results.
 #
@@ -304,7 +305,7 @@ ebrowser <- function(
     meth, exprs, cdat, rdat, org, data.type=c(NA, "ma", "rseq"),
     norm.method="quantile", de.method="limma",
     gs, grn=NULL, perm=1000, alpha=0.05, beta=1, 
-    comb=FALSE, browse=TRUE, nr.show=-1, out.dir=NULL, report.name="index")
+    comb=FALSE, browse=TRUE, nr.show=-1, out.dir=NULL, report.name="index", ...)
 {
     GRP.COL <- configEBrowser("GRP.COL")
     FC.COL <- configEBrowser("FC.COL")
@@ -385,10 +386,10 @@ ebrowser <- function(
 
         if(m %in% nbeaMethods()) 
             res <- nbea( method=m, se=geneSE, gs=gs, 
-                    grn=grn, alpha=alpha, beta=beta, perm=perm[i] )
+                    grn=grn, alpha=alpha, beta=beta, perm=perm[i], ... )
 
         else res <- sbea( method=m, se=geneSE, 
-                    gs=gs, alpha=alpha, perm=perm[i] )
+                    gs=gs, alpha=alpha, perm=perm[i], ... )
 
         write.table(res$res.tbl, file=out.file, 
             quote=FALSE, row.names=FALSE, sep="\t")

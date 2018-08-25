@@ -63,7 +63,7 @@ to.}
 \item{browse}{Logical. Should results be displayed in the browser for
 interactive exploration? Defaults to FALSE.}
 
-\item{...}{Additional arguments passed to individual nbeaMethods.  This
+\item{...}{Additional arguments passed to individual nbea methods.  This
 includes currently: \itemize{ \item beta: Log2 fold change significance
 level. Defaults to 1 (2-fold).  } For SPIA and NEA: \itemize{ \item
 sig.stat: decides which statistic is used for determining significant DE

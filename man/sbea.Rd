@@ -56,7 +56,7 @@ to.}
 \item{browse}{Logical. Should results be displayed in the browser for
 interactive exploration? Defaults to FALSE.}
 
-\item{...}{Additional arguments passed to individual sbeaMethods.  This
+\item{...}{Additional arguments passed to individual sbea methods.  This
 includes currently for ORA and MGSA: \itemize{ \item beta: Log2 fold change
 significance level. Defaults to 1 (2-fold).  \item sig.stat: decides which
 statistic is used for determining significant DE genes.  Options are:

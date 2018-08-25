@@ -8,7 +8,7 @@ ebrowser(meth, exprs, cdat, rdat, org, data.type = c(NA, "ma", "rseq"),
   norm.method = "quantile", de.method = "limma", gs, grn = NULL,
   perm = 1000, alpha = 0.05, beta = 1, comb = FALSE,
   browse = TRUE, nr.show = -1, out.dir = NULL,
-  report.name = "index")
+  report.name = "index", ...)
 }
 \arguments{
 \item{meth}{Enrichment analysis method(s).  See \code{\link{sbeaMethods}} and
@@ -112,6 +112,8 @@ complete number of gene sets under study.}
 timestamp-generated subdirectory of \code{configEBrowser("OUTDIR.DEFAULT")}.}
 
 \item{report.name}{Character. Name of the HTML report. Defaults to \code{"index"}.}
+
+\item{...}{Additional arguments passed on to the individual building blocks.}
 }
 \value{
 None, writes an HTML report and, if selected, opens the browser to 

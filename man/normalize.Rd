@@ -4,8 +4,8 @@
 \alias{normalize}
 \title{Normalization of microarray and RNA-seq expression data}
 \usage{
-normalize(se, norm.method = "quantile", within = FALSE, data.type = c(NA,
-  "ma", "rseq"))
+normalize(se, norm.method = "quantile", within = FALSE,
+  data.type = c(NA, "ma", "rseq"))
 }
 \arguments{
 \item{se}{An object of class \code{\linkS4class{SummarizedExperiment}}.}

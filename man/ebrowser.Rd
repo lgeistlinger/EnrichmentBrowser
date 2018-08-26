@@ -6,8 +6,8 @@
 \usage{
 ebrowser(meth, exprs, cdat, rdat, org, data.type = c(NA, "ma", "rseq"),
   norm.method = "quantile", de.method = "limma", gs, grn = NULL,
-  perm = 1000, alpha = 0.05, beta = 1, comb = FALSE, browse = TRUE,
-  nr.show = -1)
+  perm = 1000, alpha = 0.05, beta = 1, comb = FALSE,
+  browse = TRUE, nr.show = -1, ...)
 }
 \arguments{
 \item{meth}{Enrichment analysis method.  See \code{\link{sbeaMethods}} and
@@ -102,9 +102,17 @@ number of gene sets for which additional visualization will be provided
 (typically only of interest for the top / signifcant gene sets).  Selected
 enrichment methods and resulting flat gene set rankings still include the
 complete number of gene sets under study.}
+
+\item{...}{Additional arguments passed on to the individual building blocks.}
 }
 \value{
 None, opens the browser to explore results.
+
+The main HTML report and associated files are written to  
+\code{configEBrowser("OUTDIR.DEFAULT")}. 
+See \code{?configEBrowser} to change the location. 
+If \code{browse=TRUE}, the HTML report will automatically be opened in  
+the default browser.
 }
 \description{
 This is the all-in-one wrapper function to perform the standard enrichment

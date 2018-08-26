@@ -10,8 +10,8 @@
 nbeaMethods()
 
 nbea(method = EnrichmentBrowser::nbeaMethods(), se, gs, grn,
-  prune.grn = TRUE, alpha = 0.05, perm = 1000, padj.method = "none",
-  out.file = NULL, browse = FALSE, ...)
+  prune.grn = TRUE, alpha = 0.05, perm = 1000,
+  padj.method = "none", out.file = NULL, browse = FALSE, ...)
 }
 \arguments{
 \item{method}{Network-based enrichment analysis method.  Currently, the

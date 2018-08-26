@@ -96,9 +96,8 @@
 #' See \code{?configEBrowser} to change the location. 
 #' If \code{html.only=FALSE}, the HTML report will automatically be opened in  
 #' the your default browser.
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
-#' @seealso \code{\link{sbea}}, \code{\link{nbea}},
-#' \code{\link{combResults}}
+#' @author Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
+#' @seealso \code{\link{sbea}}, \code{\link{nbea}}, \code{\link{combResults}}
 #' @examples
 #' 
 #'     
@@ -435,8 +434,8 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
         usr.grd <- par('usr')
     dev.off()
     p <- -log(p, base=10)
+    
     # 2: make the html
-
     # INFER LINK COORDS
 	#
 	# mai: a numerical vector of the form ‘c(bottom, left, top, right)

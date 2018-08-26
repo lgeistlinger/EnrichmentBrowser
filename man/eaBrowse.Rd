@@ -5,7 +5,6 @@
 \alias{ea.browse}
 \alias{gsRanking}
 \alias{gs.ranking}
-\alias{gsRanking}
 \title{Exploration of enrichment analysis results}
 \usage{
 eaBrowse(res, nr.show = -1, graph.view = NULL, html.only = FALSE)
@@ -37,6 +36,12 @@ gsRanking: \code{\linkS4class{DataFrame}} with gene sets ranked by
 the corresponding p-value;
 
 eaBrowse: none, opens the browser to explore results.
+
+The main HTML report and associated files are written to  
+\code{configEBrowser("OUTDIR.DEFAULT")}. 
+See \code{?configEBrowser} to change the location. 
+If \code{html.only=FALSE}, the HTML report will automatically be opened in  
+the your default browser.
 }
 \description{
 Functions to extract a flat gene set ranking from an enrichment analysis
@@ -65,8 +70,7 @@ result object and to detailedly explore it.
 
 }
 \seealso{
-\code{\link{sbea}}, \code{\link{nbea}},
-\code{\link{combResults}}
+\code{\link{sbea}}, \code{\link{nbea}}, \code{\link{combResults}}
 }
 \author{
 Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>

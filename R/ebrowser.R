@@ -218,13 +218,14 @@ config.ebrowser <- function(key, value=NULL)
 #' (typically only of interest for the top / signifcant gene sets).  Selected
 #' enrichment methods and resulting flat gene set rankings still include the
 #' complete number of gene sets under study.
+#' @param ... Additional arguments passed on to the individual building blocks.
 #' @return None, opens the browser to explore results.
 #'
 #' The main HTML report and associated files are written to  
 #' \code{configEBrowser("OUTDIR.DEFAULT")}. 
 #' See \code{?configEBrowser} to change the location. 
 #' If \code{browse=TRUE}, the HTML report will automatically be opened in  
-#' the your default browser.
+#' the default browser.
 #' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
 #' @seealso \code{\link{readSE}} to read expression data from file;
 #' \code{\link{probe2gene}} to transform probe to gene level expression;
@@ -272,7 +273,7 @@ ebrowser <- function(
     meth, exprs, cdat, rdat, org, data.type=c(NA, "ma", "rseq"),
     norm.method="quantile", de.method="limma",
     gs, grn=NULL, perm=1000, alpha=0.05, beta=1, 
-    comb=FALSE, browse=TRUE, nr.show=-1)
+    comb=FALSE, browse=TRUE, nr.show=-1, ...)
 {
     GRP.COL <- configEBrowser("GRP.COL")
     FC.COL <- configEBrowser("FC.COL")
@@ -350,10 +351,10 @@ ebrowser <- function(
 
         if(m %in% nbeaMethods()) 
             res <- nbea( method=m, se=geneSE, gs=gs, 
-                    grn=grn, alpha=alpha, beta=beta, perm=perm[i] )
+                    grn=grn, alpha=alpha, beta=beta, perm=perm[i], ... )
 
         else res <- sbea( method=m, se=geneSE, 
-                    gs=gs, alpha=alpha, perm=perm[i] )
+                    gs=gs, alpha=alpha, perm=perm[i], ... )
 
         write.table(res$res.tbl, file=out.file, 
             quote=FALSE, row.names=FALSE, sep="\t")

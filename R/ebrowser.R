@@ -281,11 +281,15 @@ config.ebrowser <- function(key, value=NULL)
 #'     # hsa.gs <- getGenesets(org="hsa", db="kegg")
 #'     gs.file <- system.file("extdata/hsa_kegg_gs.gmt", package="EnrichmentBrowser")
 #'     hsa.gs <- getGenesets(gs.file)
-#' 
+#'
+#'     # output destination 
+#'     out.dir <- configEBrowser("OUTDIR.DEFAULT") 
+#'
 #'     # set-based enrichment analysis
 #'     ebrowser( meth="ora", perm=0,
 #'             exprs=exprs.file, cdat=cdat.file, rdat=rdat.file, 
-#'             gs=hsa.gs, org="hsa", nr.show=3)
+#'             gs=hsa.gs, org="hsa", nr.show=3,
+#'             out.dir=out.dir, report.name="oraReport")
 #' 
 #'     # compile a gene regulatory network from KEGG pathways
 #'     hsa.grn <- compileGRN(org="hsa", db="kegg")
@@ -293,12 +297,14 @@ config.ebrowser <- function(key, value=NULL)
 #'     # network-based enrichment analysis
 #'     ebrowser(   meth="ggea", 
 #'             exprs=exprs.file, cdat=cdat.file, rdat=rdat.file, 
-#'             gs=hsa.gs, grn=hsa.grn, org="hsa", nr.show=3 )
+#'             gs=hsa.gs, grn=hsa.grn, org="hsa", nr.show=3,
+#'             out.dir=out.dir, report.name="ggeaReport")
 #' 
 #'     # combining results
 #'     ebrowser( meth=c("ora", "ggea"), perm=0, comb=TRUE,
 #'             exprs=exprs.file, cdat=cdat.file, rdat=rdat.file, 
-#'             gs=hsa.gs, grn=hsa.grn, org="hsa", nr.show=3 )
+#'             gs=hsa.gs, grn=hsa.grn, org="hsa", nr.show=3,
+#'             out.dir=out.dir, report.name="combReport")
 #' 
 #' @export ebrowser
 ebrowser <- function(

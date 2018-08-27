@@ -1,6 +1,6 @@
 Package: EnrichmentBrowser
-Version: 2.11.17
-Date: 2018-08-15
+Version: 2.11.18
+Date: 2018-08-26
 Title: Seamless navigation through combined results of set-based and
         network-based enrichment analysis
 Author: Ludwig Geistlinger [aut, cre], Gergely Csaba [aut], Mara Santarelli [ctb],

@@ -73,7 +73,9 @@ result object and to detailedly explore it.
 
     # (5) result visualization and exploration
     gsRanking(ea.res)
-    eaBrowse(ea.res)
+ 
+    out.dir <- configEBrowser("OUTDIR.DEFAULT") 
+    eaBrowse(ea.res, out.dir=out.dir, report.name="oraReport")
 
 }
 \seealso{

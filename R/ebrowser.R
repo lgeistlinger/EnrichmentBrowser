@@ -257,7 +257,7 @@ config.ebrowser <- function(key, value=NULL)
 #' \code{configEBrowser("OUTDIR.DEFAULT")}. 
 #' See \code{?configEBrowser} to change the location. 
 #' If \code{browse=TRUE}, the HTML report will automatically be opened in 
-#' the your default browser.
+#' the default browser.
 #' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
 #' @seealso \code{\link{readSE}} to read expression data from file;
 #' \code{\link{probe2gene}} to transform probe to gene level expression;

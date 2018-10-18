@@ -123,7 +123,7 @@ the main HTML report and associated files are written to
 \code{configEBrowser("OUTDIR.DEFAULT")}. 
 See \code{?configEBrowser} to change the location. 
 If \code{browse=TRUE}, the HTML report will automatically be opened in 
-the your default browser.
+the default browser.
 }
 \description{
 This is the all-in-one wrapper function to perform the standard enrichment

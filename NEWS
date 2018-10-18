@@ -1,3 +1,21 @@
+CHANGES IN VERSION 2.12.0
+-------------------------
+
+    o Major refactoring of ID mapping for the rownames of a SummarizedExperiment:
+      (functions idmap / probe2gene):
+      - to.ID can also be a rowData column to support user-defined mappings
+      - support of data-driven strategies for many:1 and 1:many mappings   
+      - synchronized behavior of microarray probe ID mapping (probe2gene) and 
+        general gene ID mapping (idmap)   
+    o Alternative representation of gene sets based on GSEABase::GeneSet and
+      GSEABase::GeneSetCollection to facilitate gene ID mapping for gene sets 
+      (function getGenesets) 
+    o Output destination of HTML reports (functions eaBrowse / ebrowser): 
+      extended control via arguments out.dir and report.name that overwrite
+      corresponding config defaults (configEBrowser)     
+    o Separation of nominal and adjusted p-values in DE and EA result tables
+      (functions deAna / sbea / nbea)
+
 CHANGES IN VERSION 2.10.0
 -------------------------
 

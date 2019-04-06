@@ -6,7 +6,7 @@
 \title{Differential expression analysis between two sample groups}
 \usage{
 deAna(expr, grp = NULL, blk = NULL, de.method = c("limma", "edgeR",
-  "DESeq2"), padj.method = "BH", stat.only = FALSE, min.cpm = 2)
+  "DESeq2"), padj.method = "BH", stat.only = FALSE)
 }
 \arguments{
 \item{expr}{Expression data.  A numeric matrix. Rows correspond to genes,
@@ -35,12 +35,6 @@ available methods see the man page of the stats function
 \item{stat.only}{Logical. Should only the test statistic be returned?  This
 is mainly for internal use, in order to carry out permutation tests on the
 DE statistic for each gene.  Defaults to FALSE.}
-
-\item{min.cpm}{In case of RNA-seq data: should genes not satisfying a
-minimum counts-per-million (cpm) threshold be excluded from the analysis?
-This is typically recommended. See the edgeR vignette for details. The
-default filter is to exclude genes with cpm < 2 in more than half of the
-samples.}
 }
 \value{
 A DE-table with measures of differential expression for each

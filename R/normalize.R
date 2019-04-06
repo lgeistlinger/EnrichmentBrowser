@@ -156,4 +156,40 @@ normalize <- function(se, norm.method="quantile", within=FALSE, data.type=c(NA, 
     return(se)
 }
 
+vst <- function(se)
+{
+    expr <- assay(se)
+    GRP.COL <- configEBrowser("GRP.COL")
+    BLK.COL <- configEBrowser("BLK.COL")
+
+    grp <- colData(se)[,GRP.COL]
+    blk <- NULL
+    if(BLK.COL %in% colnames(colData(se))) blk <- colData(se)[,BLK.COL]
+
+    group <- factor(grp)
+    paired <- !is.null(blk)
+    f <- "~" 
+    if(paired) 
+    {   
+        block <- factor(blk)
+        f <- paste0(f, "block + ") 
+    }   
+    f <- formula(paste0(f, "group"))
+    design <- model.matrix(f)
+
+    dge <- edgeR::DGEList(counts=expr, group=group)
+    keep <- edgeR::filterByExpr(dge)
+    dge <- dge[keep, ]
+    dge <- edgeR::calcNormFactors(dge)
+    dge <- edgeR::estimateDisp(dge, design, robust=TRUE)
+    
+    pc <- 0.5 / dge$common.dispersion
+    cpms <- edgeR::cpm(dge, log=TRUE, prior.count=pc)
+
+    assay(se) <- cpms
+    metadata(se)$dataType <- "ma"
+    return(se)
+}
+
+
 

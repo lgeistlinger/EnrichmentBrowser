@@ -27,11 +27,6 @@
 #' @param stat.only Logical. Should only the test statistic be returned?  This
 #' is mainly for internal use, in order to carry out permutation tests on the
 #' DE statistic for each gene.  Defaults to FALSE.
-#' @param min.cpm In case of RNA-seq data: should genes not satisfying a
-#' minimum counts-per-million (cpm) threshold be excluded from the analysis?
-#' This is typically recommended. See the edgeR vignette for details. The
-#' default filter is to exclude genes with cpm < 2 in more than half of the
-#' samples.
 #' @return A DE-table with measures of differential expression for each
 #' gene/row, i.e. a two-column matrix with log2 fold changes in the 1st column
 #' and derived p-values in the 2nd column.  If 'expr' is a
@@ -59,27 +54,20 @@
 #' @export deAna
 deAna <- function(expr, grp=NULL, blk=NULL, 
                     de.method=c("limma", "edgeR", "DESeq2"), 
-                    padj.method="BH", stat.only=FALSE, min.cpm=2)
+                    padj.method="BH", stat.only=FALSE)
 {
     if(is(expr, "ExpressionSet")) expr <- as(expr, "SummarizedExperiment")
 
     isSE <- is(expr, "SummarizedExperiment")
     if(isSE) 
     { 
-        GRP.COL <- configEBrowser("GRP.COL")    
-        BLK.COL <- configEBrowser("BLK.COL")
-
         se <- expr
-        expr <- assay(se)
-        
-        # check for group annotation
-        if(!(GRP.COL %in% colnames(colData(se))))
-            stop("Group assignment must be specified")
-		grp <- colData(se)[,GRP.COL]
-
-        # check for block annotation
-        if(BLK.COL %in% colnames(colData(se))) blk <- colData(se)[,BLK.COL] 
+        info <- .extractInfoFromSE(se)
+        expr <- info$expr
+        grp <- info$grp
+        blk <- info$blk
     }
+
     if(!is.matrix(expr))
         stop(paste("Expression data in \'expr\' must be either", 
             "a matrix, a SummarizedExperiment, or an ExpressionSet"))
@@ -102,84 +90,30 @@ deAna <- function(expr, grp=NULL, blk=NULL,
     
 	de.method <- match.arg(de.method)
 	data.type <- .detectDataType(expr)
-	if(data.type == "rseq" && !stat.only)
-	{
-		# filter low-expressed genes
-		rs <- rowSums(edgeR::cpm(expr) > min.cpm)
-		keep <-  rs >= ncol(expr) / 2
-		nr.low <- sum(!keep)
-		if(nr.low)
-		{ 
-			message(paste("Excluding", nr.low, 
-                "genes not satisfying min.cpm threshold")) 
-			expr <- expr[keep,]	
-			if(isSE) se <- se[keep,]
-		}	
-	}
+
 	if(data.type != "rseq" && de.method %in% c("edgeR", "DESeq2"))
 	    stop(paste(de.method, "only applicable to integer read counts"))
 
+    # filter low-expressed genes
+	if(data.type == "rseq" && !stat.only)
+	{
+        expr <- .filterRSeq(expr)
+        if(isSE) se <- se[rownames(expr),]
+	}
 
-    # EDGER
-    if(de.method == "edgeR")
-    {
-        y <- edgeR::DGEList(counts=expr,group=group)
-        y <- edgeR::calcNormFactors(y)
-        design <- model.matrix(f)
-        if(length(group) == 2)
-        { 
-            message("Calling edgeR without replicates")
-            message("Using default BCV (square-root-dispersion) of 0.4")
-            fit <- edgeR::glmQLFit(y, design, dispersion=0.4)
-        }
-        else
-        { 
-            y <- edgeR::estimateDisp(y, design, robust=TRUE)
-            fit <- edgeR::glmQLFit(y, design, robust=TRUE)
-        }
-        qlf <- edgeR::glmQLFTest(fit)
-        if(stat.only) return(qlf$table[,"F"])
-        de.tbl <- qlf$table[, c("logFC", "PValue", "F")] 
-        colnames(de.tbl)[3] <- "edgeR.STAT"
-    }
-    # DESEQ
-    else if(de.method == "DESeq2")
-    {
-        colData <- data.frame(group=group)
-        if(paired) colData$block <- block
-        suppressMessages({
-            dds <- DESeq2::DESeqDataSetFromMatrix(
-                countData=expr, colData=colData, design=f)
-            dds <- DESeq2::DESeq(dds)
-        })
-        res <- DESeq2::results(dds, pAdjustMethod="none")
-        if(stat.only) return(res[,"stat"])
-        de.tbl <- data.frame(res[,c("log2FoldChange","pvalue","stat")])
-        colnames(de.tbl)[3] <- "DESeq2.STAT"
-    }
-    # LIMMA  
-    else if(de.method == "limma")
-    {
-        design <- model.matrix(f)
-        if(data.type == "rseq") 
-        {
-            dge <- edgeR::DGEList(counts=expr)
-            dge <- edgeR::calcNormFactors(dge)
-            expr <- limma::voom(dge, design)
-        }
-        fit <- limma::lmFit(expr, design)
-        fit <- limma::eBayes(fit)
-        aT1 <- limma::topTable(fit, number=nrow(expr), coef="group1", 
-            sort.by="none", adjust.method="none")
-        if(stat.only) return(aT1[,"t"])
-        de.tbl <- aT1[, c("logFC", "P.Value", "t")]
-        colnames(de.tbl)[3] <- "limma.STAT"
-    }
-    else stop(paste(de.method, "is not supported.", 
-                    "See man page for supported de.method."))
+    # DE analysis
+    if(de.method == "edgeR") de.tbl <- .edger(expr, group, f, stat.only)
+    else if(de.method == "DESeq2") 
+        de.tbl <- .deseq(expr, group, paired, block, f, stat.only)
+    else if(de.method == "limma") de.tbl <- .limma(expr, f, data.type, stat.only)
 
+    if(stat.only) return(de.tbl)
+
+    # format result table
     colnames(de.tbl)[1:2] <- sapply(c("FC.COL", "PVAL.COL"), configEBrowser)
 	de.tbl <- de.tbl[,c(1,3,2)]
+
+    # multiple testing correction
     if(padj.method != "none")
 	{ 
 		adjp <- p.adjust(de.tbl[,3], method=padj.method)
@@ -201,13 +135,100 @@ deAna <- function(expr, grp=NULL, blk=NULL,
 #' @keywords internal
 de.ana <- function(expr, grp=NULL, blk=NULL, 
                     de.method=c("limma", "edgeR", "DESeq"), 
-                    padj.method="BH", stat.only=FALSE, min.cpm=2)
+                    padj.method="BH", stat.only=FALSE)
 {
     .Deprecated("deAna")
     deAna(expr=expr, grp=grp, blk=blk, de.method=de.method,
-            padj.method=padj.method, stat.only=stat.only, min.cpm=min.cpm)
+            padj.method=padj.method, stat.only=stat.only)
 }
 
+.limma <- function(expr, f, data.type, stat.only)
+{
+    design <- model.matrix(f)
+    if(data.type == "rseq") 
+    {
+        dge <- edgeR::DGEList(counts=expr)
+        dge <- edgeR::calcNormFactors(dge)
+        expr <- limma::voom(dge, design)
+    }
+    fit <- limma::lmFit(expr, design)
+    fit <- limma::eBayes(fit)
+    aT1 <- limma::topTable(fit, number=nrow(expr), coef="group1", 
+        sort.by="none", adjust.method="none")
+    if(stat.only) return(aT1[,"t"])
+    de.tbl <- aT1[, c("logFC", "P.Value", "t")]
+    colnames(de.tbl)[3] <- "limma.STAT"
+    return(de.tbl)
+}
 
+.edger <- function(expr, group, f, stat.only)
+{
+    dge <- edgeR::DGEList(counts=expr, group=group)
+    dge <- edgeR::calcNormFactors(dge)
+    design <- model.matrix(f)
+    if(length(group) == 2)
+    { 
+        message("Calling edgeR without replicates")
+        message("Using default BCV (square-root-dispersion) of 0.4")
+        fit <- edgeR::glmQLFit(dge, design, dispersion=0.4)
+    }
+    else
+    { 
+        dge <- edgeR::estimateDisp(dge, design, robust=TRUE)
+        fit <- edgeR::glmQLFit(dge, design, robust=TRUE)
+    }
+    qlf <- edgeR::glmQLFTest(fit)
+    if(stat.only) return(qlf$table[,"F"])
+    de.tbl <- qlf$table[, c("logFC", "PValue", "F")] 
+    colnames(de.tbl)[3] <- "edgeR.STAT"
+    return(de.tbl)
+}
 
+.deseq <- function(expr, group, paired, block, f, stat.only)
+{
+    colData <- data.frame(group=group)
+    if(paired) colData$block <- block
+    suppressMessages({
+        dds <- DESeq2::DESeqDataSetFromMatrix(
+            countData=expr, colData=colData, design=f)
+        dds <- DESeq2::DESeq(dds)
+    })
+    res <- DESeq2::results(dds, pAdjustMethod="none")
+    if(stat.only) return(res[,"stat"])
+    de.tbl <- data.frame(res[,c("log2FoldChange","pvalue","stat")])
+    colnames(de.tbl)[3] <- "DESeq2.STAT"
+    return(de.tbl)
+}
 
+.filterRSeq <- function(expr)
+{
+    keep <- edgeR::filterByExpr(expr)
+	nr.low <- sum(!keep)
+	if(nr.low)
+	{ 
+		message(paste("Excluding", nr.low, 
+            "genes not satisfying min.cpm threshold")) 
+		expr <- expr[keep,]	
+	}
+    return(expr)
+}
+
+.extractInfoFromSE <- function(se)
+{
+    GRP.COL <- configEBrowser("GRP.COL")    
+    BLK.COL <- configEBrowser("BLK.COL")
+
+    expr <- assay(se)
+    
+    # check for group annotation
+    if(!(GRP.COL %in% colnames(colData(se))))
+        stop("Group assignment must be specified")
+	grp <- colData(se)[,GRP.COL]
+
+    # check for block annotation
+    blk <- NULL
+    if(BLK.COL %in% colnames(colData(se))) blk <- colData(se)[,BLK.COL] 
+
+    res <- list(expr=expr, grp=grp, blk=blk)
+    return(res)
+}

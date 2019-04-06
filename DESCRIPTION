@@ -22,7 +22,7 @@ Description: The EnrichmentBrowser package implements essential functionality
 License: Artistic-2.0
 Encoding: UTF-8
 VignetteBuilder: knitr
-biocViews: Microarray, RNASeq, GeneExpression, DifferentialExpression,
+biocViews: ImmunoOncology, Microarray, RNASeq, GeneExpression, DifferentialExpression,
         Pathways, GraphAndNetwork, Network, GeneSetEnrichment,
         NetworkEnrichment, Visualization, ReportWriting
 RoxygenNote: 6.1.1

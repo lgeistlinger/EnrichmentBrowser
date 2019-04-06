@@ -88,15 +88,15 @@ deAna <- function(expr, grp=NULL, blk=NULL,
     }
     f <- formula(paste0(f, "group"))
     
-	de.method <- match.arg(de.method)
-	data.type <- .detectDataType(expr)
+    de.method <- match.arg(de.method)
+    data.type <- .detectDataType(expr)
 
-	if(data.type != "rseq" && de.method %in% c("edgeR", "DESeq2"))
-	    stop(paste(de.method, "only applicable to integer read counts"))
+    if(data.type != "rseq" && de.method %in% c("edgeR", "DESeq2"))
+        stop(paste(de.method, "only applicable to integer read counts"))
 
     # filter low-expressed genes
-	if(data.type == "rseq" && !stat.only)
-	{
+    if(data.type == "rseq" && !stat.only)
+    {
         expr <- .filterRSeq(expr)
         if(isSE) se <- se[rownames(expr),]
 	}
@@ -111,15 +111,15 @@ deAna <- function(expr, grp=NULL, blk=NULL,
 
     # format result table
     colnames(de.tbl)[1:2] <- sapply(c("FC.COL", "PVAL.COL"), configEBrowser)
-	de.tbl <- de.tbl[,c(1,3,2)]
+    de.tbl <- de.tbl[,c(1,3,2)]
 
     # multiple testing correction
     if(padj.method != "none")
-	{ 
-		adjp <- p.adjust(de.tbl[,3], method=padj.method)
-		de.tbl <- cbind(de.tbl, adjp)
-		colnames(de.tbl)[4] <- configEBrowser("ADJP.COL")
-	}
+    { 
+        adjp <- p.adjust(de.tbl[,3], method=padj.method)
+        de.tbl <- cbind(de.tbl, adjp)
+        colnames(de.tbl)[4] <- configEBrowser("ADJP.COL")
+    }
 
     if(isSE)
     {
@@ -203,13 +203,13 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
 .filterRSeq <- function(expr)
 {
     keep <- edgeR::filterByExpr(expr)
-	nr.low <- sum(!keep)
-	if(nr.low)
-	{ 
-		message(paste("Excluding", nr.low, 
+    nr.low <- sum(!keep)
+    if(nr.low)
+    { 
+        message(paste("Excluding", nr.low, 
             "genes not satisfying min.cpm threshold")) 
-		expr <- expr[keep,]	
-	}
+        expr <- expr[keep,]	
+    }
     return(expr)
 }
 
@@ -223,7 +223,7 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
     # check for group annotation
     if(!(GRP.COL %in% colnames(colData(se))))
         stop("Group assignment must be specified")
-	grp <- colData(se)[,GRP.COL]
+    grp <- colData(se)[,GRP.COL]
 
     # check for block annotation
     blk <- NULL

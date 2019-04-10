@@ -781,7 +781,8 @@ global.GSA <- function(cmat, u, ...)
   
     blk <- NULL
     BLK.COL <- configEBrowser("BLK.COL")
-    if(BLK.COL %in% colnames(colData(se))) blk <- colData(se)[,BLK.COL] 
+    if(BLK.COL %in% colnames(colData(se))) 
+        blk <- make.names(colData(se)[,BLK.COL]) 
     paired <- !is.null(blk)
   
     nmin <- configEBrowser("GS.MIN.SIZE")

@@ -156,6 +156,39 @@ normalize <- function(se, norm.method="quantile", within=FALSE, data.type=c(NA, 
     return(se)
 }
 
+#' Variance-stabilizing transformation for RNA-seq expression data
+#' 
+#' This function implements a variance-stabilizing transformation (VST) for 
+#' RNA-seq read count data. It accounts for differences in sequencing depth
+#' between samples and over-dispersion of read count data. Permutation-based
+#' enrichment methods can then be applied as for microarray data. 
+#' 
+#' The VST uses the cpm function implemented in the edgeR package to compute 
+#' moderated log2 read counts. Using edgeR's estimate of the common dispersion 
+#' phi, the prior.count parameter of the cpm function is chosen as 0.5 / phi as 
+#' previously suggested (Harrison, 2015).
+#' 
+#' @param se An object of class \code{\linkS4class{SummarizedExperiment}}.
+#' @return An object of class \code{\linkS4class{SummarizedExperiment}}.
+#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @seealso \code{\link{cpm}} and \code{\link{estimateDisp}}
+#' @references
+#' Harrison (2015) Anscombe's 1948 variance stabilizing transformation for
+#' the negative binomial distribution is well suited to RNA-seq expression
+#' data. doi:10.7490/f1000research.1110757.1
+#'
+#' Anscombe (1948) The transformation of Poisson, binomial and
+#' negative-binomial data. Biometrika 35(3-4):246-54.
+#'
+#' Law et al. (2014) voom: precision weights unlock linear model analysis tools 
+#' for RNA-seq read counts. Genome Biol 15:29.
+#' 
+#' @examples
+#' 
+#'     se <- makeExampleData(what="SE", type="rseq")
+#'     vstSE <- vst(se) 
+#' 
+#' @export vst
 vst <- function(se)
 {
     expr <- assay(se)
@@ -178,18 +211,15 @@ vst <- function(se)
     design <- model.matrix(f)
 
     dge <- edgeR::DGEList(counts=expr, group=group)
-    keep <- edgeR::filterByExpr(dge)
-    dge <- dge[keep, ]
+    dge <- .filterRSeq(dge)
     dge <- edgeR::calcNormFactors(dge)
     dge <- edgeR::estimateDisp(dge, design, robust=TRUE)
     
     pc <- 0.5 / dge$common.dispersion
     cpms <- edgeR::cpm(dge, log=TRUE, prior.count=pc)
 
+    se <- se[rownames(dge),]
     assay(se) <- cpms
     metadata(se)$dataType <- "ma"
     return(se)
 }
-
-
-

@@ -222,7 +222,10 @@ config.ebrowser <- function(key, value=NULL)
 #' @param de.method Determines which method is used for per-gene differential
 #' expression analysis. See the man page of \code{\link{deAna}} for details.
 #' Defaults to 'limma', i.e. differential expression is calculated based on the
-#' typical limma \code{\link{lmFit}} procedure.
+#' typical limma \code{\link{lmFit}} procedure. This can also be 'none' to 
+#' indicate that DE analysis has already been carried out and should not be 
+#' overwritten by \code{ebrowser} (applies only when \code{exprs} is given as a
+#' \code{\linkS4class{SummarizedExperiment}}).
 #' @param gs Gene sets.  Either a list of gene sets (character vectors of gene
 #' IDs) or a text file in GMT format storing all gene sets under investigation.
 #' @param grn Gene regulatory network.  Either an absolute file path to a
@@ -376,8 +379,11 @@ ebrowser <- function(
     }
     else geneSE <- se
 
-    message("DE analysis ...")    
-    geneSE <- deAna(geneSE, de.method=de.method)
+    if(de.method != "none")
+    {
+        message("DE analysis ...")    
+        geneSE <- deAna(geneSE, de.method=de.method)
+    }
     if(missing(org)) org <- metadata(geneSE)$annotation 
     else metadata(geneSE)$annotation <- org
         

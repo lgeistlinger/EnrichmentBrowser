@@ -119,7 +119,9 @@ sbeaMethods <- function()
 #' statistic is used for determining significant DE genes.  Options are:
 #' \itemize{ \item 'p' (Default): genes with adjusted p-value below alpha.  
 #' \item 'fc': genes with abs(log2(fold change)) above beta \item '&': p & fc 
-#' (logical AND) \item '|': p | fc (logical OR) } }
+#' (logical AND) \item '|': p | fc (logical OR) \item 'xxp': top xx \% of genes 
+#' sorted by adjusted p-value \item 'xxfc' top xx \% of genes sorted by absolute
+#' log2 fold change.} }
 #' @return sbeaMethods: a character vector of currently supported methods;
 #' 
 #' sbea: if(is.null(out.file)): an enrichment analysis result object that can

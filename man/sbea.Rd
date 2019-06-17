@@ -62,7 +62,9 @@ significance level. Defaults to 1 (2-fold).  \item sig.stat: decides which
 statistic is used for determining significant DE genes.  Options are:
 \itemize{ \item 'p' (Default): genes with adjusted p-value below alpha.  
 \item 'fc': genes with abs(log2(fold change)) above beta \item '&': p & fc 
-(logical AND) \item '|': p | fc (logical OR) } }}
+(logical AND) \item '|': p | fc (logical OR) \item 'xxp': top xx \% of genes 
+sorted by adjusted p-value \item 'xxfc' top xx \% of genes sorted by absolute
+log2 fold change.} }}
 }
 \value{
 sbeaMethods: a character vector of currently supported methods;

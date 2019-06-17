@@ -69,7 +69,9 @@ level. Defaults to 1 (2-fold).  } For SPIA and NEA: \itemize{ \item
 sig.stat: decides which statistic is used for determining significant DE
 genes.  Options are: \itemize{ \item 'p' (Default): genes with adjusted p-value below
 alpha.  \item 'fc': genes with abs(log2(fold change)) above beta \item '&':
-p & fc (logical AND) \item '|': p | fc (logical OR) } } For GGEA: \itemize{
+p & fc (logical AND) \item '|': p | fc (logical OR) \item 'xxp': top xx \% of genes 
+sorted by adjusted p-value \item 'xxfc' top xx \% of genes sorted by absolute
+log2 fold change.} } For GGEA: \itemize{
 \item cons.thresh: edge consistency threshold between -1 and 1.  Defaults to
 0.2, i.e. only edges of the GRN with consistency >= 0.2 are included in the
 analysis. Evaluation on real datasets has shown that this works best to

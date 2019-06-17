@@ -115,7 +115,9 @@ nbeaMethods <- function()
 #' sig.stat: decides which statistic is used for determining significant DE
 #' genes.  Options are: \itemize{ \item 'p' (Default): genes with adjusted p-value below
 #' alpha.  \item 'fc': genes with abs(log2(fold change)) above beta \item '&':
-#' p & fc (logical AND) \item '|': p | fc (logical OR) } } For GGEA: \itemize{
+#' p & fc (logical AND) \item '|': p | fc (logical OR) \item 'xxp': top xx \% of genes 
+#' sorted by adjusted p-value \item 'xxfc' top xx \% of genes sorted by absolute
+#' log2 fold change.} } For GGEA: \itemize{
 #' \item cons.thresh: edge consistency threshold between -1 and 1.  Defaults to
 #' 0.2, i.e. only edges of the GRN with consistency >= 0.2 are included in the
 #' analysis. Evaluation on real datasets has shown that this works best to
@@ -456,8 +458,8 @@ nbea <- function(
     res <- res$enrichment_results[, 
         c("Name", "No_of_Genes", "Sig_Direct", "Sig_Combi", "p_PathNet")]
     rownames(res) <- vapply(as.vector(res[,1]), 
-        function(s) grep(unlist(strsplit(s,"_"))[1], names(gs), value=TRUE),
-        character(1))
+        function(s) grep(paste0("^", unlist(strsplit(s,"_"))[1], "_"), names(gs), value=TRUE),
+        character(1), USE.NAMES=FALSE)
     res <- res[-1]    
     colnames(res) <- c("NR.GENES", "NR.SIG.GENES", "NR.SIG.COMB.GENES", PVAL.COL)
     res <- as.matrix(res)

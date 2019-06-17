@@ -60,9 +60,9 @@ interactive exploration? Defaults to FALSE.}
 includes currently for ORA and MGSA: \itemize{ \item beta: Log2 fold change
 significance level. Defaults to 1 (2-fold).  \item sig.stat: decides which
 statistic is used for determining significant DE genes.  Options are:
-\itemize{ \item 'p' (Default): genes with p-value below alpha.  \item 'fc':
-genes with abs(log2(fold change)) above beta \item '&': p & fc (logical AND)
-\item '|': p | fc (logical OR) } }}
+\itemize{ \item 'p' (Default): genes with adjusted p-value below alpha.  
+\item 'fc': genes with abs(log2(fold change)) above beta \item '&': p & fc 
+(logical AND) \item '|': p | fc (logical OR) } }}
 }
 \value{
 sbeaMethods: a character vector of currently supported methods;

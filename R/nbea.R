@@ -113,7 +113,7 @@ nbeaMethods <- function()
 #' includes currently: \itemize{ \item beta: Log2 fold change significance
 #' level. Defaults to 1 (2-fold).  } For SPIA and NEA: \itemize{ \item
 #' sig.stat: decides which statistic is used for determining significant DE
-#' genes.  Options are: \itemize{ \item 'p' (Default): genes with p-value below
+#' genes.  Options are: \itemize{ \item 'p' (Default): genes with adjusted p-value below
 #' alpha.  \item 'fc': genes with abs(log2(fold change)) above beta \item '&':
 #' p & fc (logical AND) \item '|': p | fc (logical OR) } } For GGEA: \itemize{
 #' \item cons.thresh: edge consistency threshold between -1 and 1.  Defaults to
@@ -301,7 +301,7 @@ nbea <- function(
 # 1 SPIA
 #
 .spia <- function(se, gs, grn, 
-    alpha=0.05, perm=1000, beta=1, sig.stat=c("xxP", "xxFC", "|", "&")) 
+    alpha=0.05, perm=1000, beta=1, sig.stat=c("p", "fc", "|", "&")) 
 {
     FC.COL <- configEBrowser("FC.COL")
     ADJP.COL <- configEBrowser("ADJP.COL")
@@ -396,7 +396,7 @@ nbea <- function(
 # 2 NEA
 #
 .nea <- function(se, gs, grn, 
-    alpha=0.05, perm=100, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
+    alpha=0.05, perm=100, beta=1, sig.stat=c("p", "fc", "|", "&"))
 {
     nea <- NULL
    isAvailable("neaGUI", type="software")

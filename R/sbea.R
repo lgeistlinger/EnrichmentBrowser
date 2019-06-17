@@ -117,9 +117,9 @@ sbeaMethods <- function()
 #' includes currently for ORA and MGSA: \itemize{ \item beta: Log2 fold change
 #' significance level. Defaults to 1 (2-fold).  \item sig.stat: decides which
 #' statistic is used for determining significant DE genes.  Options are:
-#' \itemize{ \item 'p' (Default): genes with p-value below alpha.  \item 'fc':
-#' genes with abs(log2(fold change)) above beta \item '&': p & fc (logical AND)
-#' \item '|': p | fc (logical OR) } }
+#' \itemize{ \item 'p' (Default): genes with adjusted p-value below alpha.  
+#' \item 'fc': genes with abs(log2(fold change)) above beta \item '&': p & fc 
+#' (logical AND) \item '|': p | fc (logical OR) } }
 #' @return sbeaMethods: a character vector of currently supported methods;
 #' 
 #' sbea: if(is.null(out.file)): an enrichment analysis result object that can
@@ -498,15 +498,15 @@ local.deAna <- function (X.mat, y.vec, args.local)
     return(res.tbl)
 }
 
-.isSig <- function(rdat, alpha=0.05, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
+.isSig <- function(rdat, alpha=0.05, beta=1, sig.stat=c("p", "fc", "|", "&"))
 {
     FC.COL <- configEBrowser("FC.COL")
     ADJP.COL <- configEBrowser("ADJP.COL")
 
     sig.stat <- sig.stat[1]
-    if(grepl("P$", sig.stat))
+    if(grepl("p$", sig.stat))
     {
-        if(sig.stat == "xxP") sig <- rdat[, ADJP.COL] < alpha
+        if(sig.stat == "p") sig <- rdat[, ADJP.COL] < alpha
         else
         {
             perc <- as.integer(substring(sig.stat, 1, 2))
@@ -518,9 +518,9 @@ local.deAna <- function (X.mat, y.vec, args.local)
             sig <- rownames(rdat) %in% sigs
         }
     }
-    else if(grepl("FC$", sig.stat))
+    else if(grepl("fc$", sig.stat))
     { 
-        if(sig.stat == "xxFC") sig <- abs(rdat[, FC.COL]) > beta
+        if(sig.stat == "fc") sig <- abs(rdat[, FC.COL]) > beta
         else
         {
             perc <- as.integer(substring(sig.stat, 1, 2))
@@ -543,7 +543,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
 
 # 1 HYPERGEOM ORA
 .oraHypergeom <- function(rdat, cmat, 
-    alpha=0.05, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
+    alpha=0.05, beta=1, sig.stat=c("p", "fc", "|", "&"))
 {
     # determine sig. diff. exp. genes of se, 
     # corresponds to sample size from urn
@@ -586,7 +586,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
 #
 #
 .ora <- function(mode=2, se, cmat, perm=1000, alpha=0.05, 
-    padj.method="none", beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
+    padj.method="none", beta=1, sig.stat=c("p", "fc", "|", "&"))
 {
     GRP.COL <- configEBrowser("GRP.COL")
     ADJP.COL <- configEBrowser("ADJP.COL")
@@ -839,7 +839,7 @@ global.PADOG <- function(cmat, u, args.global)
 }
 
 # 8a MGSA 
-.mgsa <- function(se, gs, alpha=0.05, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
+.mgsa <- function(se, gs, alpha=0.05, beta=1, sig.stat=c("p", "fc", "|", "&"))
 {
     mgsa <- setsResults <- NULL
     isAvailable("mgsa", type="software")

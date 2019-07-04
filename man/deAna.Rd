@@ -6,7 +6,8 @@
 \title{Differential expression analysis between two sample groups}
 \usage{
 deAna(expr, grp = NULL, blk = NULL, de.method = c("limma", "edgeR",
-  "DESeq2"), padj.method = "BH", stat.only = FALSE)
+  "DESeq2"), padj.method = "BH", stat.only = FALSE,
+  filter.by.expr = TRUE)
 }
 \arguments{
 \item{expr}{Expression data.  A numeric matrix. Rows correspond to genes,
@@ -35,6 +36,12 @@ available methods see the man page of the stats function
 \item{stat.only}{Logical. Should only the test statistic be returned?  This
 is mainly for internal use, in order to carry out permutation tests on the
 DE statistic for each gene.  Defaults to FALSE.}
+
+\item{filter.by.expr}{Logical. For RNA-seq data: include only genes with
+sufficiently large counts in the DE analysis? If TRUE, excludes genes not 
+satisfying a minimum number of read counts across samples using the 
+\code{\link{filterByExpr}} function from the edgeR package.
+Defaults to TRUE.}
 }
 \value{
 A DE-table with measures of differential expression for each

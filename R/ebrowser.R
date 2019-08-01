@@ -92,11 +92,12 @@
 configEBrowser <- function(key, value=NULL) 
 {
     .key_readonly <- c(
-        "PRB.COL", "EZ.COL", "GN.COL", "SYM.COL", "PMID.COL", 
+        "PRB.COL", "EZ.COL", "PMID.COL", 
         "NCBI.URL", "PUBMED.URL", "GENE.URL", "KEGG.URL", "KEGG.GENE.URL",
         "KEGG.SHOW.URL", "GO.SHOW.URL", "SBEA.PKGS", "NBEA.PKGS")
- 
-    if(is.null(value)) .ebrowser_config_cache[[key]]
+
+    if(missing(key)) .setupConfig() 
+    else if(is.null(value)) .ebrowser_config_cache[[key]]
     else if(!(key %in% .key_readonly)) .ebrowser_config_cache[[key]] <- value
 }
 

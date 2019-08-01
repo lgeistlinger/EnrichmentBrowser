@@ -231,6 +231,10 @@ nbea <- function(
     grn.genes <- unique(c(grn[,1], grn[,2]))
     se.genes <- rownames(se)
     rel.genes <- intersect(intersect(gs.genes, grn.genes), se.genes)
+    if(!length(rel.genes)) 
+        stop(paste("Expression dataset (se), gene sets (gs), and", 
+                    "gene regulatory network (grn) have no gene IDs in common"))
+
     se <- se[rel.genes,]
     gs <- lapply(gs, function(s) s[s%in% rel.genes])
     lens <- lengths(gs)

@@ -216,6 +216,7 @@ sbea <- function(
 
     # restrict se and gs to intersecting genes
     igenes <- intersect(rownames(se), unique(unlist(gs)))
+    if(!length(igenes)) stop("Expression dataset (se) and gene sets (gs) have no gene IDs in common")
     se <- se[igenes,]
     gs <- lapply(gs, function(s) s[s %in% igenes]) 
     lens <- lengths(gs)

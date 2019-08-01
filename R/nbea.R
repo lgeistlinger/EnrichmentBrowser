@@ -113,9 +113,11 @@ nbeaMethods <- function()
 #' includes currently: \itemize{ \item beta: Log2 fold change significance
 #' level. Defaults to 1 (2-fold).  } For SPIA and NEA: \itemize{ \item
 #' sig.stat: decides which statistic is used for determining significant DE
-#' genes.  Options are: \itemize{ \item 'p' (Default): genes with p-value below
+#' genes.  Options are: \itemize{ \item 'p' (Default): genes with adjusted p-value below
 #' alpha.  \item 'fc': genes with abs(log2(fold change)) above beta \item '&':
-#' p & fc (logical AND) \item '|': p | fc (logical OR) } } For GGEA: \itemize{
+#' p & fc (logical AND) \item '|': p | fc (logical OR) \item 'xxp': top xx \% of genes 
+#' sorted by adjusted p-value \item 'xxfc' top xx \% of genes sorted by absolute
+#' log2 fold change.} } For GGEA: \itemize{
 #' \item cons.thresh: edge consistency threshold between -1 and 1.  Defaults to
 #' 0.2, i.e. only edges of the GRN with consistency >= 0.2 are included in the
 #' analysis. Evaluation on real datasets has shown that this works best to
@@ -229,6 +231,10 @@ nbea <- function(
     grn.genes <- unique(c(grn[,1], grn[,2]))
     se.genes <- rownames(se)
     rel.genes <- intersect(intersect(gs.genes, grn.genes), se.genes)
+    if(!length(rel.genes)) 
+        stop(paste("Expression dataset (se), gene sets (gs), and", 
+                    "gene regulatory network (grn) have no gene IDs in common"))
+
     se <- se[rel.genes,]
     gs <- lapply(gs, function(s) s[s%in% rel.genes])
     lens <- lengths(gs)
@@ -301,7 +307,7 @@ nbea <- function(
 # 1 SPIA
 #
 .spia <- function(se, gs, grn, 
-    alpha=0.05, perm=1000, beta=1, sig.stat=c("xxP", "xxFC", "|", "&")) 
+    alpha=0.05, perm=1000, beta=1, sig.stat=c("p", "fc", "|", "&")) 
 {
     FC.COL <- configEBrowser("FC.COL")
     ADJP.COL <- configEBrowser("ADJP.COL")
@@ -396,7 +402,7 @@ nbea <- function(
 # 2 NEA
 #
 .nea <- function(se, gs, grn, 
-    alpha=0.05, perm=100, beta=1, sig.stat=c("xxP", "xxFC", "|", "&"))
+    alpha=0.05, perm=100, beta=1, sig.stat=c("p", "fc", "|", "&"))
 {
     nea <- NULL
    isAvailable("neaGUI", type="software")
@@ -456,8 +462,8 @@ nbea <- function(
     res <- res$enrichment_results[, 
         c("Name", "No_of_Genes", "Sig_Direct", "Sig_Combi", "p_PathNet")]
     rownames(res) <- vapply(as.vector(res[,1]), 
-        function(s) grep(unlist(strsplit(s,"_"))[1], names(gs), value=TRUE),
-        character(1))
+        function(s) grep(paste0("^", unlist(strsplit(s,"_"))[1], "_"), names(gs), value=TRUE),
+        character(1), USE.NAMES=FALSE)
     res <- res[-1]    
     colnames(res) <- c("NR.GENES", "NR.SIG.GENES", "NR.SIG.COMB.GENES", PVAL.COL)
     res <- as.matrix(res)

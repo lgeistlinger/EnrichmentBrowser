@@ -7,7 +7,9 @@
 # 
 ############################################################
 
-.onLoad <- function(libname, pkgname) 
+.onLoad <- function(libname, pkgname) .setupConfig()
+
+.setupConfig <- function()
 {
     # (1) important colData, rowData, and result column names
     .ebrowser_config_cache[["PVAL.COL"]] <-
@@ -63,6 +65,4 @@
     names(nbea.pkgs) <- c("pathnet", "degraph", "cepa", "ganpa", "netgsa", "nea")
     .ebrowser_config_cache[["NBEA.PKGS"]] <- nbea.pkgs
 }
-
-
 

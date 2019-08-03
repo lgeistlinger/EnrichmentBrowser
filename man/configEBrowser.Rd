@@ -74,6 +74,9 @@ Results") \item NR.SHOW: maximum number of entries to show (default: 20) }
     # inappropriate settings will impair EnrichmentBrowser's functionality
     configEBrowser(key="GS.MIN.SIZE", value=3)  
 
+    # restoring default config settings     
+    configEBrowser() 
+
 }
 \author{
 Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>

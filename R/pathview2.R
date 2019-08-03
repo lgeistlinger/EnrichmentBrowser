@@ -280,9 +280,12 @@ pathview2 <- function(
     etype <- ifelse(eri$arrowhead == "normal", 
         1, ifelse(eri$arrowhead == "tee", -1, 0))
     ind <- etype %in% c(1,-1)
+    if(colnames(plot.data.gene)[ncol(plot.data.gene)] != "mol.data")
+        colnames(plot.data.gene)[ncol(plot.data.gene)] <- "mol.data"
     nd <- unique(plot.data.gene[,c("labels","mol.data")])
     mol.data <- as.vector(nd[,"mol.data"])
-    mol.data <- sapply(mol.data, function(i) ifelse(i > 1, 1, ifelse(i < -1, -1, i)))
+    mol.data[mol.data > 1] <- 1
+    mol.data[mol.data < -1] <- -1    
     names(mol.data) <- as.vector(nd[,"labels"])
     nmol.data <- sapply(nNames, function(n) mol.data[lab.names[[n]]], USE.NAMES=FALSE)
     names(nmol.data) <- nNames

@@ -336,7 +336,8 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     out.files <- paste(out.prefix, 
         c("kview.html", "kpath.png", "kgraph.png"), sep="_")
     
-    if(!file.exists(out.files[1]) && pwy.id != "01100")
+    OVIEW.IDS <- c("01100", "01110", "01120", "01130")
+    if(!file.exists(out.files[1]) && !(pwy.id %in% OVIEW.IDS))
     {
         ##
         # 1 PLOT: kegg.native & kegg.graph
@@ -346,7 +347,10 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
             silent=TRUE
         )
 
-        kgraph.html <- .makeKGraphHTML(fc, gnam, pwy.id, org, out.files[3])
+        kgraph.html <- try(
+            .makeKGraphHTML(fc, gnam, pwy.id, org, out.files[3]),
+            silent=TRUE
+        )
         cont <- .makeView(kgraph.html, kpath.html, gene.html.pos="topright") 
         cat(cont, file=out.files[1])
     }

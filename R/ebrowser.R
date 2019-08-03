@@ -87,7 +87,10 @@
 #'     # WARNING: this is for advanced users only!
 #'     # inappropriate settings will impair EnrichmentBrowser's functionality
 #'     configEBrowser(key="GS.MIN.SIZE", value=3)  
-#' 
+#'
+#'     # restoring default config settings     
+#'     configEBrowser() 
+#'
 #' @export configEBrowser
 configEBrowser <- function(key, value=NULL) 
 {

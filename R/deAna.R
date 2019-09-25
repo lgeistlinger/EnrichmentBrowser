@@ -43,7 +43,7 @@
 #' \code{\link{voom}} for preprocessing of RNA-seq data, \code{\link{p.adjust}}
 #' for multiple testing correction, \code{\link{eBayes}} for DE analysis with
 #' limma, \code{\link{glmFit}} for DE analysis with edgeR, and
-#' \code{\link{DESeq}} for DE analysis with DESeq2.
+#' \code{DESeq} for DE analysis with DESeq2.
 #' @examples
 #' 
 #'     # (1) microarray data: intensity measurements
@@ -191,14 +191,17 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
 
 .deseq <- function(expr, group, paired, block, f, stat.only)
 {
+    DESeqDataSetFromMatrix <- DESeq <- results <- NULL
+    isAvailable("DESeq2", type="software")
+    
     colData <- data.frame(group=group)
     if(paired) colData$block <- block
     suppressMessages({
-        dds <- DESeq2::DESeqDataSetFromMatrix(
+        dds <- DESeqDataSetFromMatrix(
             countData=expr, colData=colData, design=f)
-        dds <- DESeq2::DESeq(dds)
+        dds <- DESeq(dds)
     })
-    res <- DESeq2::results(dds, pAdjustMethod="none")
+    res <- results(dds, pAdjustMethod="none")
     if(stat.only) return(res[,"stat"])
     de.tbl <- data.frame(res[,c("log2FoldChange","pvalue","stat")])
     colnames(de.tbl)[3] <- "DESeq2.STAT"

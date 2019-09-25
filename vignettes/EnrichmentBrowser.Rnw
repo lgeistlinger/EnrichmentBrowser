@@ -276,11 +276,6 @@ e.g.~from \software{BioMart} or specific \Bioconductor annotation packages.
 Both modes are implemented in the \Biocpkg{EDASeq} function 
 \Rfunction{getGeneLengthAndGCContent}.
 
-<<lgc, eval=FALSE>>=
-ids <- rownames(airSE)
-lgc <- EDASeq::getGeneLengthAndGCContent(ids, org="hsa", mode="biomart") 
-@
-
 Using precomputed information, normalization within and between lanes can be 
 carried out via
 

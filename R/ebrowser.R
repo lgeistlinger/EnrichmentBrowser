@@ -218,7 +218,7 @@ config.ebrowser <- function(key, value=NULL)
 #' normalized.  For available microarray normalization methods see the man page
 #' of the limma function \code{\link{normalizeBetweenArrays}}.  For available
 #' RNA-seq normalization methods see the man page of the EDASeq function
-#' \code{\link{betweenLaneNormalization}}.  Defaults to 'quantile', i.e.
+#' \code{betweenLaneNormalization}.  Defaults to 'quantile', i.e.
 #' normalization is carried out so that quantiles between arrays/lanes/samples
 #' are equal.  Use 'none' to indicate that the data is already normalized and
 #' should not be normalized by ebrowser.  See the man page of

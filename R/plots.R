@@ -23,7 +23,7 @@
 #' @return None, plots to a graphics device.
 #' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
 #' @seealso \code{\link{deAna}} for differential expression analysis,
-#' \code{\link{heatmap}} and \code{\link{truehist}} for generic plotting.
+#' \code{\link{Heatmap}} and \code{\link{hist}} for generic plotting.
 #' @examples
 #' 
 #'     # (1) simulating expression data: 100 genes, 12 samples
@@ -45,7 +45,7 @@ NULL
 #' @export
 pdistr <- function(p)
 {
-    MASS::truehist(p, nbins=100, prob=TRUE,
+    hist(p, breaks=100, prob=TRUE, col="cyan",
             main="P-Value Distribution", xlab="P-Value", ylab="Frequency")
 }
 

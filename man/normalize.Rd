@@ -14,13 +14,13 @@ normalize(se, norm.method = "quantile", within = FALSE,
 For available microarray normalization methods see the man page of the limma
 function \code{\link{normalizeBetweenArrays}}.  For available RNA-seq
 normalization methods see the man page of the EDASeq function
-\code{\link{betweenLaneNormalization}}.  Defaults to 'quantile', i.e.
+\code{betweenLaneNormalization}.  Defaults to 'quantile', i.e.
 normalization is carried out so that quantiles between arrays/lanes/samples
 are equal. See details.}
 
 \item{within}{Logical.  Is only taken into account if data.type='rseq'.
 Determine whether GC content normalization should be carried out (as
-implemented in the EDASeq function \code{\link{withinLaneNormalization}}).
+implemented in the EDASeq function \code{withinLaneNormalization}).
 Defaults to FALSE. See details.}
 
 \item{data.type}{Expression data type.  Use 'ma' for microarray and 'rseq'
@@ -91,8 +91,8 @@ EDASeq, edgeR, and DESeq2 for details.
 \code{\link{normalizeWithinArrays}} and \code{\link{normalizeBetweenArrays}}
 for normalization of microarray data;
 
-\code{\link{withinLaneNormalization}} and
-\code{\link{betweenLaneNormalization}} for normalization of RNA-seq data.
+\code{withinLaneNormalization} and \code{betweenLaneNormalization} from the 
+EDASeq package for normalization of RNA-seq data.
 }
 \author{
 Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>

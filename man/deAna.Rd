@@ -74,7 +74,7 @@ Raw p-values are corrected for multiple testing.
 \code{\link{voom}} for preprocessing of RNA-seq data, \code{\link{p.adjust}}
 for multiple testing correction, \code{\link{eBayes}} for DE analysis with
 limma, \code{\link{glmFit}} for DE analysis with edgeR, and
-\code{\link{DESeq}} for DE analysis with DESeq2.
+\code{DESeq} for DE analysis with DESeq2.
 }
 \author{
 Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>

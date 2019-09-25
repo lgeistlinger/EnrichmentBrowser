@@ -2,7 +2,7 @@
 #' @importFrom S4Vectors DataFrame
 #' @importMethodsFrom S4Vectors metadata
 #' @importFrom grDevices col2rgb dev.off png rgb 
-#' @importFrom graphics par segments symbols text 
+#' @importFrom graphics hist par segments symbols text 
 #' @importFrom stats formula mad median model.matrix p.adjust pchisq
 #'              phyper pnorm qnorm quantile rnorm runif sd
 #' @importFrom  methods as getMethod is new

@@ -405,7 +405,7 @@ nbea <- function(
     alpha=0.05, perm=100, beta=1, sig.stat=c("p", "fc", "|", "&"))
 {
     nea <- NULL
-   isAvailable("neaGUI", type="software")
+    isAvailable("neaGUI", type="software")
 
     #if(perm > 100) perm <- 100
     isig <- .isSig(rowData(se, use.names=TRUE), alpha, beta, sig.stat)

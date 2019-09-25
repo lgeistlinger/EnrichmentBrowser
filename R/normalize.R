@@ -37,12 +37,12 @@
 #' For available microarray normalization methods see the man page of the limma
 #' function \code{\link{normalizeBetweenArrays}}.  For available RNA-seq
 #' normalization methods see the man page of the EDASeq function
-#' \code{\link{betweenLaneNormalization}}.  Defaults to 'quantile', i.e.
+#' \code{betweenLaneNormalization}.  Defaults to 'quantile', i.e.
 #' normalization is carried out so that quantiles between arrays/lanes/samples
 #' are equal. See details.
 #' @param within Logical.  Is only taken into account if data.type='rseq'.
 #' Determine whether GC content normalization should be carried out (as
-#' implemented in the EDASeq function \code{\link{withinLaneNormalization}}).
+#' implemented in the EDASeq function \code{withinLaneNormalization}).
 #' Defaults to FALSE. See details.
 #' @param data.type Expression data type.  Use 'ma' for microarray and 'rseq'
 #' for RNA-seq data.  If NA, data.type is automatically guessed.  If the
@@ -56,8 +56,8 @@
 #' \code{\link{normalizeWithinArrays}} and \code{\link{normalizeBetweenArrays}}
 #' for normalization of microarray data;
 #' 
-#' \code{\link{withinLaneNormalization}} and
-#' \code{\link{betweenLaneNormalization}} for normalization of RNA-seq data.
+#' \code{withinLaneNormalization} and \code{betweenLaneNormalization} from the 
+#' EDASeq package for normalization of RNA-seq data.
 #' @examples
 #' 
 #'     #
@@ -113,6 +113,10 @@ normalize <- function(se, norm.method="quantile", within=FALSE, data.type=c(NA, 
     # rseq normalization with EDASeq
     if(data.type == "rseq")
     {
+        withinLaneNormalization <- betweenLaneNormalization <- NULL
+        getGeneLengthAndGCContent <- NULL
+        isAvailable("EDASeq")
+        
         # remove genes with low read count
 	    is.too.low <- rowSums(assay(se)) < ncol(se)
 	    nr.too.low <- sum(is.too.low)
@@ -133,7 +137,7 @@ normalize <- function(se, norm.method="quantile", within=FALSE, data.type=c(NA, 
                     "investigation in the annotation slot. See man page for details."))
                 MODEL.ORGS <- c("cel", "dme", "hsa", "mmu", "rno",  "sce")
                 mode <- ifelse(org %in% MODEL.ORGS, "org.db", "biomart") 
-                lgc <- EDASeq::getGeneLengthAndGCContent(
+                lgc <- getGeneLengthAndGCContent(
                         id=rownames(se), org=org, mode=mode)
                 rowData(se)$gc <- lgc
                 gc.col <- "gc"
@@ -144,10 +148,10 @@ normalize <- function(se, norm.method="quantile", within=FALSE, data.type=c(NA, 
             if(nr.na.gc > 0) message(paste("Removing", 
                 nr.na.gc, "genes due to missing GC content ..."))
             se <- se[!na.gc,]
-            assay(se) <- EDASeq::withinLaneNormalization(
+            assay(se) <- withinLaneNormalization(
                 assay(se), rowData(se)[,gc.col], which=norm.method)
         }
-        assay(se) <- EDASeq::betweenLaneNormalization(assay(se), which=norm.method)
+        assay(se) <- betweenLaneNormalization(assay(se), which=norm.method)
     } 
     # ma normalization with limma
     else assay(se) <- limma::normalizeBetweenArrays(assay(se), method=norm.method)
@@ -155,40 +159,41 @@ normalize <- function(se, norm.method="quantile", within=FALSE, data.type=c(NA, 
     return(se)
 }
 
-#' Variance-stabilizing transformation for RNA-seq expression data
-#' 
-#' This function implements a variance-stabilizing transformation (VST) for 
-#' RNA-seq read count data. It accounts for differences in sequencing depth
-#' between samples and over-dispersion of read count data. Permutation-based
-#' enrichment methods can then be applied as for microarray data. 
-#' 
-#' The VST uses the cpm function implemented in the edgeR package to compute 
-#' moderated log2 read counts. Using edgeR's estimate of the common dispersion 
-#' phi, the prior.count parameter of the cpm function is chosen as 0.5 / phi as 
-#' previously suggested (Harrison, 2015).
-#' 
-#' @param se An object of class \code{\linkS4class{SummarizedExperiment}}.
-#' @return An object of class \code{\linkS4class{SummarizedExperiment}}.
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
-#' @seealso \code{\link{cpm}} and \code{\link{estimateDisp}}
-#' @references
-#' Harrison (2015) Anscombe's 1948 variance stabilizing transformation for
-#' the negative binomial distribution is well suited to RNA-seq expression
-#' data. doi:10.7490/f1000research.1110757.1
-#'
-#' Anscombe (1948) The transformation of Poisson, binomial and
-#' negative-binomial data. Biometrika 35(3-4):246-54.
-#'
-#' Law et al. (2014) voom: precision weights unlock linear model analysis tools 
-#' for RNA-seq read counts. Genome Biol 15:29.
-#' 
-#' @examples
-#' 
-#'     se <- makeExampleData(what="SE", type="rseq")
-#'     vstSE <- vst(se) 
-#' 
-#' @export vst
-vst <- function(se)
+# TODO: integrate in `normalize`
+# Variance-stabilizing transformation for RNA-seq expression data
+# 
+# This function implements a variance-stabilizing transformation (VST) for 
+# RNA-seq read count data. It accounts for differences in sequencing depth
+# between samples and over-dispersion of read count data. Permutation-based
+# enrichment methods can then be applied as for microarray data. 
+# 
+# The VST uses the cpm function implemented in the edgeR package to compute 
+# moderated log2 read counts. Using edgeR's estimate of the common dispersion 
+# phi, the prior.count parameter of the cpm function is chosen as 0.5 / phi as 
+# previously suggested (Harrison, 2015).
+# 
+# @param se An object of class \code{\linkS4class{SummarizedExperiment}}.
+# @return An object of class \code{\linkS4class{SummarizedExperiment}}.
+# @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+# @seealso \code{\link{cpm}} and \code{\link{estimateDisp}}
+# @references
+# Harrison (2015) Anscombe's 1948 variance stabilizing transformation for
+# the negative binomial distribution is well suited to RNA-seq expression
+# data. doi:10.7490/f1000research.1110757.1
+#
+# Anscombe (1948) The transformation of Poisson, binomial and
+# negative-binomial data. Biometrika 35(3-4):246-54.
+#
+# Law et al. (2014) voom: precision weights unlock linear model analysis tools 
+# for RNA-seq read counts. Genome Biol 15:29.
+# 
+# @examples
+# 
+#     se <- makeExampleData(what="SE", type="rseq")
+#     vstSE <- vst(se) 
+# 
+# @export vst
+.vst <- function(se)
 {
     expr <- assay(se)
     GRP.COL <- configEBrowser("GRP.COL")

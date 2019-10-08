@@ -73,7 +73,7 @@ sbeaMethods <- function()
 #' the number of redundant sets; implemented in the mgsa package.
 #' 
 #' It is also possible to use additional set-based enrichment methods.  This
-#' requires to implement a function that takes 'se', 'gs', 'alpha', and 'perm'
+#' requires to implement a function that takes 'se' and 'gs'
 #' as arguments and returns a numeric vector 'ps' storing the resulting p-value
 #' for each gene set in 'gs'. This vector must be named accordingly (i.e.
 #' names(ps) == names(gs)). See examples.
@@ -177,7 +177,7 @@ sbeaMethods <- function()
 #'     gsRanking(ea.res)
 #' 
 #'     # using your own tailored function as enrichment method
-#'     dummySBEA <- function(se, gs, alpha, perm)
+#'     dummySBEA <- function(se, gs)
 #'     {
 #'         sig.ps <- sample(seq(0, 0.05, length=1000), 5)
 #'         nsig.ps <- sample(seq(0.1, 1, length=1000), length(gs)-5)
@@ -315,7 +315,7 @@ sbea <- function(
         }
     }
     else if(is.function(method)) 
-        gs.ps <- method(se=se, gs=gs, alpha=alpha, perm=perm)
+        gs.ps <- method(se=se, gs=gs, ...)
     else stop(paste(method, "is not a valid method for sbea"))
 
     res.tbl <- .formatEAResult(gs.ps, padj.method, out.file)

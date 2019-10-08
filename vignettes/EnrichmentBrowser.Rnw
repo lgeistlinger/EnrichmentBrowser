@@ -549,8 +549,7 @@ frequently used enrichment methods. However, it is also possible to exploit
 its visualization capabilities with user-defined set-based enrichment methods.
 
 This requires to implement a function that takes the characteristic arguments
-\Robject{se} (expression data), \Robject{gs} (gene sets), \Robject{alpha}
-(significance level), and \Robject{perm} (number of permutations). 
+\Robject{se} (expression data) and \Robject{gs} (gene sets). 
 
 In addition, it must return a numeric vector \Robject{ps} storing the resulting
 $p$-value for each gene set in \Robject{gs}. The $p$-value vector must also be
@@ -560,7 +559,7 @@ Let us consider the following dummy enrichment method, which randomly renders
 five gene sets significant and the remaining insignificant.
 
 <<dummySBEA>>=
-dummySBEA <- function(se, gs, alpha, perm)
+dummySBEA <- function(se, gs)
 {
         sig.ps <- sample(seq(0,0.05, length=1000),5)
         insig.ps <- sample(seq(0.1,1, length=1000), length(gs)-5)

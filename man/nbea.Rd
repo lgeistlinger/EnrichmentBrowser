@@ -135,8 +135,8 @@ about interactions among genes as well as novel interactions learned from
 data; implemented in CRAN's NetGSA package.
 
 It is also possible to use additional network-based enrichment methods.
-This requires to implement a function that takes 'se', 'gs', 'grn', 'alpha',
-and 'perm' as arguments and returns a numeric matrix 'res.tbl' with a
+This requires to implement a function that takes 'se', 'gs', and 'grn'
+and as arguments and returns a numeric matrix 'res.tbl' with a
 mandatory column named 'PVAL' storing the resulting p-value for each gene
 set in 'gs'. The rows of this matrix must be named accordingly (i.e.
 rownames(res.tbl) == names(gs)). See examples.
@@ -170,8 +170,8 @@ rownames(res.tbl) == names(gs)). See examples.
     # (6) result visualization and exploration
     gsRanking(ea.res, signif.only=FALSE)
 
-    # using your own tailored function as enrichment method
-    dummyNBEA <- function(se, gs, grn, alpha, perm)
+    # using your own function as enrichment method
+    dummyNBEA <- function(se, gs, grn)
     {
         sig.ps <- sample(seq(0,0.05, length=1000),5)
         insig.ps <- sample(seq(0.1,1, length=1000), length(gs)-5)

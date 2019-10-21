@@ -125,6 +125,8 @@
 eaBrowse <- function(res, nr.show=-1, 
     graph.view=NULL, html.only=FALSE, out.dir=NULL, report.name=NULL)
 {
+    isAvailable("ReportingTools", type="software")
+
     method <- ifelse( is(res$method, "character"), res$method, NA)
     se <- res$se
     alpha <- res$alpha

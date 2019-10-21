@@ -44,7 +44,7 @@ isAvailable <- function(pkg, type=c("annotation", "software", "data"))
         if(choice == "y") BiocManager::install(pkg, update=FALSE)
         else stop(paste("Package", pkg, "is not available"))
     }   
-    require(pkg, character.only=TRUE)
+    require(pkg, character.only=TRUE, quietly=TRUE)
 }
 
 .cacheResource <- function(res, rname, ucdir="EnrichmentBrowser")

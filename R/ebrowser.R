@@ -320,6 +320,8 @@ ebrowser <- function(
     gs, grn=NULL, perm=1000, alpha=0.05, beta=1, 
     comb=FALSE, browse=TRUE, nr.show=-1, out.dir=NULL, report.name="index", ...)
 {
+    isAvailable("ReportingTools", type="software")
+
     GRP.COL <- configEBrowser("GRP.COL")
     FC.COL <- configEBrowser("FC.COL")
     ADJP.COL <- configEBrowser("ADJP.COL")

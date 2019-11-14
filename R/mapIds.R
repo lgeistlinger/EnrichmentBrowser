@@ -110,6 +110,7 @@ idMap <- function(se, org=NA,
         if(!length(anno)) stop("Organism under investigation not annotated")
         se <- .annotateSE(se, anno)
     }
+    else message(paste("Using rowData column", to))
 
     ids <- names(se)
     # simple ID-based resolving: needs anno, from & to as char
@@ -128,15 +129,18 @@ idMap <- function(se, org=NA,
         x <- .idmapSE(se, to, multi.from) # only needs to as a col
         
         # remove to col
-        ind <- match(to, colnames(rowData(se)))
-        rowData(se) <- rowData(se)[,-ind]
+        ind <- colnames(rowData(se)) != to 
+        rowData(se) <- rowData(se)[,ind,drop=FALSE]
     }
 
     se <- se[names(x), ]
+    
+    # for trace back
+    rowData(se)[[from]] <- names(x)
+    message(paste("Mapped from.IDs have been added to the rowData column", from))
+    
     names(x) <- NULL
     names(se) <- x
-    
-    
     return(se)
 }
 

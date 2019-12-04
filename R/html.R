@@ -13,52 +13,6 @@
 #
 ###############################################################################
 
-.createIndex <- function(meth, comb, out.dir, report.name="index")
-{
-    indexPage <- ReportingTools::HTMLReport(shortName = report.name,
-                        title = 'EnrichmentBrowser: Index of Result Files',
-                        basePath = dirname(out.dir), 
-                        reportDirectory = basename(out.dir))
-
-    vcol <- "global_sview.html"
-    de.plot <- hwriter::hwriteImage(sub("sview.html", "volc.png", vcol),
-        link=vcol, table = FALSE, height=200, width=200, target="_blank")
-
-    de.tag <- hwriter::hwrite(de.plot, border=0, br=TRUE)
-    ReportingTools::publish(de.tag, indexPage)
-    delink <- ReportingTools::Link("DE Measures for each Gene", "de.txt")
-    ReportingTools::publish(delink, indexPage)
-    
-    if(comb)
-    {
-        res.tag <- hwriter::hwrite("Combined Results", heading=4)
-        ReportingTools::publish(res.tag, indexPage)
-        ttlink <- ReportingTools::Link("Top Table", "comb.html")
-        ReportingTools::publish(ttlink, indexPage)
-        frlink <- ReportingTools::Link("Full Ranking", "comb.txt")
-        ReportingTools::publish(frlink, indexPage) 
-    }
-
-    for(m in meth)
-    {
-        res.tag <- hwriter::hwrite(paste(toupper(m), "Results"), heading=4)
-        ReportingTools::publish(res.tag, indexPage)
-        ttlink <- ReportingTools::Link("Top Table", paste0(m, ".html"))
-        ReportingTools::publish(ttlink, indexPage)
-        frlink <- ReportingTools::Link("Full Ranking", paste0(m, ".txt"))
-        ReportingTools::publish(frlink, indexPage) 
-    }
-    index <- ReportingTools::finish(indexPage)
-    if(interactive())
-    {
-        message(paste("HTML report:", paste0(report.name, ".html")))
-        # this can be removed upon release of RStudio v1.2 (Summer 2018)
-        if(Sys.getenv("RSTUDIO") == "1") index <- URLencode(index)
-        browseURL(index)
-    }
-}
-
-
 
 #' Exploration of enrichment analysis results
 #' 
@@ -266,6 +220,51 @@ ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
     .Deprecated("eaBrowse")
     eaBrowse(res, nr.show, graph.view, html.only)
 }   
+
+.createIndex <- function(meth, comb, out.dir, report.name="index")
+{
+    indexPage <- ReportingTools::HTMLReport(shortName = report.name,
+                        title = 'EnrichmentBrowser: Index of Result Files',
+                        basePath = dirname(out.dir), 
+                        reportDirectory = basename(out.dir))
+
+    vcol <- "global_sview.html"
+    de.plot <- hwriter::hwriteImage(sub("sview.html", "volc.png", vcol),
+        link=vcol, table = FALSE, height=200, width=200, target="_blank")
+
+    de.tag <- hwriter::hwrite(de.plot, border=0, br=TRUE)
+    ReportingTools::publish(de.tag, indexPage)
+    delink <- ReportingTools::Link("DE Measures for each Gene", "de.txt")
+    ReportingTools::publish(delink, indexPage)
+    
+    if(comb)
+    {
+        res.tag <- hwriter::hwrite("Combined Results", heading=4)
+        ReportingTools::publish(res.tag, indexPage)
+        ttlink <- ReportingTools::Link("Top Table", "comb.html")
+        ReportingTools::publish(ttlink, indexPage)
+        frlink <- ReportingTools::Link("Full Ranking", "comb.txt")
+        ReportingTools::publish(frlink, indexPage) 
+    }
+
+    for(m in meth)
+    {
+        res.tag <- hwriter::hwrite(paste(toupper(m), "Results"), heading=4)
+        ReportingTools::publish(res.tag, indexPage)
+        ttlink <- ReportingTools::Link("Top Table", paste0(m, ".html"))
+        ReportingTools::publish(ttlink, indexPage)
+        frlink <- ReportingTools::Link("Full Ranking", paste0(m, ".txt"))
+        ReportingTools::publish(frlink, indexPage) 
+    }
+    index <- ReportingTools::finish(indexPage)
+    if(interactive())
+    {
+        message(paste("HTML report:", paste0(report.name, ".html")))
+        # this can be removed upon release of RStudio v1.2 (Summer 2018)
+        if(Sys.getenv("RSTUDIO") == "1") index <- URLencode(index)
+        browseURL(index)
+    }
+}
 
 .makeView <- function(html1, html2, gene.html.pos=c("bottom", "topright"))
 {

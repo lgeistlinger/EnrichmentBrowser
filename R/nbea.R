@@ -211,7 +211,6 @@ nbea <- function(
     # get configuration
     GS.MIN.SIZE <- configEBrowser("GS.MIN.SIZE")
     GS.MAX.SIZE <- configEBrowser("GS.MAX.SIZE")
-    FC.COL <-  configEBrowser("FC.COL")
     PVAL.COL <- configEBrowser("PVAL.COL")
     ADJP.COL <-  configEBrowser("ADJP.COL")
 
@@ -532,49 +531,52 @@ nbea <- function(
 #
 .netgsa <- function(se, gs, grn)
 {
-     NetGSA <- covsel <- edgelist2adj <- NULL
+    NetGSA <- netEst.dir <- prepareAdjacencyMatrix <- NULL
     isAvailable("netgsa", type="software")
 
     x <- assay(se)
     y <- colData(se)[,configEBrowser("GRP.COL")] + 1
 
-    # prepare gene sets
-    #cmat <- .gmt2cmat(gs, rownames(x)) 
-    #if(nrow(cmat) < nrow(x)) x <- x[rownames(cmat),]
-    f <- file()
-    sink(file=f)
-    cmat <- safe::getCmatrix(gs, as.matrix=TRUE)
-    sink()
-    close(f)
-    x <- x[rownames(cmat),]
-
     # prepare network
     out.dir <- configEBrowser("OUTDIR.DEFAULT")
     if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)
     out.file <- file.path(out.dir, "grn.txt")
-    write.table(grn[,1:2], file=out.file, row.names=FALSE)
-    vnames <- sort(unique(as.vector(grn[,1:2])))
-    adjm <- edgelist2adj(out.file, vertex.names=vnames)
-    file.remove(out.file)
-    ind <- intersect(rownames(x), rownames(adjm))
-    adjm <- adjm[ind, ind]
-    x <- x[rownames(adjm),]
-    cmat <- cmat[rownames(adjm),]
-    cmat <- cmat[rowSums(cmat) > 2,]
+    grn <- cbind(grn[,1:2], "undirected")
+    colnames(grn) <- c("src", "dest", "direction")
+    write.csv(grn, file=out.file, row.names=FALSE)
     
-    message("Estimating weighted adjacency matrix for GRN (group 0)")
-    A1 <- covsel(t(x[,y==1]), one=adjm, lambda=0.2)
-    message("Estimating weighted adjacency matrix for GRN (group 1)")
-    A2 <- covsel(t(x[,y==2]), one=adjm, lambda=0.2)
+    adj <- prepareAdjacencyMatrix(x, y, gs, FALSE, out.file, NULL)
+    grn <- adj$Adj
+    cmat <- adj$B
+    
+    file.remove(out.file)
+    ind <- intersect(rownames(x), rownames(grn))
+    grn <- grn[ind, ind]
+    x <- x[rownames(grn),]
+    cmat <- cmat[,rownames(grn)]
+    cmat <- cmat[rowSums(cmat) > 2,]
+   
+    message("Estimating weighted adjacency matrix for GRN") 
+    message("This may take a while ...")
+    .fitM <- function(i)
+    {
+        dat <- x[,y == i]
+        lambda <- sqrt(log(nrow(dat)) / ncol(dat))
+        fit.BIC <- bic.netEst.undir(dat, one = grn, lambda = lambda, eta = 0.1)
+        lambda <- which.min(fit.BIC$BIC) * lambda
+        fit <- netEst.undir(dat, one = grn, lambda = lambda, eta = 0.1)
+        fit$Adj
+    }
+    A <- lapply(1:2, .fitM) 
 
     # execute
     message("Executing NetGSA ...")
-    message("This may take a while ...")
-    res <- NetGSA(A1$wAdj, A2$wAdj, x, y, B=cmat, directed=TRUE)
+    res <- NetGSA(A, x, y, cmat, lklMethod = 'REHE')
 
-    res <- cbind(res$teststat, res$p.value)
-    colnames(res) <- c("STAT", configEBrowser("PVAL.COL"))
-    rownames(res) <- rownames(cmat)
+    res <- res$results
+    rownames(res) <- res[,"pathway"]
+    res <- res[,c("pSize", "pval")]
+    colnames(res) <- c("NR.GENES", configEBrowser("PVAL.COL"))
     return(res)
 }
 

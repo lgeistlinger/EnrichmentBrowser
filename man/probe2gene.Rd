@@ -5,8 +5,14 @@
 \alias{probe.2.gene.eset}
 \title{Transformation of probe level expression to gene level expression}
 \usage{
-probe2gene(probeSE, chip = NA, from = "PROBEID", to = "ENTREZID",
-  multi.to = "first", multi.from = "mean")
+probe2gene(
+  probeSE,
+  chip = NA,
+  from = "PROBEID",
+  to = "ENTREZID",
+  multi.to = "first",
+  multi.from = "mean"
+)
 }
 \arguments{
 \item{probeSE}{Probe expression data.  An object of class

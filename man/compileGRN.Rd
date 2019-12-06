@@ -5,8 +5,14 @@
 \alias{compile.grn.from.kegg}
 \title{Compilation of a gene regulatory network from pathway databases}
 \usage{
-compileGRN(org, db = "kegg", act.inh = TRUE, map2entrez = TRUE,
-  keep.type = FALSE, kegg.native = FALSE)
+compileGRN(
+  org,
+  db = "kegg",
+  act.inh = TRUE,
+  map2entrez = TRUE,
+  keep.type = FALSE,
+  kegg.native = FALSE
+)
 }
 \arguments{
 \item{org}{An organism in KEGG three letter code, e.g. \sQuote{hsa} for

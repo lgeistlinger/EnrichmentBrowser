@@ -7,8 +7,16 @@
 \alias{ggeaGraphLegend}
 \title{GGEA graphs of consistency between regulation and expression}
 \usage{
-ggeaGraph(gs, grn, se, alpha = 0.05, beta = 1, max.edges = 50,
-  cons.thresh = 0.7, show.scores = FALSE)
+ggeaGraph(
+  gs,
+  grn,
+  se,
+  alpha = 0.05,
+  beta = 1,
+  max.edges = 50,
+  cons.thresh = 0.7,
+  show.scores = FALSE
+)
 
 ggeaGraphLegend()
 }

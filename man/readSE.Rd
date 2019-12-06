@@ -5,8 +5,13 @@
 \alias{read.eset}
 \title{Reading gene expression data from file}
 \usage{
-readSE(assay.file, cdat.file, rdat.file, data.type = c(NA, "ma", "rseq"),
-  NA.method = c("mean", "rm", "keep"))
+readSE(
+  assay.file,
+  cdat.file,
+  rdat.file,
+  data.type = c(NA, "ma", "rseq"),
+  NA.method = c("mean", "rm", "keep")
+)
 }
 \arguments{
 \item{assay.file}{Expression matrix.  A tab separated text file containing

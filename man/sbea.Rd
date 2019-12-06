@@ -9,9 +9,17 @@
 \usage{
 sbeaMethods()
 
-sbea(method = EnrichmentBrowser::sbeaMethods(), se, gs, alpha = 0.05,
-  perm = 1000, padj.method = "none", out.file = NULL,
-  browse = FALSE, ...)
+sbea(
+  method = EnrichmentBrowser::sbeaMethods(),
+  se,
+  gs,
+  alpha = 0.05,
+  perm = 1000,
+  padj.method = "none",
+  out.file = NULL,
+  browse = FALSE,
+  ...
+)
 }
 \arguments{
 \item{method}{Set-based enrichment analysis method.  Currently, the

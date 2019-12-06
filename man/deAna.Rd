@@ -5,9 +5,15 @@
 \alias{de.ana}
 \title{Differential expression analysis between two sample groups}
 \usage{
-deAna(expr, grp = NULL, blk = NULL, de.method = c("limma", "edgeR",
-  "DESeq2"), padj.method = "BH", stat.only = FALSE,
-  filter.by.expr = TRUE)
+deAna(
+  expr,
+  grp = NULL,
+  blk = NULL,
+  de.method = c("limma", "edgeR", "DESeq2"),
+  padj.method = "BH",
+  stat.only = FALSE,
+  filter.by.expr = TRUE
+)
 }
 \arguments{
 \item{expr}{Expression data.  A numeric matrix. Rows correspond to genes,

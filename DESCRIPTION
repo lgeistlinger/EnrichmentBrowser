@@ -25,4 +25,4 @@ VignetteBuilder: knitr
 biocViews: ImmunoOncology, Microarray, RNASeq, GeneExpression, DifferentialExpression,
         Pathways, GraphAndNetwork, Network, GeneSetEnrichment,
         NetworkEnrichment, Visualization, ReportWriting
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.0

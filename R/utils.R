@@ -47,6 +47,29 @@ isAvailable <- function(pkg, type=c("annotation", "software", "data"))
     require(pkg, character.only=TRUE, quietly=TRUE)
 }
 
+SPECIES <- rbind(
+        c("anopheles", "Anopheles gambiae", "Ag", "aga", "anoGam", "7165"),
+        c("arabidopsis", "Arabidopsis thaliana", "At", "ath", NA, "3702"),
+        c("bovine", "Bos taurus", "Bt", "bta", "bosTau", "9913"),
+        c("canine", "Canis familiaris", "Cf", "cfa", "canFam", "9615"),
+        c("chicken", "Gallus gallus", "Gg", "gga", "galGal", "9031"), 
+        c("chimp", "Pan troglodytes", "Pt", "ptr", "PanTro", "9598"),
+        c("ecoliK12", "Escherichia coli K12", "EcK12", "eco", NA, "562,83333,511145"), 
+        c("ecoliSakai", "Escherichia coli Sakai", "EcSakai", "ecs", NA, "83334"),
+        c("fly", "Drosophila melanogaster", "Dm", "dme", "dm", "7227"),
+        c("human", "Homo sapiens", "Hs", "hsa", "hg", "9606"),
+        c("malaria", "Plasmodium falciparum", "Pf", "pfa", NA, "5833"),
+        c("mouse", "Mus musculus", "Mm", "mmu", "mm", "10090"),
+        c("pig", "Sus scrofa", "Ss", "ssc", "susScr", "9823"),
+        c("rat", "Rattus norvegicus", "Rn", "rno", "rn", "10116"), 
+        c("rhesus", "Macaca mulatta", "Mmu", "mcc", "rheMac", "9544"),  
+        c("worm", "Caenorhabditis elegans", "Ce", "cel", "ce", "6239"),
+        c("xenopus", "Xenopus laevis", "Xl", "xla", "NA", "8355"),
+        c("yeast", "Saccharomyces cerevisiae", "Sc", "sce", "sacCer", "4932,559292"),
+        c("zebrafish", "Danio rerio", "Dr", "dre", "danRer", "7955")
+    )
+colnames(SPECIES) <- c("common", "tax", "bioc", "kegg", "ucsc", "ncbi")
+
 .cacheResource <- function(res, rname, ucdir="EnrichmentBrowser")
 {
     # are we running interactively?
@@ -138,29 +161,7 @@ isAvailable <- function(pkg, type=c("annotation", "software", "data"))
 {
     type <- match.arg(type)
 
-    SPECIES <- rbind(
-        c("anopheles", "Anopheles gambiae", "Ag", "aga", "anoGam", "7165"),
-        c("arabidopsis", "Arabidopsis thaliana", "At", "ath", NA, "3702"),
-        c("bovine", "Bos taurus", "Bt", "bta", "bosTau", "9913"),
-        c("canine", "Canis familiaris", "Cf", "cfa", "canFam", "9615"),
-        c("chicken", "Gallus gallus", "Gg", "gga", "galGal", "9031"), 
-        c("chimp", "Pan troglodytes", "Pt", "ptr", "PanTro", "9598"),
-        c("ecoliK12", "Escherichia coli K12", "EcK12", "eco", NA, "562,83333,511145"), 
-        c("ecoliSakai", "Escherichia coli Sakai", "EcSakai", "ecs", NA, "83334"),
-        c("fly", "Drosophila melanogaster", "Dm", "dme", "dm", "7227"),
-        c("human", "Homo sapiens", "Hs", "hsa", "hg", "9606"),
-        c("malaria", "Plasmodium falciparum", "Pf", "pfa", NA, "5833"),
-        c("mouse", "Mus musculus", "Mm", "mmu", "mm", "10090"),
-        c("pig", "Sus scrofa", "Ss", "ssc", "susScr", "9823"),
-        c("rat", "Rattus norvegicus", "Rn", "rno", "rn", "10116"), 
-        c("rhesus", "Macaca mulatta", "Mmu", "mcc", "rheMac", "9544"),  
-        c("worm", "Caenorhabditis elegans", "Ce", "cel", "ce", "6239"),
-        c("xenopus", "Xenopus laevis", "Xl", "xla", "NA", "8355"),
-        c("yeast", "Saccharomyces cerevisiae", "Sc", "sce", "sacCer", "4932,559292"),
-        c("zebrafish", "Danio rerio", "Dr", "dre", "danRer", "7955")
-    )
-    colnames(SPECIES) <- c("common", "tax", "bioc", "kegg", "ucsc", "ncbi")
-    
+        
 
     # org specification via 
     # (a) 3-letter code, e.g. 'hsa' 

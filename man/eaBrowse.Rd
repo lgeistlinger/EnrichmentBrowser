@@ -7,8 +7,14 @@
 \alias{gs.ranking}
 \title{Exploration of enrichment analysis results}
 \usage{
-eaBrowse(res, nr.show = -1, graph.view = NULL, html.only = FALSE,
-  out.dir = NULL, report.name = NULL)
+eaBrowse(
+  res,
+  nr.show = -1,
+  graph.view = NULL,
+  html.only = FALSE,
+  out.dir = NULL,
+  report.name = NULL
+)
 
 gsRanking(res, signif.only = TRUE)
 }

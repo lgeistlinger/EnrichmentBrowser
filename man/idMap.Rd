@@ -6,8 +6,14 @@
 \alias{idTypes}
 \title{Mapping between gene ID types for the rownames of a SummarizedExperiment}
 \usage{
-idMap(se, org = NA, from = "ENSEMBL", to = "ENTREZID",
-  multi.to = "first", multi.from = "first")
+idMap(
+  se,
+  org = NA,
+  from = "ENSEMBL",
+  to = "ENTREZID",
+  multi.to = "first",
+  multi.from = "first"
+)
 
 idTypes(org)
 }

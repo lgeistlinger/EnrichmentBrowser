@@ -5,9 +5,13 @@
 \alias{comb.ea.results}
 \title{Combining enrichment analysis results}
 \usage{
-combResults(res.list, rank.col = configEBrowser("PVAL.COL"),
-  decreasing = FALSE, rank.fun = c("comp.ranks", "rel.ranks",
-  "abs.ranks"), comb.fun = c("mean", "median", "min", "max", "sum"))
+combResults(
+  res.list,
+  rank.col = configEBrowser("PVAL.COL"),
+  decreasing = FALSE,
+  rank.fun = c("comp.ranks", "rel.ranks", "abs.ranks"),
+  comb.fun = c("mean", "median", "min", "max", "sum")
+)
 }
 \arguments{
 \item{res.list}{A list of enrichment analysis result lists (as returned by

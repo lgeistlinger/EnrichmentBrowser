@@ -43,6 +43,13 @@
 #' 'biomart' mode downloads the mapping from BioMart - which can be time
 #' consuming, but allows to select from a larger range of organisms and
 #' contains the latest mappings.  Defaults to 'GO.db'.
+#' @param msigdb.cat Character. MSigDB collection category: 'H' (hallmark), 
+#' 'C1' (genomic position), 'C2' (curated databases), 'C3' (binding site motifs),
+#' 'C4' (computational cancer), 'C5' (Gene Ontology), 'C6' (oncogenic), 
+#' 'C7' (immunologic). See references. 
+#' @param msigdb.subcat Character. MSigDB collection subcategory. Depends on the
+#' chosen MSigDB collection category. For example, 'MIR' to obtain microRNA targets
+#' from the 'C3' collection. See references. 
 #' @param return.type Character. Determines whether gene sets are returned
 #' as a simple list of gene sets (each being a character vector of gene IDs), or
 #' as an object of class \code{\linkS4class{GeneSetCollection}}.
@@ -56,11 +63,15 @@
 #' 
 #' \code{\link{keggList}} and \code{\link{keggLink}} for accessing the KEGG REST
 #' server.
+#'
+#' \code{msigdbr::msigdbr} for obtaining gene sets from the MSigDB.
 #' @references GO: \url{http://geneontology.org/}
 #' 
-#' KEGG Organism code \url{http://www.genome.jp/kegg/catalog/org_list.html}
+#' KEGG Organism code: \url{http://www.genome.jp/kegg/catalog/org_list.html}
 #'
-#' GMT file format
+#' MSigDB: \url{http://software.broadinstitute.org/gsea/msigdb/collections.jsp}
+#'
+#' GMT file format:
 #' \url{http://www.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats}
 #' @examples
 #' 
@@ -81,11 +92,16 @@
 #'     # (2) Defining gene sets according to KEGG  
 #'     kegg.gs <- getGenesets(org="hsa", db="kegg")
 #'
-#'     # (3) parsing gene sets from GMT
+#'     # (3) Obtaining *H*allmark gene sets from MSigDB
+#'     \donttest{
+#'      hall.gs <- getGenesets(org="hsa", db="msigdb", msigdb.cat="H")
+#'     }
+#'
+#'     # (4) parsing gene sets from GMT
 #'     gmt.file <- system.file("extdata/hsa_kegg_gs.gmt", package="EnrichmentBrowser")
 #'     gs <- getGenesets(gmt.file)     
 #'     
-#'     # (4) writing gene sets to file
+#'     # (5) writing gene sets to file
 #'     writeGMT(gs, gmt.file)
 #' 
 NULL
@@ -93,11 +109,13 @@ NULL
 #' @export
 #' @rdname getGenesets
 getGenesets <- function(org, 
-    db=c("go", "kegg"), 
-    cache=TRUE,
-    go.onto=c("BP", "MF", "CC"),
-    go.mode=c("GO.db", "biomart"),
-    return.type=c("list", "GeneSetCollection"))
+    db = c("go", "kegg", "msigdb"), 
+    cache = TRUE,
+    go.onto = c("BP", "MF", "CC"),
+    go.mode = c("GO.db", "biomart"),
+    msigdb.cat = c("H", paste0("C", 1:7)),
+    msigdb.subcat = "",
+    return.type = c("list", "GeneSetCollection"))
 {
     stopifnot(length(org) == 1 && is.character(org))
     return.type <- match.arg(return.type)
@@ -110,8 +128,50 @@ getGenesets <- function(org,
 
         db <- match.arg(db)
         if(db == "go") gs <- .getGO(org, go.onto, go.mode, cache, return.type)
-        else gs <- .getKEGG(org, cache, return.type=return.type) 
+        else if(db == "kegg") gs <- .getKEGG(org, cache, return.type = return.type)
+        else gs <- .getMSigDb(org, msigdb.cat, msigdb.subcat, cache, return.type)
     }
+    return(gs)
+}
+
+.getMSigDb <- function(org, cat = c("H", paste0("C", 1:7)), 
+                        subcat = "", cache = TRUE, return.type)
+{
+    cat <- match.arg(cat)
+    
+    gsc.name <- paste(org, "msigdb", cat, subcat, "gs", sep=".") 
+    # should a cached version be used?
+    if(cache)
+    {
+        gs <- .getResourceFromCache(gsc.name)
+        if(!is.null(gs)) return(gs)
+    }
+
+    msigdbr_show_species <- msigdbr <- NULL
+    isAvailable("msigdbr", type = "software")
+
+    ind <- match(org, SPECIES[,"kegg"])
+    org <- SPECIES[ind, "tax"]
+
+    if(!(org %in% msigdbr_show_species())) stop("Organism not supported")
+
+    df <- msigdbr(org, cat, subcat)
+    gs <- split(as.character(df$entrez_gene), df$gs_id)
+    gs.names <- unique(df$gs_name)
+    gs.ids <- unique(df$gs_id)
+    gs.names <- paste(gs.ids, gs.names, sep = "_")
+    names(gs.names) <- gs.ids
+    names(gs) <- unname(gs.names[names(gs)])
+    
+    if(return.type == "GeneSetCollection")
+    {
+        ct <- BroadCollection(category = tolower(cat), 
+                                subCategory = tolower(subcat))
+        titles <- vapply(names(gs), .extractTitle, character(1))
+        gs <- .makeGSC(gs, titles, org, ct)        
+    }
+    
+    .cacheResource(gs, gsc.name)
     return(gs)
 }
 
@@ -213,7 +273,8 @@ get.go.genesets <- function(org,
     .makeGeneSet <- function(s)
     {
         sname <- gsub("[<>:\\?\\|\"\\*\\/]", "", s)
-        if(!is(ctype, "ComputedCollection")) ctype@ids <- s 
+        is.idcoll <- !is(ctype, "ComputedCollection") && !is(ctype, "BroadCollection")
+        if(is.idcoll) ctype@ids <- s 
         gset <- GeneSet(setName=sname,
                     geneIds=gs[[s]],
                     type=it,
@@ -384,6 +445,12 @@ get.kegg.genesets <- function(pwys, cache=TRUE, gmt.file=NULL)
     return(ids)
 }
 
+
+.extractTitle <- function(n)
+{
+    spl <- unlist(strsplit(n, "_"))
+    paste(spl[-1], collapse = " ")
+}
 
 ## parse geneset database
 #' @export

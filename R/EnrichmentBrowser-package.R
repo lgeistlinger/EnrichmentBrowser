@@ -8,7 +8,7 @@
 #' @importFrom  methods as getMethod is new
 #' @importFrom  utils available.packages browseURL capture.output data 
 #'                head memory.limit packageVersion read.csv read.delim unzip 
-#'                  write.table URLencode
+#'                  write.csv write.table URLencode
 NULL
 
 

@@ -531,7 +531,7 @@ nbea <- function(
 #
 .netgsa <- function(se, gs, grn)
 {
-    NetGSA <- netEst.dir <- prepareAdjacencyMatrix <- NULL
+    NetGSA <- bic.netEst.undir <- netEst.undir <- prepareAdjacencyMatrix <- NULL
     isAvailable("netgsa", type="software")
 
     x <- assay(se)

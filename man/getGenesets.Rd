@@ -8,9 +8,16 @@
 \alias{writeGMT}
 \title{Definition of gene sets according to different sources}
 \usage{
-getGenesets(org, db = c("go", "kegg"), cache = TRUE,
-  go.onto = c("BP", "MF", "CC"), go.mode = c("GO.db", "biomart"),
-  return.type = c("list", "GeneSetCollection"))
+getGenesets(
+  org,
+  db = c("go", "kegg", "msigdb"),
+  cache = TRUE,
+  go.onto = c("BP", "MF", "CC"),
+  go.mode = c("GO.db", "biomart"),
+  msigdb.cat = c("H", paste0("C", 1:7)),
+  msigdb.subcat = "",
+  return.type = c("list", "GeneSetCollection")
+)
 
 writeGMT(gs, gmt.file)
 }
@@ -37,6 +44,15 @@ available for the currently supported model organisms in BioC.  The
 'biomart' mode downloads the mapping from BioMart - which can be time
 consuming, but allows to select from a larger range of organisms and
 contains the latest mappings.  Defaults to 'GO.db'.}
+
+\item{msigdb.cat}{Character. MSigDB collection category: 'H' (hallmark), 
+'C1' (genomic position), 'C2' (curated databases), 'C3' (binding site motifs),
+'C4' (computational cancer), 'C5' (Gene Ontology), 'C6' (oncogenic), 
+'C7' (immunologic). See references.}
+
+\item{msigdb.subcat}{Character. MSigDB collection subcategory. Depends on the
+chosen MSigDB collection category. For example, 'MIR' to obtain microRNA targets
+from the 'C3' collection. See references.}
 
 \item{return.type}{Character. Determines whether gene sets are returned
 as a simple list of gene sets (each being a character vector of gene IDs), or
@@ -79,20 +95,27 @@ the gene set. See references.
     # (2) Defining gene sets according to KEGG  
     kegg.gs <- getGenesets(org="hsa", db="kegg")
 
-    # (3) parsing gene sets from GMT
+    # (3) Obtaining *H*allmark gene sets from MSigDB
+    \donttest{
+     hall.gs <- getGenesets(org="hsa", db="msigdb", msigdb.cat="H")
+    }
+
+    # (4) parsing gene sets from GMT
     gmt.file <- system.file("extdata/hsa_kegg_gs.gmt", package="EnrichmentBrowser")
     gs <- getGenesets(gmt.file)     
     
-    # (4) writing gene sets to file
+    # (5) writing gene sets to file
     writeGMT(gs, gmt.file)
 
 }
 \references{
 GO: \url{http://geneontology.org/}
 
-KEGG Organism code \url{http://www.genome.jp/kegg/catalog/org_list.html}
+KEGG Organism code: \url{http://www.genome.jp/kegg/catalog/org_list.html}
 
-GMT file format
+MSigDB: \url{http://software.broadinstitute.org/gsea/msigdb/collections.jsp}
+
+GMT file format:
 \url{http://www.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats}
 }
 \seealso{
@@ -101,6 +124,8 @@ GMT file format
 
 \code{\link{keggList}} and \code{\link{keggLink}} for accessing the KEGG REST
 server.
+
+\code{msigdbr::msigdbr} for obtaining gene sets from the MSigDB.
 }
 \author{
 Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>

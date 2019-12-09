@@ -10,13 +10,10 @@
 \usage{
 getGenesets(
   org,
-  db = c("go", "kegg", "msigdb"),
+  db = c("go", "kegg", "msigdb", "enrichr"),
   cache = TRUE,
-  go.onto = c("BP", "MF", "CC"),
-  go.mode = c("GO.db", "biomart"),
-  msigdb.cat = c("H", paste0("C", 1:7)),
-  msigdb.subcat = "",
-  return.type = c("list", "GeneSetCollection")
+  return.type = c("list", "GeneSetCollection"),
+  ...
 )
 
 writeGMT(gs, gmt.file)
@@ -27,36 +24,41 @@ writeGMT(gs, gmt.file)
 gene sets in GMT format. See details.}
 
 \item{db}{Database from which gene sets should be retrieved. Currently, 
-either 'go' (default) or 'kegg'.}
+either 'go' (default), 'kegg', 'msigdb', or 'enrichr'.}
 
 \item{cache}{Logical.  Should a locally cached version used if available?
 Defaults to \code{TRUE}.}
 
-\item{go.onto}{Character. Specifies one of the three GO ontologies: 'BP'
-(biological process), 'MF' (molecular function), 'CC' (cellular component).
-Defaults to 'BP'.}
+\item{return.type}{Character. Determines whether gene sets are returned
+as a simple list of gene sets (each being a character vector of gene IDs), or
+as an object of class \code{\linkS4class{GeneSetCollection}}.}
 
-\item{go.mode}{Character. Determines in which way the gene sets are retrieved.
-This can be either 'GO.db' or 'biomart'.  The 'GO.db' mode creates the gene
-sets based on BioC annotation packages - which is fast, but represents not
+\item{...}{Additional arguments for individual gene set databases. 
+For \code{db = "GO"}: \itemize{ \item onto: Character. Specifies one of the
+three GO ontologies: 'BP'
+(biological process), 'MF' (molecular function), 'CC' (cellular component).
+Defaults to 'BP'. \item mode: Character. Determines in which way the gene 
+sets are retrieved. This can be either 'GO.db' or 'biomart'. 
+The 'GO.db' mode creates the gene sets based on BioC annotation packages - 
+which is fast, but represents not
 necessarily the most up-to-date mapping. In addition, this option is only
 available for the currently supported model organisms in BioC.  The
 'biomart' mode downloads the mapping from BioMart - which can be time
 consuming, but allows to select from a larger range of organisms and
 contains the latest mappings.  Defaults to 'GO.db'.}
-
-\item{msigdb.cat}{Character. MSigDB collection category: 'H' (hallmark), 
+For \code{db = "msigdb":} \itemize{ \item cat: Character. 
+MSigDB collection category: 'H' (hallmark), 
 'C1' (genomic position), 'C2' (curated databases), 'C3' (binding site motifs),
 'C4' (computational cancer), 'C5' (Gene Ontology), 'C6' (oncogenic), 
-'C7' (immunologic). See references.}
-
-\item{msigdb.subcat}{Character. MSigDB collection subcategory. Depends on the
+'C7' (immunologic). See references. 
+\item subcat: Character. MSigDB collection subcategory. Depends on the
 chosen MSigDB collection category. For example, 'MIR' to obtain microRNA targets
 from the 'C3' collection. See references.}
-
-\item{return.type}{Character. Determines whether gene sets are returned
-as a simple list of gene sets (each being a character vector of gene IDs), or
-as an object of class \code{\linkS4class{GeneSetCollection}}.}
+For \code{db = "enrichr"}: \itemize{ \item lib: Character. Enrichr gene set 
+library. For example, 'Genes_Associated_with_NIH_Grants' to obtain gene sets 
+based on associations with NIH grants. See references.
+\item show.libs: Logical. Show available gene set libraries? Defaults to 
+\code{FALSE}.}}
 
 \item{gs}{A list of gene sets (character vectors of gene IDs).}
 
@@ -83,28 +85,31 @@ the gene set. See references.
     go.gs <- getGenesets(org="hsa", db="go")
     
     # eq.:  
-    # go.gs <- getGenesets(org="hsa", db="go", go.onto="BP", go.mode="GO.db")
-
+    # go.gs <- getGenesets(org="hsa", db="go", onto="BP", mode="GO.db")
+    \donttest{
     # Alternatively:
     # downloading from BioMart 
     # this may take a few minutes ...
-    \donttest{
-     go.gs <- getGenesets(org="hsa", db="go", mode="biomart")
+    go.gs <- getGenesets(org="hsa", db="go", mode="biomart")
     }
-
     # (2) Defining gene sets according to KEGG  
     kegg.gs <- getGenesets(org="hsa", db="kegg")
-
-    # (3) Obtaining *H*allmark gene sets from MSigDB
     \donttest{
-     hall.gs <- getGenesets(org="hsa", db="msigdb", msigdb.cat="H")
+    # (3) Obtaining *H*allmark gene sets from MSigDB
+    hall.gs <- getGenesets(org="hsa", db="msigdb", cat="H")
     }
-
-    # (4) parsing gene sets from GMT
+    \donttest{
+    # (4) Obtaining gene sets from Enrichr
+    tfppi.gs <- getGenesets(org="hsa", db="enrichr", lib="Transcription_Factor_PPIs")
+    
+    # displaying available Enrichr gene set libraries
+    getGenesets(org="hsa", db="enrichr", show.libs=TRUE)        
+    }
+    # (6) parsing gene sets from GMT
     gmt.file <- system.file("extdata/hsa_kegg_gs.gmt", package="EnrichmentBrowser")
     gs <- getGenesets(gmt.file)     
     
-    # (5) writing gene sets to file
+    # (7) writing gene sets to file
     writeGMT(gs, gmt.file)
 
 }
@@ -114,6 +119,8 @@ GO: \url{http://geneontology.org/}
 KEGG Organism code: \url{http://www.genome.jp/kegg/catalog/org_list.html}
 
 MSigDB: \url{http://software.broadinstitute.org/gsea/msigdb/collections.jsp}
+
+Enrichr: \url{https://amp.pharm.mssm.edu/Enrichr/#stats}
 
 GMT file format:
 \url{http://www.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats}

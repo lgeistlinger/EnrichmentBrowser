@@ -8,7 +8,8 @@
 # Update, 05 May 2014: KEGG gene set getter for organism of choice 
 # Update, 10 March 2015: including getter for GO genesets
 # Update, 24 April 2018: unified getGenesets fassade for gene sets from
-#                        different DBs       
+#                        different DBs
+# Update, Dec 2019: including getter for MSigDB and Enrichr       
 ###############################################################################
 
 #' @name getGenesets
@@ -29,30 +30,38 @@
 #' \sQuote{Homo sapiens}. Alternatively, this can also be a text file storing 
 #' gene sets in GMT format. See details.
 #' @param db Database from which gene sets should be retrieved. Currently, 
-#' either 'go' (default) or 'kegg'. 
+#' either 'go' (default), 'kegg', 'msigdb', or 'enrichr'. 
 #' @param cache Logical.  Should a locally cached version used if available?
 #' Defaults to \code{TRUE}.
-#' @param go.onto Character. Specifies one of the three GO ontologies: 'BP'
+#' @param return.type Character. Determines whether gene sets are returned
+#' as a simple list of gene sets (each being a character vector of gene IDs), or
+#' as an object of class \code{\linkS4class{GeneSetCollection}}.
+#' @param ... Additional arguments for individual gene set databases. 
+#' For \code{db = "GO"}: \itemize{ \item onto: Character. Specifies one of the
+#' three GO ontologies: 'BP'
 #' (biological process), 'MF' (molecular function), 'CC' (cellular component).
-#' Defaults to 'BP'.
-#' @param go.mode Character. Determines in which way the gene sets are retrieved.
-#' This can be either 'GO.db' or 'biomart'.  The 'GO.db' mode creates the gene
-#' sets based on BioC annotation packages - which is fast, but represents not
+#' Defaults to 'BP'. \item mode: Character. Determines in which way the gene 
+#' sets are retrieved. This can be either 'GO.db' or 'biomart'. 
+#' The 'GO.db' mode creates the gene sets based on BioC annotation packages - 
+#' which is fast, but represents not
 #' necessarily the most up-to-date mapping. In addition, this option is only
 #' available for the currently supported model organisms in BioC.  The
 #' 'biomart' mode downloads the mapping from BioMart - which can be time
 #' consuming, but allows to select from a larger range of organisms and
-#' contains the latest mappings.  Defaults to 'GO.db'.
-#' @param msigdb.cat Character. MSigDB collection category: 'H' (hallmark), 
+#' contains the latest mappings.  Defaults to 'GO.db'.}
+#' For \code{db = "msigdb":} \itemize{ \item cat: Character. 
+#' MSigDB collection category: 'H' (hallmark), 
 #' 'C1' (genomic position), 'C2' (curated databases), 'C3' (binding site motifs),
 #' 'C4' (computational cancer), 'C5' (Gene Ontology), 'C6' (oncogenic), 
 #' 'C7' (immunologic). See references. 
-#' @param msigdb.subcat Character. MSigDB collection subcategory. Depends on the
+#' \item subcat: Character. MSigDB collection subcategory. Depends on the
 #' chosen MSigDB collection category. For example, 'MIR' to obtain microRNA targets
-#' from the 'C3' collection. See references. 
-#' @param return.type Character. Determines whether gene sets are returned
-#' as a simple list of gene sets (each being a character vector of gene IDs), or
-#' as an object of class \code{\linkS4class{GeneSetCollection}}.
+#' from the 'C3' collection. See references.}
+#' For \code{db = "enrichr"}: \itemize{ \item lib: Character. Enrichr gene set 
+#' library. For example, 'Genes_Associated_with_NIH_Grants' to obtain gene sets 
+#' based on associations with NIH grants. See references.
+#' \item show.libs: Logical. Show available gene set libraries? Defaults to 
+#' \code{FALSE}.}
 #' @param gs A list of gene sets (character vectors of gene IDs).
 #' @param gmt.file Gene set file in GMT format. See details.
 #' @return For \code{getGenesets}: a list of gene sets (vectors of gene IDs).
@@ -71,6 +80,8 @@
 #'
 #' MSigDB: \url{http://software.broadinstitute.org/gsea/msigdb/collections.jsp}
 #'
+#' Enrichr: \url{https://amp.pharm.mssm.edu/Enrichr/#stats}
+#'
 #' GMT file format:
 #' \url{http://www.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats}
 #' @examples
@@ -80,28 +91,31 @@
 #'     go.gs <- getGenesets(org="hsa", db="go")
 #'     
 #'     # eq.:  
-#'     # go.gs <- getGenesets(org="hsa", db="go", go.onto="BP", go.mode="GO.db")
-#' 
+#'     # go.gs <- getGenesets(org="hsa", db="go", onto="BP", mode="GO.db")
+#'     \donttest{
 #'     # Alternatively:
 #'     # downloading from BioMart 
 #'     # this may take a few minutes ...
-#'     \donttest{
-#'      go.gs <- getGenesets(org="hsa", db="go", mode="biomart")
+#'     go.gs <- getGenesets(org="hsa", db="go", mode="biomart")
 #'     }
-#'
 #'     # (2) Defining gene sets according to KEGG  
 #'     kegg.gs <- getGenesets(org="hsa", db="kegg")
-#'
-#'     # (3) Obtaining *H*allmark gene sets from MSigDB
 #'     \donttest{
-#'      hall.gs <- getGenesets(org="hsa", db="msigdb", msigdb.cat="H")
+#'     # (3) Obtaining *H*allmark gene sets from MSigDB
+#'     hall.gs <- getGenesets(org="hsa", db="msigdb", cat="H")
 #'     }
-#'
-#'     # (4) parsing gene sets from GMT
+#'     \donttest{
+#'     # (4) Obtaining gene sets from Enrichr
+#'     tfppi.gs <- getGenesets(org="hsa", db="enrichr", lib="Transcription_Factor_PPIs")
+#'     
+#'     # displaying available Enrichr gene set libraries
+#'     getGenesets(org="hsa", db="enrichr", show.libs=TRUE)        
+#'     }
+#'     # (6) parsing gene sets from GMT
 #'     gmt.file <- system.file("extdata/hsa_kegg_gs.gmt", package="EnrichmentBrowser")
 #'     gs <- getGenesets(gmt.file)     
 #'     
-#'     # (5) writing gene sets to file
+#'     # (7) writing gene sets to file
 #'     writeGMT(gs, gmt.file)
 #' 
 NULL
@@ -109,13 +123,10 @@ NULL
 #' @export
 #' @rdname getGenesets
 getGenesets <- function(org, 
-    db = c("go", "kegg", "msigdb"), 
+    db = c("go", "kegg", "msigdb", "enrichr"), 
     cache = TRUE,
-    go.onto = c("BP", "MF", "CC"),
-    go.mode = c("GO.db", "biomart"),
-    msigdb.cat = c("H", paste0("C", 1:7)),
-    msigdb.subcat = "",
-    return.type = c("list", "GeneSetCollection"))
+    return.type = c("list", "GeneSetCollection"),
+    ...)
 {
     stopifnot(length(org) == 1 && is.character(org))
     return.type <- match.arg(return.type)
@@ -127,15 +138,112 @@ getGenesets <- function(org,
                         "or a file in GMT format"))
 
         db <- match.arg(db)
-        if(db == "go") gs <- .getGO(org, go.onto, go.mode, cache, return.type)
+        if(db == "go") gs <- .getGO(org, cache, return.type, ...)
         else if(db == "kegg") gs <- .getKEGG(org, cache, return.type = return.type)
-        else gs <- .getMSigDb(org, msigdb.cat, msigdb.subcat, cache, return.type)
+        else if(db == "msigdb") gs <- .getMSigDb(org, cache, return.type, ...)
+        else gs <- .getEnrichr(org, cache, return.type, ...)
     }
     return(gs)
 }
 
-.getMSigDb <- function(org, cat = c("H", paste0("C", 1:7)), 
-                        subcat = "", cache = TRUE, return.type)
+.getEnrichr <- function(org, cache, return.type, lib, show.libs = FALSE)
+{
+    # convert organism
+    eorg <- .org2enrichr(org)
+    
+    # only show available gene set libraries?
+    libs <- .enrichrLibs(eorg)
+    if(show.libs) return(libs)
+
+    gsc.name <- paste(org, "enrichr", lib, "gs", sep=".") 
+    # should a cached version be used?
+    if(cache)
+    {
+        gs <- .getResourceFromCache(gsc.name)
+        if(!is.null(gs)) return(gs)
+    }
+    
+    # obtain the gene set library
+    if(!(lib %in% libs[,"libraryName"])) stop("Not a valid gene set library") 
+    gs <- .getEnrichrLib(eorg, lib)    
+
+    # ID mapping
+    orgpkg <- .getAnnoPkg(org)
+    sgenes <- unique(unlist(gs))
+    sgenes <- sgenes[!is.na(sgenes)]
+    sgenes <- sgenes[sgenes != ""]
+    ktype <- ifelse(org == "sce", "GENENAME", "SYMBOL")
+    suppressMessages(
+        sgenes <- AnnotationDbi::mapIds(orgpkg, keys = sgenes, 
+                                                column = "ENTREZID", 
+                                                keytype = ktype)
+    )
+    gs <- lapply(gs, function(s) unname(sgenes[s]))
+    gs <- lapply(gs, function(s) s[!is.na(s)])
+    
+    if(return.type == "GeneSetCollection")
+    {
+        ct <- ComputedCollection()
+        titles <- vapply(names(gs), .extractTitle, character(1))
+        gs <- .makeGSC(gs, titles, org, ct)        
+    }
+    
+    .cacheResource(gs, gsc.name)
+    return(gs)
+}
+
+.getEnrichrLib <- function(eorg, lib)
+{
+    getURL <- NULL
+    isAvailable("RCurl")               
+    
+    eurl <- paste0("https://amp.pharm.mssm.edu/", eorg, 
+                    "/geneSetLibrary?mode=text&libraryName=", lib)
+    gs <- getURL(eurl)
+    gs <- unlist(strsplit(gs, "\n"))
+    gs <- lapply(gs, function(x) unlist(strsplit(x, "\t")))
+    names(gs) <- vapply(gs, function(x) x[1], character(1))
+    names(gs) <- gsub(" ", "_", names(gs))
+    ids <- paste0("ER", seq_along(gs))
+    names(gs) <- paste(ids, names(gs), sep = "_")
+    gs <- lapply(gs, function(x) x[-c(1,2)])
+    .trim <- function(x) vapply(x, 
+                                function(y) unlist(strsplit(y, ","))[1], 
+                                character(1), USE.NAMES=FALSE)
+    lapply(gs, .trim)
+}
+
+.org2enrichr <- function(org)
+{
+    sorgs <- c("cel", "dme", "dre", "hsa", "sce")
+    if(!(org %in% sorgs)) stop("Organism not supported") 
+    eorgs <- c("Worm", "Fly", "Fish", "", "Yeast")
+    names(eorgs) <- sorgs
+    eorg <- eorgs[org]
+    paste0(eorg, "Enrichr")
+}
+
+.enrichrLibs <- function(eorg)
+{
+    eurl <- paste0("https://amp.pharm.mssm.edu/", eorg, "/datasetStatistics")
+    GET <- fromJSON <- NULL
+    isAvailable("httr", type = "software")
+    dbs <- GET(eurl)
+    dbs <- dbs$content
+    dbs <- intToUtf8(dbs)
+    isAvailable("rjson", type = "software")
+    dbs <- fromJSON(dbs)
+    dfSAF <- getOption("stringsAsFactors")
+    options(stringsAsFactors = FALSE)
+    dbs <- lapply(dbs$statistics, function(x) do.call(cbind.data.frame, x))
+    dbs <- do.call(rbind.data.frame, dbs)
+    options(stringsAsFactors = dfSAF)
+    dbs
+}
+
+.getMSigDb <- function(org, cache, return.type,
+                        cat = c("H", paste0("C", 1:7)), 
+                        subcat = "")
 {
     cat <- match.arg(cat)
     
@@ -184,8 +292,9 @@ get.go.genesets <- function(org,
     .getGO(org, onto, mode, cache)
 }
 
-.getGO <- function(org, onto=c("BP", "MF", "CC"), 
-    mode=c("GO.db","biomart"), cache=TRUE, return.type)
+.getGO <- function(org, cache, return.type, 
+                    onto=c("BP", "MF", "CC"), 
+                    mode=c("GO.db","biomart"))
 {
     onto <- match.arg(onto)
     gsc.name <- paste(org, "go", tolower(onto), "gs", sep=".") 
@@ -295,7 +404,7 @@ get.kegg.genesets <- function(pwys, cache=TRUE, gmt.file=NULL)
     .getKEGG(pwys, cache, gmt.file)
 }
 
-.getKEGG <- function(pwys, cache=TRUE, gmt.file=NULL, return.type)
+.getKEGG <- function(pwys, cache, gmt.file=NULL, return.type)
 {
     is.org <- length(pwys) == 1 && grepl("^[a-z]{3}$", pwys)
     # download all gs of organism

@@ -66,12 +66,12 @@ Raw p-values are corrected for multiple testing.
     # (1) microarray data: intensity measurements
     maSE <- makeExampleData(what="SE", type="ma")
     maSE <- deAna(maSE)
-    rowData(maSE, use.names=TRUE)
+    rowData(maSE)
     
     # (2) RNA-seq data: read counts
     rseqSE <- makeExampleData(what="SE", type="rseq")
     rseqSE <- deAna(rseqSE, de.method="DESeq2")
-    rowData(rseqSE, use.names=TRUE)
+    rowData(rseqSE)
 
 }
 \seealso{

@@ -312,8 +312,8 @@ nbea <- function(
     ADJP.COL <- configEBrowser("ADJP.COL")
     PVAL.COL <- configEBrowser("PVAL.COL")
 
-    de.genes <- .isSig(rowData(se, use.names=TRUE), alpha, beta, sig.stat)
-    de <- rowData(se, use.names=TRUE)[de.genes, FC.COL]
+    de.genes <- .isSig(rowData(se), alpha, beta, sig.stat)
+    de <- rowData(se)[de.genes, FC.COL]
     names(de) <- rownames(se)[de.genes]
     all <- rownames(se)
 
@@ -407,7 +407,7 @@ nbea <- function(
     isAvailable("neaGUI", type="software")
 
     #if(perm > 100) perm <- 100
-    isig <- .isSig(rowData(se, use.names=TRUE), alpha, beta, sig.stat)
+    isig <- .isSig(rowData(se), alpha, beta, sig.stat)
     ags <- rownames(se)[isig]
     grn <- unique(grn[,1:2])
     gs.genes <- unique(unlist(gs))
@@ -441,7 +441,7 @@ nbea <- function(
     ADJP.COL <- configEBrowser("ADJP.COL")
     PVAL.COL <- configEBrowser("PVAL.COL")
 
-    dir.evid <- -log(rowData(se, use.names=TRUE)[,ADJP.COL], base=10)
+    dir.evid <- -log(rowData(se)[,ADJP.COL], base=10)
     dir.evid <- cbind(as.integer(rownames(se)), dir.evid)
     colnames(dir.evid) <- c("Gene.ID", "Obs")
     adjm <- .grn2adjm(grn, directed=FALSE)

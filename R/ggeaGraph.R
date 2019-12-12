@@ -133,7 +133,7 @@ ggea.graph <- function(gs, grn, se,
     grn <- .transformGRN(grn, node.grid)
 	if(nrow(grn) < 2) return(NULL)
 
-    fDat <- as.matrix(rowData(se, use.names=TRUE)[nodes, 
+    fDat <- as.matrix(rowData(se)[nodes, 
         sapply(c("FC.COL", "ADJP.COL"), configEBrowser)])
     de <- .compDE(fDat, alpha=alpha, beta=beta)
     grn.de <- cbind(de[grn[,1]], de[grn[,2]])

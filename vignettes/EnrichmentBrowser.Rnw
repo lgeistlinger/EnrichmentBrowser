@@ -193,7 +193,7 @@ as you have the corresponding annotation package, here the
 defined in the \Rfunction{rowData} slot.
 
 <<show-probe2gene>>=
-rowData(se, use.names=TRUE)
+rowData(se)
 @
 
 \subsection{RNA-seq data}
@@ -342,7 +342,7 @@ appended to the \Robject{rowData} slot.
 
 <<DE-ana-ALL>>=
 allSE <- deAna(allSE, padj.method="BH")
-rowData(allSE, use.names=TRUE)
+rowData(allSE)
 @
  
 Nominal $p$-values (\Robject{PVAL}) are corrected for multiple testing 
@@ -365,7 +365,7 @@ ENTREZ gene \verb=7525=.
 
 <<DE-exmpl>>=
 ind.min <- which.min( rowData(allSE)$ADJ.PVAL )
-rowData(allSE, use.names=TRUE)[ ind.min, ]
+rowData(allSE)[ ind.min, ]
 @
 
 This turns out to be the YES proto-oncogene 1 
@@ -380,7 +380,7 @@ Here, we use the analysis based on \Biocpkg{edgeR} for demonstration.
 
 <<DE-ana-airway>>=
 airSE <- deAna(airSE, de.method="edgeR")
-rowData(airSE, use.names=TRUE)
+rowData(airSE)
 @
 
 \section{ID mapping}
@@ -417,7 +417,6 @@ analysis.
 
 \section{Enrichment analysis}
 
-\subsection{Set-based enrichment analysis}
 In the following, we introduce how the \Biocpkg{EnrichmentBrowser} package 
 can be used to perform state-of-the-art enrichment analysis of gene sets. 
 We consider the ALL and the airway gene expression data as processed in the 
@@ -425,9 +424,12 @@ previous sections. We are now interested in whether pre-defined sets of genes
 that are known to work together, e.g. as defined in the Gene Ontology (GO)
 or the KEGG pathway annotation, are coordinately differentially expressed.
 
+
+\subsection{Obtaining gene sets}
+
 The function \Rfunction{getGenesets} can be used to download gene sets from
 databases such as GO and KEGG. 
-Here, we use the function to download all KEGG pathways for a chosen organism 
+We can use the function to download all KEGG pathways for a chosen organism 
 (here: \emph{Homo sapiens}) as gene sets.
 
 <<get-kegg-gs, eval=FALSE>>=
@@ -439,7 +441,7 @@ terms of a selected ontology (here: biological process, BP) as defined in the
 \Biocpkg{GO.db} annotation package.
 
 <<get-go-gs, eval=FALSE>>=
-go.gs <- getGenesets(org="hsa", db="go", go.onto="BP", go.mode="GO.db")
+go.gs <- getGenesets(org="hsa", db="go", onto="BP", mode="GO.db")
 @
 
 If provided a file, the function parses user-defined gene sets from GMT file format.
@@ -452,6 +454,17 @@ hsa.gs <- getGenesets(gmt.file)
 length(hsa.gs)
 hsa.gs[1:2]
 @
+
+Note \#1: Use \Rfunction{getGenesets} with \Rcode{db = "msigdb"} to obtain gene 
+set collections from the \href{http://software.broadinstitute.org/gsea/msigdb/collections.jsp}{Molecular Signatures Database (MSigDB)}.
+Analogously, \Rfunction{getGenesets} with \Rcode{db = "enrichr"} allows to obtain
+gene set libraries from the comprehensive \href{https://amp.pharm.mssm.edu/Enrichr/#stats}{Enrichr collection}.
+
+Note \#2: The \Rfunction{idMap} function can be used to map gene sets from 
+NCBI Entrez Gene IDs to other common gene ID types such as ENSEMBL gene IDs or 
+HGNC symbols. 
+
+\subsection{Set-based enrichment analysis}
 
 Currently, the following set-based enrichment analysis methods are supported
 <<sbeaMethods>>=
@@ -508,7 +521,6 @@ implemented in \Biocpkg{EmpiricalBrownsMethod}),
 See also Appendix~\ref{sec:primer} for a comprehensive introduction on underlying
 statistical concepts.
 
-\newpage
 
 For demonstration, we perform a basic ORA choosing a significance level 
 $\alpha$ of 0.1

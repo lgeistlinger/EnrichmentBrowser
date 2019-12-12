@@ -26,7 +26,7 @@
     # due to performance issues, transforms character2integer
     # map gene.id -> index, e.g. "b0031" -> 10
     rcols <- sapply(c("FC.COL", "ADJP.COL"), configEBrowser)
-    fDat <- as.matrix(rowData(se, use.names=TRUE)[,rcols])
+    fDat <- as.matrix(rowData(se)[,rcols])
     fMap <- seq_len(nrow(fDat))
     names(fMap) <- rownames(fDat) 
         
@@ -239,7 +239,7 @@
         
         # recompute de measures fc and p
         se <- deAna(assay(se), grp.perm)
-        fDat <- as.matrix(rowData(se, use.names=TRUE)[,
+        fDat <- as.matrix(rowData(se)[,
             sapply(c("FC.COL", "ADJP.COL"), configEBrowser)])
         
         # recompute ggea scores

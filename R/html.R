@@ -140,7 +140,7 @@ eaBrowse <- function(res, nr.show=-1,
     message("Creating gene report ...")
     se <- se[colnames(im),]
     rcols <- sapply(c("FC.COL", "ADJP.COL"), configEBrowser)
-    fDat <- rowData(se, use.names=TRUE)[,rcols]
+    fDat <- rowData(se)[,rcols]
     fDat <- as.data.frame(fDat)
     gt <- suppressMessages(.geneTable(im, org, fcs=fDat))
     gn.cols <- sapply(c("SYM.COL", "GN.COL"), configEBrowser)

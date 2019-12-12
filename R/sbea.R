@@ -598,7 +598,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
     y <- colData(se)[, GRP.COL]
 
     # execute hypergeom ORA if no permutations
-    rdat <- rowData(se, use.names=TRUE)
+    rdat <- rowData(se)
     if(perm == 0) res.tbl <- .oraHypergeom(rdat, cmat, alpha, beta, sig.stat)
     # else do resampling using functionality of SAFE
     else{
@@ -689,7 +689,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
 {
     empiricalBrownsMethod <- NULL
     isAvailable("EmpiricalBrownsMethod", type="software")
-    pcol <-  rowData(se, use.names=TRUE)[, configEBrowser("ADJP.COL")]
+    pcol <-  rowData(se)[, configEBrowser("ADJP.COL")]
     e <- assay(se)
     gs.ps <- apply(cmat, 2, function(s) empiricalBrownsMethod(e[s,], pcol[s]))
     return(gs.ps)
@@ -848,7 +848,7 @@ global.PADOG <- function(cmat, u, args.global)
     isAvailable("mgsa", type="software")
     
     # extract significant (DE) genes
-    isig <- .isSig(rowData(se, use.names=TRUE), alpha, beta, sig.stat)
+    isig <- .isSig(rowData(se), alpha, beta, sig.stat)
     obs <- rownames(se)[isig]
     pop <- rownames(se)
   

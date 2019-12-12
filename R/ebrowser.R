@@ -421,14 +421,14 @@ ebrowser <- function(
         if(m == "samgs" && file.exists(sam.file))
         {
             samt <- round(get(load(sam.file)), digits=2)
-            rowData(geneSE, use.names=TRUE)[names(s2n), "SAM.T"] <- unname(samt) 
+            rowData(geneSE)[names(s2n), "SAM.T"] <- unname(samt) 
         }       
 
         s2n.file <- file.path(out.dir, "gsea_s2n.RData")
         if(m == "gsea" && file.exists(s2n.file))
         {
             s2n <- round(get(load(s2n.file)), digits=2)
-            rowData(geneSE, use.names=TRUE)[names(s2n),"GSEA.S2N"] <- unname(s2n) 
+            rowData(geneSE)[names(s2n),"GSEA.S2N"] <- unname(s2n) 
         }
         if(comb) res.list[[i]] <- res
     }
@@ -437,7 +437,7 @@ ebrowser <- function(
     gt.file <- file.path(out.dir, "de.txt")
 	message("Annotating genes ...")
     gt <- .getGeneAnno(names(geneSE), org)
-    gt <- cbind(gt, rowData(geneSE, use.names=TRUE))
+    gt <- cbind(gt, rowData(geneSE))
     gt <- .sortGeneTable(gt)
     ind <- gt[,configEBrowser("EZ.COL")]
     geneSE <- geneSE[ind, ]

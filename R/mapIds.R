@@ -10,28 +10,36 @@
 # 
 ############################################################
 
-#' Mapping between gene ID types for the rownames of a SummarizedExperiment
+#' Mapping between gene ID types 
 #' 
-#' Functionality to map the rownames of a SummarizedExperiment between common
-#' gene ID types such as ENSEMBL and ENTREZ.
+#' Functionality to map between common gene ID types such as ENSEMBL and ENTREZ
+#' for gene expression datasets, gene sets, and gene regulatory networks.
 #' 
 #' The function 'idTypes' lists the valid values which the arguments 'from'
 #' and 'to' can take. This corresponds to the names of the available gene ID
 #' types for the mapping.
 #' 
 #' @aliases map.ids
-#' @param se An object of class \code{\linkS4class{SummarizedExperiment}}.
+#' @param obj The object for which gene IDs should be mapped. Supported options
+#'  include \itemize{
+#' \item Gene expression dataset. An object of class 
+#' \code{\linkS4class{SummarizedExperiment}}.
 #' Expects the names to be of gene ID type given in argument \code{from}.
-#' @param org Character. Organism in KEGG three letter code, e.g. \sQuote{hsa} for
-#' \sQuote{Homo sapiens}.  See references.
-#' @param from Character. Gene ID type from which should be mapped.  Corresponds to the
-#' gene ID type of the names of argument \code{se}. Note that \code{from} is 
-#' ignored if \code{to} is a \code{\link{rowData}} column of \code{se}. 
-#' Defaults to \code{ENSEMBL}.
-#' @param to Character. Gene ID type to which should be mapped. Corresponds to the gene
-#' ID type the rownames of argument \code{se} should be updated with.
-#' Note that this can also be the name of a column in the \code{\link{rowData}} 
-#' slot of \code{se} to specify user-defined mappings in which conflicts have been 
+#' \item Gene sets. Either a list of gene sets (character vectors of gene
+#' IDs) or a \code{\linkS4class{GeneSetCollection}} storing all gene sets.
+#' \item Gene regulatory network. A 3-column character matrix;
+#' 1st col = IDs of regulating genes; 2nd col = IDs of regulated genes; 
+#' 3rd col = regulation effect; Use '+' and '-' for activation / inhibition.}
+#' @param org Character. Organism in KEGG three letter code, e.g. \sQuote{hsa}
+#' for \sQuote{Homo sapiens}.  See references.
+#' @param from Character. Gene ID type from which should be mapped.  Corresponds
+#' to the gene ID type of argument \code{obj}. Defaults to \code{ENSEMBL}.
+#' @param to Character. Gene ID type to which should be mapped. Corresponds to 
+#' the gene ID type the argument \code{obj} should be updated with.
+#' If \code{obj} is an expression dataset of class 
+#' \code{\linkS4class{SummarizedExperiment}}, \code{to} can also be the name of 
+#' a column in the \code{\link{rowData}} 
+#' slot to specify user-defined mappings in which conflicts have been 
 #' manually resolved. Defaults to \code{ENTREZID}.
 #' @param multi.to How to resolve 1:many mappings, i.e. multiple to.IDs for a 
 #' single from.ID? This is passed on to the \code{multiVals} argument of 
@@ -40,24 +48,29 @@
 #' single to.ID is returned for each from.ID. Default is \code{"first"},
 #' which accordingly returns the first to.ID mapped onto the respective from.ID.
 #' @param multi.from How to resolve many:1 mappings, i.e. multiple from.IDs 
-#' mapping to the same to.ID? Pre-defined options include: 
+#' mapping to the same to.ID? Only applicable if \code{obj} is an expression 
+#' dataset of class \code{\linkS4class{SummarizedExperiment}}. 
+#' Pre-defined options include: 
 #' \itemize{ \item 'first' (Default): returns the first from.ID for each to.ID
 #' with multiple from.IDs, 
 #' \item 'minp': selects the from.ID with minimum p-value (according to the 
-#' \code{\link{rowData}} column \code{PVAL} of \code{se}),
+#' \code{\link{rowData}} column \code{PVAL} of \code{obj}),
 #' \item 'maxfc': selects the from.ID with maximum absolute log2 fold change 
-#' (according to the \code{\link{rowData}} column \code{FC} of \code{se}).}
+#' (according to the \code{\link{rowData}} column \code{FC} of \code{obj}).}
 #' Note that a user-defined function can also be supplied for custom behaviors.
 #' This will be applied for each case where there are multiple from.IDs for a 
-#' single to.ID, and accordingly takes the arguments \code{ids} and \code{se}. 
+#' single to.ID, and accordingly takes the arguments \code{ids} and \code{obj}. 
 #' The argument \code{ids} corresponds to the multiple from.IDs from which a 
 #' single ID should be chosen, e.g. via information available in argument 
-#' \code{se}. See examples for a case where ids are selected based on a 
+#' \code{obj}. See examples for a case where ids are selected based on a 
 #' user-defined \code{\link{rowData}} column.
 #' @return idTypes: character vector listing the available gene ID types for
 #' the mapping;
 #' 
-#' idMap: An object of class \code{\linkS4class{SummarizedExperiment}}.
+#' idMap: An object of the same class as the input argument \code{obj}, i.e.  
+#' a \code{\linkS4class{SummarizedExperiment}} if provided an expression dataset,
+#' a list of character vectors or a \code{\linkS4class{GeneSetCollection}} if 
+#' provided gene sets, and a character matrix if provided a gene regulatory network.
 #' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
 #' @seealso \code{\linkS4class{SummarizedExperiment}}, \code{\link{mapIds}},
 #' \code{\link{keytypes}}
@@ -65,36 +78,58 @@
 #' \url{http://www.genome.jp/kegg/catalog/org_list.html}
 #' @examples
 #' 
+#'     # (1) ID mapping for gene expression datasets 
 #'     # create an expression dataset with 3 genes and 3 samples
-#'     se <- makeExampleData("SE", nfeat=3, nsmpl=3)
-#'     names(se) <- paste0("ENSG00000000", c("003","005", "419"))
-#'     mse <- idMap(se, org="hsa")
+#'     se <- makeExampleData("SE", nfeat = 3, nsmpl = 3)
+#'     names(se) <- paste0("ENSG00000000", c("003", "005", "419"))
+#'     idMap(se, org = "hsa")
 #'
 #'     # user-defined mapping
 #'     rowData(se)$MYID <- c("g1", "g1", "g2")
-#'     mse <- idMap(se, to="MYID")    
+#'     idMap(se, to = "MYID")    
 #'
 #'     # data-driven resolving of many:1 mappings
 #'     
 #'     ## e.g. select from.ID with lowest p-value
 #'     pcol <- configEBrowser("PVAL.COL")
 #'     rowData(se)[[pcol]] <- c(0.001, 0.32, 0.15)
-#'     mse <- idMap(se, to="MYID", multi.from="minp") 
+#'     idMap(se, to = "MYID", multi.from = "minp") 
 #'    
 #'     ## ... or using a customized function
 #'     maxScore <- function(ids, se)
 #'     {
-#'          scores <- rowData(se, use.names=TRUE)[ids, "SCORE"]
+#'          scores <- rowData(se)[ids, "SCORE"]
 #'          ind <- which.max(scores)
 #'          return(ids[ind])
 #'     }
 #'     rowData(se)$SCORE <- c(125.7, 33.4, 58.6)
-#'     mse <- idMap(se, to="MYID", multi.from=maxScore) 
+#'     idMap(se, to = "MYID", multi.from = maxScore) 
 #'            
+#'     # (2) ID mapping for gene sets 
+#'     # create two gene sets containing 3 genes each 
+#'     s2 <- paste0("ENSG00000", c("012048", "139618", "141510"))
+#'     gs <- list(s1 = names(se), s2 = s2)
+#'     idMap(gs, org = "hsa", from = "ENSEMBL", to = "SYMBOL")    
 #'
+#'     # (3) ID mapping for gene regulatory networks
+#'     grn <- cbind(FROM = gs$s1, TO = gs$s2, TYPE = rep("+", 3))
+#'     idMap(grn, org = "hsa", from = "ENSEMBL", to = "ENTREZID")  
 #' 
 #' @export idMap
-idMap <- function(se, org=NA, 
+idMap <- function(obj, org=NA, 
+    from="ENSEMBL", to="ENTREZID", 
+    multi.to="first", multi.from="first")
+{
+    isSE <- is(obj, "SummarizedExperiment") || is(obj, "ExpressionSet")
+    if(isSE) res <- .idMapSE(obj, org, from, to, multi.to, multi.from) 
+    else if(is(obj, "GeneSetCollection")) res <- .idMapGSC(obj, org, from, to)
+    else if(is.list(obj)) res <- .idMapGS(obj, org, from, to, multi.to)
+    else if(is.matrix(obj)) res <- .idMapGRN(obj, org, from, to, multi.to)
+    else stop("Invalid input type for argument \'obj\'") 
+    return(res)
+}
+
+.idMapSE <- function(se, org=NA, 
     from="ENSEMBL", to="ENTREZID", 
     multi.to="first", multi.from="first")
 {
@@ -126,11 +161,11 @@ idMap <- function(se, org=NA,
                             multi.to=multi.to, resolve.multiFrom=FALSE)
             rowData(se)[[to]] <- unname(x)
         }
-        x <- .idmapSE(se, to, multi.from) # only needs to as a col
+        x <- .idmapRD(se, to, multi.from) # only needs to as a col
         
         # remove to col
         ind <- colnames(rowData(se)) != to 
-        rowData(se) <- rowData(se)[,ind,drop=FALSE]
+        rowData(se) <- rowData(se)[, ind, drop=FALSE]
     }
 
     se <- se[names(x), ]
@@ -139,39 +174,51 @@ idMap <- function(se, org=NA,
     rowData(se)[[from]] <- names(x)
     message(paste("Mapped from.IDs have been added to the rowData column", from))
     
-    names(x) <- NULL
-    names(se) <- x
+    names(se) <- unname(x)
     return(se)
 }
 
-#### NEW ID MAP
-
-# this is going to be the new all-in-one mapper
-idMap2 <- function(se, gs, grn, org=NA, 
-    from="ENSEMBL", to="ENTREZID", 
-    multi.to="first", multi.from="first")
+.idMapGRN <- function(grn, org, from, to, multi.to)
 {
-    mse <- missing(se)
-    mgs <- missing(gs)
-    mgrn <- missing(grn)
-    mgg <- mgs && mgrn 
-
-    if(mse && mgg)
-        stop("Provide at least one of the arguments \'se\', \'gs\', or \'grn\'")
-   
-    # SE idmap 
-    if(!missing(se) && mgg){}
-
-    # GS idmap
-    if(!missing(gs)){}
-    
-    # GRN idmap
-    if(!missing(grn)){}
-    
+    sgenes <- unique(as.vector(grn[,1:2]))
+    sgenes <- .mapStats(sgenes, org, from, to, multi.to)
+    for(i in 1:2)
+    {
+        grn[,i] <- unname(sgenes[grn[,i]])
+        grn <- grn[!is.na(grn[,i]),] 
+    }
+    return(grn)
 }
 
-# TODO: data-driven
-idMapGSC <- function(gsc, org=NA, from, to, multi.to, multi.from, se)
+.idMapGS <- function(gs, org, from, to, multi.to)
+{
+    sgenes <- unique(unlist(gs))
+    sgenes <- .mapStats(sgenes, org, from, to, multi.to)
+    gs <- lapply(gs, function(s) unname(sgenes[s]))
+    lapply(gs, function(s) s[!is.na(s)])
+}
+
+.mapStats <- function(sgenes, org, from, to, multi.to)
+{
+    orgpkg <- .getAnnoPkg(org)
+    sgenes <- sgenes[!is.na(sgenes)]
+    sgenes <- sgenes[sgenes != ""]
+    suppressMessages(
+        sgenes <- AnnotationDbi::mapIds(orgpkg, keys = sgenes, 
+                                                column = to, 
+                                                keytype = from, 
+                                                multiVals = "list")
+    )
+    sgenes <- .resolveMultiTo(sgenes, orgpkg, from, to, multi.to)
+    nr.na <- sum(is.na(sgenes))
+	if(nr.na) message(paste("Excluded", nr.na, 
+                            "from.IDs without a corresponding to.ID"))
+    nr.mf <- sum(table(sgenes) > 1)
+    if(nr.mf) message(paste("Encountered", nr.mf, "to.IDs with >1 from.ID"))
+    return(sgenes)
+}
+
+.idMapGSC <- function(gsc, org, from, to)
 {
     if(is.na(org)) org <- GSEABase::organism(gsc[[1]])
     if(!length(org)) stop("Organism under investigation not annotated")
@@ -179,15 +226,9 @@ idMapGSC <- function(gsc, org=NA, from, to, multi.to, multi.from, se)
     from <- .createIdentifier(from)
     to <- .createIdentifier(to, org)
 
-    .map <- function(s)
-    {
-        ms <- GSEABase::mapIdentifiers(s, from=from, to=to)
-        return(ms)
-    } 
-
+    .map <- function(s) GSEABase::mapIdentifiers(s, from=from, to=to)
     mgsc <- lapply(gsc, .map)
-    mgsc <- GSEABase::GeneSetCollection(mgsc)
-    return(mgsc) 
+    GSEABase::GeneSetCollection(mgsc)
 }
 
 # if 
@@ -313,6 +354,7 @@ idTypes <- function(org)
         m <- paste(prefix, multi.to, "to.ID was chosen for each of them)")   
         message(m)
     }
+    else x <- unlist(x)
     return(x)
 }
 
@@ -341,7 +383,7 @@ idTypes <- function(org)
     return(x)
 }
 
-.idmapSE <- function(se, to.col="ENTREZID", multiFUN="first")
+.idmapRD <- function(se, to.col="ENTREZID", multiFUN="first")
 {
 	stopifnot(is(se, "SummarizedExperiment"))
 	stopifnot(to.col %in% colnames(rowData(se)))
@@ -420,14 +462,14 @@ idTypes <- function(org)
 	{
         pcol <- configEBrowser("PVAL.COL")
         stopifnot(pcol %in% colnames(rowData(se)))
-        ps <- rowData(se, use.names=TRUE)[ids, pcol]
+        ps <- rowData(se)[ids, pcol]
         ind <- which.min(ps)
 	}
 	else if(multiFUN == "maxfc")
 	{
 	    fccol <- configEBrowser("FC.COL")
         stopifnot(fccol %in% colnames(rowData(se)))
-        fcs <- rowData(se, use.names=TRUE)[ids, fccol]
+        fcs <- rowData(se)[ids, fccol]
         ind <- which.max(abs(fcs))
     }
     else stop("Invalid multiFUN")

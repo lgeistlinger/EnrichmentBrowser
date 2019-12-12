@@ -168,18 +168,8 @@ getGenesets <- function(org,
     gs <- .getEnrichrLib(eorg, lib)    
 
     # ID mapping
-    orgpkg <- .getAnnoPkg(org)
-    sgenes <- unique(unlist(gs))
-    sgenes <- sgenes[!is.na(sgenes)]
-    sgenes <- sgenes[sgenes != ""]
-    ktype <- ifelse(org == "sce", "GENENAME", "SYMBOL")
-    suppressMessages(
-        sgenes <- AnnotationDbi::mapIds(orgpkg, keys = sgenes, 
-                                                column = "ENTREZID", 
-                                                keytype = ktype)
-    )
-    gs <- lapply(gs, function(s) unname(sgenes[s]))
-    gs <- lapply(gs, function(s) s[!is.na(s)])
+    from <- ifelse(org == "sce", "GENENAME", "SYMBOL")
+    gs <- .idMapGS(gs, org, from = from, to = "ENTREZID")
     
     if(return.type == "GeneSetCollection")
     {

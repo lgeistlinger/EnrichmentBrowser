@@ -6,16 +6,17 @@ CHANGES IN VERSION 2.18.0
         for 11 different species (via msigdbr)
       - getGenesets(db = "enrichr") to obtain gene set libraries from Enrichr 
         for 5 different species
+    o ID mapping for gene sets and gene regulatory networks
 
 CHANGES IN VERSION 2.12.0
 -------------------------
 
     o Major refactoring of ID mapping for the rownames of a SummarizedExperiment:
-      (functions idmap / probe2gene):
+      (functions idMap / probe2gene):
       - to.ID can also be a rowData column to support user-defined mappings
       - support of data-driven strategies for many:1 and 1:many mappings   
       - synchronized behavior of microarray probe ID mapping (probe2gene) and 
-        general gene ID mapping (idmap)   
+        general gene ID mapping (idMap)   
     o Alternative representation of gene sets based on GSEABase::GeneSet and
       GSEABase::GeneSetCollection to facilitate gene ID mapping for gene sets 
       (function getGenesets) 

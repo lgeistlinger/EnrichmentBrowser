@@ -84,8 +84,8 @@ sbeaMethods <- function()
 #' \sQuote{safe}, \sQuote{gsea}, \sQuote{padog}, \sQuote{roast},
 #' \sQuote{camera}, \sQuote{gsa}, \sQuote{gsva}, \sQuote{globaltest},
 #' \sQuote{samgs}, \sQuote{ebm}, and \sQuote{mgsa}.  For basic ora also set
-#' 'perm=0'. Default is \sQuote{ora}.  This can also be the name of a
-#' user-defined function implementing set-based enrichment. See Details.
+#' 'perm=0'. Default is \sQuote{ora}.  This can also be a
+#' user-defined function implementing a set-based enrichment method. See Details.
 #' @param se Expression dataset.  An object of class
 #' \code{\linkS4class{SummarizedExperiment}}.  Mandatory minimal annotations:
 #' \itemize{ \item colData column storing binary group assignment (named
@@ -243,8 +243,6 @@ sbea <- function(
             else
             {
                 # gs2cmat
-                #cmat <- .gmt2cmat(gs, rownames(se), GS.MIN.SIZE, GS.MAX.SIZE)
-                #if(nrow(cmat) < nrow(se)) se <- se[rownames(cmat),] 
                 f <- file()
                 sink(file=f)
                 cmat <- safe::getCmatrix(gs, as.matrix=TRUE)
@@ -254,7 +252,12 @@ sbea <- function(
 
                 # ora
                 if(method == "ora" & perm==0) 
-                    gs.ps <- .ora(1, se, cmat, perm, alpha, ...)
+                {
+                    call <- .stdArgs(match.call(), formals())
+                    exargs <- .matchArgs(.ora, call, list(mode = 1, cmat = cmat))
+                    exargs$se <- se
+                    gs.ps <- do.call(.ora, lapply(exargs, eval.parent, n=2))
+                }
                 # ebm
                 else if(method == "ebm") gs.ps <- .ebm(se, cmat)
 		        # all others
@@ -265,7 +268,7 @@ sbea <- function(
         else
         { 
             # gsea
-            if(method == "gsea") gs.ps <- .gsea(se, gs, perm, padj.method)
+            if(method == "gsea") gs.ps <- .gsea(se, gs, perm)
             # gsa
             else if(method == "gsa") gs.ps <- .gsa(se, gs, perm)
             # padog
@@ -291,11 +294,16 @@ sbea <- function(
                 se <- se[rownames(cmat),]
 
                 # ora
-                if(method == "ora") 
-                    gs.ps <- .ora(1, se, cmat, perm, alpha, padj.method, ...)
+                if(method == "ora")
+                {
+                    call <- .stdArgs(match.call(), formals())
+                    exargs <- .matchArgs(.ora, call, list(mode = 1, cmat = cmat))
+                    exargs$se <- se
+                    gs.ps <- do.call(.ora, lapply(exargs, eval.parent, n=2))
+                }
                 #safe
                 else if(method == "safe") 
-                    gs.ps <- .ora(2, se, cmat, perm, alpha, padj.method)
+                    gs.ps <- .ora(2, se, cmat, perm, alpha)
                 # ebm
                 else if(method == "ebm") gs.ps <- .ebm(se, cmat)
                 # samgs
@@ -314,17 +322,23 @@ sbea <- function(
             }
         }
     }
-    else if(is.function(method)) 
-        gs.ps <- method(se=se, gs=gs, ...)
+    else if(is.function(method))
+    { 
+        call <- .stdArgs(match.call(), formals())
+        exargs <- .matchArgs(method, call)
+        exargs$se <- se
+        exargs$gs <- gs
+        gs.ps <- do.call(method, lapply(exargs, eval.parent, n=2))
+    }
     else stop(paste(method, "is not a valid method for sbea"))
 
     res.tbl <- .formatEAResult(gs.ps, padj.method, out.file)
       
     pcol <- ifelse(padj.method == "none", PVAL.COL, ADJP.COL) 
     res <- list(
-        method=method, res.tbl=res.tbl,
-        nr.sigs=sum(res.tbl[,pcol] < alpha),
-        se=se, gs=gs, alpha=alpha)
+        method = method, res.tbl = res.tbl,
+        nr.sigs = sum(res.tbl[,pcol] < alpha),
+        se = se, gs = gs, alpha = alpha)
     if(browse) eaBrowse(res)
     return(res)
 }
@@ -369,16 +383,8 @@ gs.ranking <- function(res, signif.only=TRUE)
     else colnames(res.tbl)[1] <- PVAL.COL 
     res.tbl <- res.tbl[do.call(order, as.data.frame(sorting.df)), , drop=FALSE]
 
-    # use built-in FDR control for safe and gsea
-    #fdr.methods <- c("gsea", "safe") 
-    #if(is.function(method) || !(method %in% fdr.methods))
-	
 	if(padj.method != "none")
-    {   
-        adjp <- p.adjust(res.tbl[,PVAL.COL], method=padj.method)
-        res.tbl <- cbind(res.tbl, adjp)
-        colnames(res.tbl)[ncol(res.tbl)] <- ADJP.COL
-    }     
+        res.tbl[[ADJP.COL]] <- p.adjust(res.tbl[[PVAL.COL]], padj.method)
 
     res.tbl <- DataFrame(rownames(res.tbl), res.tbl)
     colnames(res.tbl)[1] <- configEBrowser("GS.COL")
@@ -589,7 +595,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
 #
 #
 .ora <- function(mode=2, se, cmat, perm=1000, alpha=0.05, 
-    padj.method="none", beta=1, sig.stat=c("p", "fc", "|", "&"))
+    padj="none", beta=1, sig.stat=c("p", "fc", "|", "&"))
 {
     GRP.COL <- configEBrowser("GRP.COL")
     ADJP.COL <- configEBrowser("ADJP.COL")
@@ -603,7 +609,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
     # else do resampling using functionality of SAFE
     else{
         # use built-in p-adjusting?
-        padj <- switch(padj.method,
+        padj <- switch(padj,
                         BH = "FDR.BH",
                         fdr = "FDR.BH",
                         bonferroni = "FWER.Bonf",
@@ -637,7 +643,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
     se, 
     gs.gmt, 
     perm=1000,
-    padj.method="none", 
+    padj="none", 
     out.file=NULL)
 {        
     GRP.COL <- configEBrowser("GRP.COL")
@@ -665,7 +671,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
     if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)
      
     # use built-in p-adjusting?
-    padj.method <- switch(padj.method,
+    padj <- switch(padj,
                         BH = "fdr",
                         fdr = "fdr",
                         bonferroni = "fwer",
@@ -676,7 +682,7 @@ local.deAna <- function (X.mat, y.vec, args.local)
     # run GSEA
     res <- GSEA(input.ds=as.data.frame(assay(se)), 
                 input.cls=cls, gs.db=gs.gmt, nperm=perm,
-                padj.method=padj.method, output.directory=out.dir)
+                padj.method=padj, output.directory=out.dir)
       
     gs.ps <- S4Vectors::as.matrix(res[,3:5])
     rownames(gs.ps) <- res[,1]

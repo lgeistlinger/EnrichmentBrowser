@@ -221,4 +221,22 @@ colnames(SPECIES) <- c("common", "tax", "bioc", "kegg", "ucsc", "ncbi")
     return(pkg)
 }
 
+.stdArgs <- function(call, formals) {
+    callargs <- as.list(call)[-1]
+    toadd <- setdiff(names(formals), names(callargs))
+    call[toadd] <- formals[toadd]
+    call
+}
 
+.matchArgs <- function(fun, call, ...) {
+    funfor <- formals(fun)
+    exargs <- intersect(names(funfor), names(call))
+    c(as.list(call)[-1][exargs], ...)
+}
+
+.execArgs <- function(method, mcall, forms, add.args)
+{
+    call <- .stdArgs(mcall, forms)
+    exargs <- .matchArgs(method, call, add.args)
+    do.call(method, exargs)
+}

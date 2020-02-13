@@ -169,8 +169,9 @@ getGenesets <- function(org,
 
     # ID mapping
     from <- ifelse(org == "sce", "GENENAME", "SYMBOL")
-    gs <- .idMapGS(gs, org, from = from, to = "ENTREZID")
-    
+    suppressMessages(
+        gs <- .idMapGS(gs, org, from = from, to = "ENTREZID")
+    )
     if(return.type == "GeneSetCollection")
     {
         ct <- ComputedCollection()

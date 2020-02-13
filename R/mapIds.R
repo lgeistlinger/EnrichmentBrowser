@@ -190,7 +190,7 @@ idMap <- function(obj, org=NA,
     return(grn)
 }
 
-.idMapGS <- function(gs, org, from, to, multi.to)
+.idMapGS <- function(gs, org, from, to, multi.to = "first")
 {
     sgenes <- unique(unlist(gs))
     sgenes <- .mapStats(sgenes, org, from, to, multi.to)

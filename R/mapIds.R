@@ -261,16 +261,6 @@ idMap <- function(obj, org=NA,
     return(idobj)
 }
 
-####
-
-#' @export
-#' @keywords internal
-map.ids <- function(se, org=NA, from="ENSEMBL", to="ENTREZID")
-{
-    .Deprecated("idMap")
-    idMap(se, org, from, to)
-}
-
 #' @rdname idMap
 #' @export
 idTypes <- function(org)

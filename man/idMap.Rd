@@ -73,7 +73,7 @@ idTypes: character vector listing the available gene ID types for
 the mapping;
 
 idMap: An object of the same class as the input argument \code{obj}, i.e.  
-a \code{\linkS4class{SummarizedExperiment}} if provided an expressiond dataset,
+a \code{\linkS4class{SummarizedExperiment}} if provided an expression dataset,
 a list of character vectors or a \code{\linkS4class{GeneSetCollection}} if 
 provided gene sets, and a character matrix if provided a gene regulatory network.
 }

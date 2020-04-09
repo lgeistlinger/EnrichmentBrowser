@@ -160,19 +160,6 @@ combResults <- function(res.list,
     return(res)
 }
 
-#' @export
-#' @keywords internal
-comb.ea.results <- function(res.list, 
-    rank.col=configEBrowser("PVAL.COL"),
-    decreasing=FALSE,
-    rank.fun=c("comp.ranks", "rel.ranks", "abs.ranks"), 
-    comb.fun=c("mean", "median", "min", "max", "sum"))
-{
-    .Deprecated("combResults")
-    combResults(res.list, rank.col, decreasing, rank.fun, comb.fun)
-}
-
-
 # Stouffer's combination of pvalues 
 .stoufferComb <- function(pvals, two.sided=TRUE)
 {

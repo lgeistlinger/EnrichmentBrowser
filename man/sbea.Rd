@@ -18,6 +18,7 @@ sbea(
   padj.method = "none",
   out.file = NULL,
   browse = FALSE,
+  assay = "auto",
   ...
 )
 }
@@ -27,8 +28,8 @@ following set-based enrichment analysis methods are supported: \sQuote{ora},
 \sQuote{safe}, \sQuote{gsea}, \sQuote{padog}, \sQuote{roast},
 \sQuote{camera}, \sQuote{gsa}, \sQuote{gsva}, \sQuote{globaltest},
 \sQuote{samgs}, \sQuote{ebm}, and \sQuote{mgsa}.  For basic ora also set
-'perm=0'. Default is \sQuote{ora}.  This can also be the name of a
-user-defined function implementing set-based enrichment. See Details.}
+'perm=0'. Default is \sQuote{ora}.  This can also be a
+user-defined function implementing a set-based enrichment method. See Details.}
 
 \item{se}{Expression dataset.  An object of class
 \code{\linkS4class{SummarizedExperiment}}.  Mandatory minimal annotations:
@@ -63,6 +64,12 @@ to.}
 
 \item{browse}{Logical. Should results be displayed in the browser for
 interactive exploration? Defaults to FALSE.}
+
+\item{assay}{Character. The name of the assay for enrichment 
+analysis if \code{se} is a \code{\linkS4class{SummarizedExperiment}} with 
+*multiple assays*. Defaults to \code{"auto"}, which automatically determines
+the appropriate assay based on data type provided and enrichment method selected. 
+See details.}
 
 \item{...}{Additional arguments passed to individual sbea methods.  This
 includes currently for ORA and MGSA: \itemize{ \item beta: Log2 fold change
@@ -130,8 +137,8 @@ globaltest package.
 'samgs': significance analysis of microarrays on gene sets, extends the SAM
 method for single genes to gene set analysis (Dinu et al., 2007).
 
-'ebm': empirical Brown's method, combines $p$-values of genes in a gene set
-using Brown's method to combine $p$-values from dependent tests; implemented
+'ebm': empirical Brown's method, combines p-values of genes in a gene set
+using Brown's method to combine p-values from dependent tests; implemented
 in the EmpiricalBrownsMethod package.
 
 'mgsa': model-based gene set analysis, Bayesian modeling approach taking set
@@ -143,6 +150,18 @@ requires to implement a function that takes 'se' and 'gs'
 as arguments and returns a numeric vector 'ps' storing the resulting p-value
 for each gene set in 'gs'. This vector must be named accordingly (i.e.
 names(ps) == names(gs)). See examples.
+
+Using a \code{\linkS4class{SummarizedExperiment}} with *multiple assays*:
+
+For the typical use case within the EnrichmentBrowser workflow this will
+be a \code{\linkS4class{SummarizedExperiment}} with two assays: (i) an assay
+storing the *raw* expression values, and (ii) an assay storing the *norm*alized
+expression values as obtained with the \code{\link{normalize}} function. 
+
+In this case, \code{assay = "auto"} will *auto*matically determine the assay 
+based on the data type provided and the enrichment method selected. 
+For usage outside of the typical workflow, the \code{assay} argument can be
+used to provide the name of the assay for the enrichment analysis.
 }
 \examples{
 
@@ -185,18 +204,14 @@ names(ps) == names(gs)). See examples.
 
 }
 \references{
-Goeman and Buhlmann (2007) Analyzing gene expression data in
-terms of gene sets: methodological issues.  Bioinformatics, 23, 980-7.
+Geistlinger at al. (2020) Towards a gold standard for benchmarking  
+gene set enrichment analysis. Briefings in Bioinformatics.
 
-Barry et al. (2005) Significance Analysis of Function and Expression.
-Bioinformatics, 21:1943-9.
+Goeman and Buhlmann (2007) Analyzing gene expression data in
+terms of gene sets: methodological issues. Bioinformatics, 23:980-7.
 
 Subramanian et al. (2005) Gene Set Enrichment Analysis: a knowledge-based
-approach for interpreting genome-wide expression profiles.  Proc Natl Acad
-Sci USA, 102:15545-50.
-
-Dinu et al. (2007) Improving gene set analysis of microarray data by SAM-GS.
-BMC Bioinformatics, 8:242
+approach for interpreting genome-wide expression profiles. PNAS, 102:15545-50.
 }
 \seealso{
 Input: \code{\link{readSE}}, \code{\link{probe2gene}}

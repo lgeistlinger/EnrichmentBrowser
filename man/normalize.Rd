@@ -4,12 +4,7 @@
 \alias{normalize}
 \title{Normalization of microarray and RNA-seq expression data}
 \usage{
-normalize(
-  se,
-  norm.method = "quantile",
-  within = FALSE,
-  data.type = c(NA, "ma", "rseq")
-)
+normalize(se, norm.method = "quantile", data.type = c(NA, "ma", "rseq"))
 }
 \arguments{
 \item{se}{An object of class \code{\linkS4class{SummarizedExperiment}}.}
@@ -18,20 +13,17 @@ normalize(
 For available microarray normalization methods see the man page of the limma
 function \code{\link{normalizeBetweenArrays}}.  For available RNA-seq
 normalization methods see the man page of the EDASeq function
-\code{betweenLaneNormalization}.  Defaults to 'quantile', i.e.
+\code{betweenLaneNormalization}.  Defaults to \code{'quantile'}, i.e.
 normalization is carried out so that quantiles between arrays/lanes/samples
-are equal. See details.}
+are equal. For RNA-seq data, this can also be \code{'voom'} or 
+\code{'vst'} to invoke a variance-stabilizing transformation that
+allows statistical modeling as for microarry data. See details.}
 
-\item{within}{Logical.  Is only taken into account if data.type='rseq'.
-Determine whether GC content normalization should be carried out (as
-implemented in the EDASeq function \code{withinLaneNormalization}).
-Defaults to FALSE. See details.}
-
-\item{data.type}{Expression data type.  Use 'ma' for microarray and 'rseq'
-for RNA-seq data.  If NA, data.type is automatically guessed.  If the
-expression values in 'se' are decimal numbers they are assumed to be
-microarray intensities.  Whole numbers are assumed to be RNA-seq read
-counts.  Defaults to NA.}
+\item{data.type}{Expression data type.  Use \code{'ma'} for microarray and 
+\code{'rseq'} for RNA-seq data.  If \code{NA}, the data type is automatically 
+guessed: if the expression values in \code{se} are decimal (float) numbers, 
+they are assumed to be microarray intensities;  whole (integer) numbers are 
+assumed to be RNA-seq read counts.  Defaults to \code{NA}.}
 }
 \value{
 An object of class \code{\linkS4class{SummarizedExperiment}}.
@@ -51,7 +43,7 @@ specific functions/packages.  See also the limma's user guide
 normalization of the different expression data types.
 
 Microarray data is expected to be single-channel.  For two-color arrays, it
-is expected here that normalization within arrays has been already carried
+is expected that normalization within arrays has been already carried
 out, e.g. using \code{\link{normalizeWithinArrays}} from limma.
 
 RNA-seq data is expected to be raw read counts.  Please note that
@@ -59,6 +51,14 @@ normalization for downstream DE analysis, e.g. with edgeR and DESeq2, is not
 ultimately necessary (and in some cases even discouraged) as many of these
 tools implement specific normalization approaches.  See the vignette of
 EDASeq, edgeR, and DESeq2 for details.
+
+Using \code{norm.method = "vst"} invokes a variance-stabilizing 
+transformation (VST) for RNA-seq read count data. This accounts for differences 
+in sequencing depth between samples and over-dispersion of read count data. 
+The VST uses the \code{\link{cpm}} function implemented in the edgeR package 
+to compute moderated log2 read counts. Using edgeR's estimate of the common 
+dispersion phi, the \code{prior.count} parameter of the \code{\link{cpm}} 
+function is chosen as 0.5 / phi as previously suggested (Harrison, 2015).
 }
 \examples{
 
@@ -77,17 +77,26 @@ EDASeq, edgeR, and DESeq2 for details.
     #
     
     # (a) microarray ... 
-    normSE <- normalize(maSE) 
+    maSE <- normalize(maSE) 
+    assay(maSE, "raw")[1:5,1:5] 
+    assay(maSE, "norm")[1:5,1:5] 
 
     # (b) RNA-seq ... 
-    normSE <- normalize(rseqSE) 
+    normSE <- normalize(rseqSE, norm.method = "vst") 
+    assay(maSE, "raw")[1:5,1:5] 
+    assay(maSE, "norm")[1:5,1:5] 
 
-    # ... normalize also for GC content
-    gc.content <- rnorm(100, 0.5, sd=0.1)
-    rowData(rseqSE)$gc <- gc.content 
+}
+\references{
+Harrison (2015) Anscombe's 1948 variance stabilizing transformation for
+the negative binomial distribution is well suited to RNA-seq expression
+data. doi:10.7490/f1000research.1110757.1
 
-    normSE <- normalize(rseqSE, within=TRUE)
+Anscombe (1948) The transformation of Poisson, binomial and
+negative-binomial data. Biometrika 35(3-4):246-54.
 
+Law et al. (2014) voom: precision weights unlock linear model analysis tools 
+for RNA-seq read counts. Genome Biol 15:29.
 }
 \seealso{
 \code{\link{readSE}} for reading expression data from file;
@@ -96,7 +105,9 @@ EDASeq, edgeR, and DESeq2 for details.
 for normalization of microarray data;
 
 \code{withinLaneNormalization} and \code{betweenLaneNormalization} from the 
-EDASeq package for normalization of RNA-seq data.
+EDASeq package for normalization of RNA-seq data;
+
+\code{\link{cpm}} and \code{\link{estimateDisp}}
 }
 \author{
 Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>

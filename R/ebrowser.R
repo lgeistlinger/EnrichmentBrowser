@@ -104,14 +104,6 @@ configEBrowser <- function(key, value=NULL)
     else if(!(key %in% .key_readonly)) .ebrowser_config_cache[[key]] <- value
 }
 
-#' @export
-#' @keywords internal
-config.ebrowser <- function(key, value=NULL)     
-{
-    .Deprecated("configEBrowser")
-    configEBrowser(key, value)
-}
-
 ##
 # check the output directory
 ##

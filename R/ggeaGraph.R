@@ -74,16 +74,6 @@ ggeaGraph <- function(gs, grn, se,
     .plotGGEAGraph(g, show.scores=show.scores)
 }
 
-#' @export
-#' @keywords internal
-ggea.graph <- function(gs, grn, se, 
-    alpha=0.05, beta=1, max.edges=50, cons.thresh=0.7, show.scores=FALSE)
-{
-    .Deprecated("ggeaGraph")
-    ggeaGraph(gs, grn, se, alpha=alpha, beta=beta, 
-        max.edges=max.edges, cons.thresh=cons.thresh, show.scores=show.scores)
-}
-
 ##
 ## .plotGGEAGraph
 ##
@@ -329,10 +319,3 @@ ggeaGraphLegend <- function()
     text(0.8, 11, "NODE COLORS", pos=2, cex=1.5)
 }
 
-#' @export
-#' @keywords internal
-ggea.graph.legend <- function() 
-{
-    .Deprecated("ggeaGraphLegend")
-    ggeaGraphLegend()
-}

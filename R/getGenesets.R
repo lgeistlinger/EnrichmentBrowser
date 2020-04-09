@@ -274,15 +274,6 @@ getGenesets <- function(org,
     return(gs)
 }
 
-#' @export
-#' @keywords internal
-get.go.genesets <- function(org, 
-    onto=c("BP", "MF", "CC"), mode=c("GO.db","biomart"), cache=TRUE)
-{
-    .Deprecated("getGenesets")
-    .getGO(org, onto, mode, cache)
-}
-
 .getGO <- function(org, cache, return.type, 
                     onto=c("BP", "MF", "CC"), 
                     mode=c("GO.db","biomart"))
@@ -347,12 +338,12 @@ get.go.genesets <- function(org,
     ontos <- vapply(GO2descr[,3], .getOnto, character(1)) 
     GO2descr <- GO2descr[ontos==onto,1:2]
     
-    gene2GO <- getBM(attributes = c("entrezgene", "go_id"), mart=ensembl)
+    gene2GO <- getBM(attributes = c("entrezgene_id", "go_id"), mart=ensembl)
     gene2GO <- gene2GO[apply(gene2GO, 1 , function(r) all(r != "")), ]
     gene2GO <- gene2GO[order(gene2GO[,"go_id"]),]
     gene2GO <- gene2GO[gene2GO[,"go_id"] %in% GO2descr[,"go_id"],]
     gs <- lapply(GO2descr[,"go_id"], 
-        function(g) gene2GO[gene2GO[,"go_id"] == g, "entrezgene"])
+        function(g) gene2GO[gene2GO[,"go_id"] == g, "entrezgene_id"])
     gs <- lapply(gs, function(s) sort(as.character(s)))
 
     ids <- GO2descr[,1]
@@ -385,14 +376,6 @@ get.go.genesets <- function(org,
     }
     gs <- lapply(names(gs), .makeGeneSet)
     gs <- GeneSetCollection(gs)
-}
-
-#' @export
-#' @keywords internal
-get.kegg.genesets <- function(pwys, cache=TRUE, gmt.file=NULL)
-{    
-    .Deprecated("getGenesets")
-    .getKEGG(pwys, cache, gmt.file)
 }
 
 .getKEGG <- function(pwys, cache, gmt.file=NULL, return.type)
@@ -550,15 +533,6 @@ get.kegg.genesets <- function(pwys, cache=TRUE, gmt.file=NULL)
 {
     spl <- unlist(strsplit(n, "_"))
     paste(spl[-1], collapse = " ")
-}
-
-## parse geneset database
-#' @export
-#' @keywords internal
-parse.genesets.from.GMT <- function(gmt.file)
-{
-    .Deprecated("getGenesets")
-    .parseGMT(gmt.file)
 }
 
 .parseGMT <- function(gmt.file, return.type)

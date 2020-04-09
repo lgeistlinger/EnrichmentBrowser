@@ -79,10 +79,3 @@ downloadPathways <- function(org, cache=TRUE, out.dir=NULL, zip=FALSE)
     }
 }
 
-#' @export
-#' @keywords internal
-download.kegg.pathways <- function(org, cache=TRUE, out.dir=NULL, zip=FALSE)
-{
-    .Deprecated("downloadPathways")
-    downloadPathways(org, cache, out.dir, zip)
-}

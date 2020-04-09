@@ -12,7 +12,8 @@ deAna(
   de.method = c("limma", "edgeR", "DESeq2"),
   padj.method = "BH",
   stat.only = FALSE,
-  filter.by.expr = TRUE
+  filter.by.expr = TRUE,
+  assay = "auto"
 )
 }
 \arguments{
@@ -33,21 +34,27 @@ defined via a column named 'BLOCK' in the \code{\link{colData}} slot if
 \item{de.method}{Differential expression method.  Use 'limma' for microarray
 and RNA-seq data.  Alternatively, differential expression for RNA-seq data
 can be also calculated using edgeR ('edgeR') or DESeq2 ('DESeq2').  Defaults
-to 'limma'.}
+to \code{'limma'}.}
 
 \item{padj.method}{Method for adjusting p-values to multiple testing.  For
 available methods see the man page of the stats function
-\code{\link{p.adjust}}.  Defaults to 'BH'.}
+\code{\link{p.adjust}}.  Defaults to \code{'BH'}.}
 
 \item{stat.only}{Logical. Should only the test statistic be returned?  This
 is mainly for internal use, in order to carry out permutation tests on the
-DE statistic for each gene.  Defaults to FALSE.}
+DE statistic for each gene.  Defaults to \code{FALSE}.}
 
 \item{filter.by.expr}{Logical. For RNA-seq data: include only genes with
 sufficiently large counts in the DE analysis? If TRUE, excludes genes not 
 satisfying a minimum number of read counts across samples using the 
 \code{\link{filterByExpr}} function from the edgeR package.
 Defaults to TRUE.}
+
+\item{assay}{Character. The name of the assay for differential expression 
+analysis if \code{expr} is a \code{\linkS4class{SummarizedExperiment}} with 
+*multiple assays*. Defaults to \code{"auto"}, which automatically determines
+the appropriate assay based on data type provided and DE method selected. 
+See details.}
 }
 \value{
 A DE-table with measures of differential expression for each
@@ -61,16 +68,38 @@ The function carries out a differential expression analysis between two
 sample groups. Resulting fold changes and derived p-values are returned.
 Raw p-values are corrected for multiple testing.
 }
+\details{
+Using a \code{\linkS4class{SummarizedExperiment}} with *multiple assays*:
+
+For the typical use case within the EnrichmentBrowser workflow this will
+be a \code{\linkS4class{SummarizedExperiment}} with two assays: (i) an assay
+storing the *raw* expression values, and (ii) an assay storing the *norm*alized
+expression values as obtained with the \code{\link{normalize}} function. 
+
+In this case, \code{assay = "auto"} will *auto*matically determine the assay 
+based on the data type provided. For microarray data, differential expression
+analysis will be carried out on the assay storing the *norm*alized log2 intensities. 
+For RNA-seq data, differential expression analysis will be carried out on the
+assay storing the *raw* read counts.
+
+For usage outside of the typical workflow, the \code{assay} argument can be
+used to provide the name of the assay for differential expression analysis.
+For differential expression analysis of microarray data with 
+\code{de.method = "limma"}, this assay should contain the *norm*alized log2 
+intensities. For differential expression analysis of RNA-seq data with either
+method (limma/voom, edgeR, or DESeq2), the specified assay should contain the
+*raw* read counts.
+}
 \examples{
 
     # (1) microarray data: intensity measurements
-    maSE <- makeExampleData(what="SE", type="ma")
+    maSE <- makeExampleData(what = "SE", type = "ma")
     maSE <- deAna(maSE)
     rowData(maSE)
     
     # (2) RNA-seq data: read counts
-    rseqSE <- makeExampleData(what="SE", type="rseq")
-    rseqSE <- deAna(rseqSE, de.method="DESeq2")
+    rseqSE <- makeExampleData(what = "SE", type = "rseq")
+    rseqSE <- deAna(rseqSE, de.method = "DESeq2")
     rowData(rseqSE)
 
 }

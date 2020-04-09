@@ -81,16 +81,6 @@ probe2gene <- function(probeSE, chip=NA, from="PROBEID", to="ENTREZID",
     return(geneSE)
 }
 
-#' @export
-#' @keywords internal
-probe.2.gene.eset <- function(probe.eset, use.mean=TRUE)
-{
-    .Deprecated("probe2gene")
-    multi.from <- ifelse(use.mean, "mean", "minp")
-    probe2gene(probe.eset, multi.from=multi.from)
-}
-
-
 .probe2geneAverage <- function(se, chip, from, to, multi.to)
 {
     if(is(se, "ExpressionSet")) 

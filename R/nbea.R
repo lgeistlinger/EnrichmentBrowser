@@ -218,6 +218,7 @@ nbea <- function(
     se <- .preprocSE(se)
    
     # getting gene sets & grn
+    if(is(gs, "GeneSetCollection")) gs <- GSEABase::geneIds(gs)
     if(!is.list(gs)) gs <- getGenesets(gs)
     if(!is.matrix(grn)) grn <- .readGRN(grn)
 

@@ -213,14 +213,6 @@ eaBrowse <- function(res, nr.show=-1,
     }
 }
 
-#' @export
-#' @keywords internal
-ea.browse <- function(res, nr.show=-1, graph.view=NULL, html.only=FALSE)
-{
-    .Deprecated("eaBrowse")
-    eaBrowse(res, nr.show, graph.view, html.only)
-}   
-
 .createIndex <- function(meth, comb, out.dir, report.name="index")
 {
     indexPage <- ReportingTools::HTMLReport(shortName = report.name,

@@ -70,15 +70,6 @@ compileGRN <- function(org, db="kegg",
     return(grn)
 }    
 
-#' @export
-#' @keywords internal
-compile.grn.from.kegg <- function(pwys, out.file=NULL)
-{
-    .Deprecated("compileGRN")
-    compileGRN(pwys, db="kegg", kegg.native=TRUE)
-}
-
-
 .compileGRNFromGraphite <- function(org, 
     db="kegg", act.inh=TRUE, 
     map2entrez=TRUE, keep.type=FALSE)

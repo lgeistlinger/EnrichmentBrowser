@@ -120,16 +120,6 @@ readSE <- function(assay.file, cdat.file, rdat.file,
     return(se)
 }
 
-#' @export
-#' @keywords internal
-read.eset <- function(exprs.file, pdat.file, fdat.file, 
-    data.type=c(NA, "ma", "rseq"), NA.method=c("mean", "rm", "keep"))
-{
-    .Deprecated("readSE")
-    readSE(assay.file=exprs.file, cdat.file=pdat.file,
-        rdat.file=fdat.file, data.type=data.type, NA.method=NA.method)
-}
-
 .naTreat <- function(expr, NA.method=c("mean", "rm", "keep"))
 {
     NA.method <- match.arg(NA.method)

@@ -7,6 +7,7 @@
 
 <<style-knitr, eval=TRUE, echo=FALSE, results="asis">>=
 BiocStyle::latex()
+knitr::opts_chunk$set(message = FALSE)
 @
 
 \usepackage{graphicx, subfig}
@@ -71,12 +72,10 @@ The last section \emph{Putting it all together} also demonstrates how to wrap
 the whole workflow into a single function, making use of suitably chosen 
 defaults.
 
-<<setup, echo=FALSE>>=
-suppressMessages(suppressWarnings(suppressPackageStartupMessages({
+<<setup, echo = FALSE>>=
 library(EnrichmentBrowser)
 library(ALL)
 library(airway)
-})))
 @
 
 \section{Reading expression data from file}
@@ -88,7 +87,7 @@ the expression data (\Rfunction{exprs}) along with the phenotype data
 \Biocpkg{SummarizedExperiment}. 
 <<readSE>>=
 library(EnrichmentBrowser)
-data.dir <- system.file("extdata", package="EnrichmentBrowser")
+data.dir <- system.file("extdata", package = "EnrichmentBrowser")
 exprs.file <- file.path(data.dir, "exprs.tab")
 cdat.file <- file.path(data.dir, "colData.tab")
 rdat.file <- file.path(data.dir, "rowData.tab")
@@ -214,7 +213,7 @@ measurements that are not mapped to an ENSEMBL gene ID.
 
 <<preproc-airway>>=
 airSE <- airway[grep("^ENSG", rownames(airway)),]
-airSE <- airSE[rowMeans(assay(airSE)) > 10,]
+airSE <- airSE[rowSums(assay(airSE)) > 4,]
 dim(airSE)
 assay(airSE)[1:4,1:4]
 @
@@ -239,16 +238,14 @@ A default quantile normalization based on
 \Rfunction{normalizeBetweenArrays} from \Biocpkg{limma} can be carried out via
 
 <<norm-ma>>=
-before.norm <- assay(allSE)
-allSE <- normalize(allSE, norm.method="quantile")
-after.norm <- assay(allSE)
+allSE <- normalize(allSE, norm.method = "quantile")
 @
 
 \begin{center}
 <<plot-norm, fig.width=12, fig.height=6>>=
 par(mfrow=c(1,2))
-boxplot(before.norm)
-boxplot(after.norm)
+boxplot(assay(allSE, "raw"))
+boxplot(assay(allSE, "norm"))
 @
 \end{center}
 
@@ -267,7 +264,7 @@ In case normalization is desired, between-lane normalization to adjust for
 sequencing depth can be carried out as demonstrated for microarray data.
 
 <<norm-rseq>>=
-norm.air <- normalize(airSE, norm.method="quantile")
+airSE <- normalize(airSE, norm.method = "quantile")
 @
 
 Within-lane normalization to adjust for gene-specific effects such as gene 
@@ -276,14 +273,6 @@ e.g.~from \software{BioMart} or specific \Bioconductor annotation packages.
 Both modes are implemented in the \Biocpkg{EDASeq} function 
 \Rfunction{getGeneLengthAndGCContent}.
 
-Using precomputed information, normalization within and between lanes can be 
-carried out via
-
-<<norm2-rseq>>=
-lgc.file <- file.path(data.dir, "air_lgc.tab")
-rowData(airSE) <- read.delim(lgc.file)
-norm.air <- normalize(airSE, within=TRUE)
-@
 
 \section{Differential expression}
 
@@ -341,7 +330,7 @@ Resulting fold changes and $t$-test derived $p$-values for each gene are
 appended to the \Robject{rowData} slot.
 
 <<DE-ana-ALL>>=
-allSE <- deAna(allSE, padj.method="BH")
+allSE <- deAna(allSE, padj.method = "BH")
 rowData(allSE)
 @
  
@@ -354,7 +343,7 @@ plot (fold change against $p$-value).
  
 \begin{center}
 <<plot-DE, fig.width=12, fig.height=6>>=
-par(mfrow=c(1,2))
+par(mfrow = c(1,2))
 pdistr(rowData(allSE)$PVAL)
 volcano(rowData(allSE)$FC, rowData(allSE)$ADJ.PVAL)
 @
@@ -364,8 +353,8 @@ The expression change of highest statistical significance is observed for the
 ENTREZ gene \verb=7525=. 
 
 <<DE-exmpl>>=
-ind.min <- which.min( rowData(allSE)$ADJ.PVAL )
-rowData(allSE)[ ind.min, ]
+ind.min <- which.min(rowData(allSE)$ADJ.PVAL)
+rowData(allSE)[ind.min,]
 @
 
 This turns out to be the YES proto-oncogene 1 
@@ -379,11 +368,11 @@ alternatively, the popular \Biocpkg{edgeR} or \Biocpkg{DESeq2} package.
 Here, we use the analysis based on \Biocpkg{edgeR} for demonstration.
 
 <<DE-ana-airway>>=
-airSE <- deAna(airSE, de.method="edgeR")
+airSE <- deAna(airSE, de.method = "edgeR")
 rowData(airSE)
 @
 
-\section{ID mapping}
+\section{ID mapping}\label{sec:idmap}
 
 Using genomic information from different resources often requires mapping 
 between different types of gene identifiers.
@@ -406,7 +395,7 @@ carried out using the function \Rfunction{idMap}.
 
 <<idmap-airway>>=
 head(rownames(airSE))
-airSE <- idMap(airSE, org="hsa", from="ENSEMBL", to="ENTREZID")
+airSE <- idMap(airSE, org = "hsa", from = "ENSEMBL", to = "ENTREZID")
 head(rownames(airSE))
 @
 
@@ -433,7 +422,7 @@ We can use the function to download all KEGG pathways for a chosen organism
 (here: \emph{Homo sapiens}) as gene sets.
 
 <<get-kegg-gs, eval=FALSE>>=
-kegg.gs <- getGenesets(org="hsa", db="kegg")
+kegg.gs <- getGenesets(org = "hsa", db = "kegg")
 @
 
 Analogously, the function \Rfunction{getGenesets} can be used to retrieve GO 
@@ -441,7 +430,7 @@ terms of a selected ontology (here: biological process, BP) as defined in the
 \Biocpkg{GO.db} annotation package.
 
 <<get-go-gs, eval=FALSE>>=
-go.gs <- getGenesets(org="hsa", db="go", onto="BP", mode="GO.db")
+go.gs <- getGenesets(org = "hsa", db = "go", onto = "BP", mode = "GO.db")
 @
 
 If provided a file, the function parses user-defined gene sets from GMT file format.
@@ -456,13 +445,14 @@ hsa.gs[1:2]
 @
 
 Note \#1: Use \Rfunction{getGenesets} with \Rcode{db = "msigdb"} to obtain gene 
-set collections from the \href{http://software.broadinstitute.org/gsea/msigdb/collections.jsp}{Molecular Signatures Database (MSigDB)}.
+set collections for 11 different species from the 
+\href{http://software.broadinstitute.org/gsea/msigdb/collections.jsp}{Molecular Signatures Database (MSigDB)}.
 Analogously, \Rfunction{getGenesets} with \Rcode{db = "enrichr"} allows to obtain
-gene set libraries from the comprehensive \href{https://amp.pharm.mssm.edu/Enrichr/#stats}{Enrichr collection}.
+gene set libraries from the comprehensive \href{https://amp.pharm.mssm.edu/Enrichr/#stats}{Enrichr collection} for 5 different species.
 
 Note \#2: The \Rfunction{idMap} function can be used to map gene sets from 
 NCBI Entrez Gene IDs to other common gene ID types such as ENSEMBL gene IDs or 
-HGNC symbols. 
+HGNC symbols as described in Section~\ref{sec:idmap}. 
 
 \subsection{Set-based enrichment analysis}
 
@@ -521,17 +511,112 @@ implemented in \Biocpkg{EmpiricalBrownsMethod}),
 See also Appendix~\ref{sec:primer} for a comprehensive introduction on underlying
 statistical concepts.
 
+\subsection{Guidelines for input and method selection}
 
-For demonstration, we perform a basic ORA choosing a significance level 
-$\alpha$ of 0.1
+We recently performed a comprehensive assessment of the availabe set-based enrichment 
+methods, and identified significant differences in runtime and applicability to RNA-seq data, 
+fraction of enriched gene sets depending on the null hypothesis tested, and detection 
+of relevant processes~\cite{Geistlinger20}. 
+Based on these results, we make practical recommendations on how methods originally 
+developed for microarray 
+data can efficiently be applied to RNA-seq data, how to interpret results depending 
+on the type of gene set test conducted and which methods are best suited to effectively 
+prioritize gene sets with high phenotype relevance:
+
+\begin{itemize}
+
+\item for the exploratory analysis of \textbf{simple gene lists}, we recommend ORA given its 
+ease of applicability, fast runtime and evident relevance of resulting gene set 
+rankings, provided that input gene list and reference gene list are chosen carefully 
+and remembering ORA’s propensity for type I error rate inflation when genes tend
+to be co-expressed within sets.
+
+\item for the analysis of \textbf{pre-ranked gene lists} accompanied by gene scores such as 
+fold changes, alternatives to ORA such as pre-ranked GSEA or pre-ranked CAMERA
+exist.
+
+\item for expression-based enrichment analysis on the \textbf{full expression matrix}, 
+we recommend providing
+normalized log2 intensities for microarray data, and logTPMs (or logRPKMs / logFPKMs)
+for RNA-seq data. 
+When given raw read counts, we recommend to apply a variance-stabilizing transformation
+such as \Rfunction{voom} to arrive at library-size normalized logCPMs. 
+
+\item if the question of interest is to test for association of any gene in the set with
+the phenotype (\textbf{self-contained} null hypothesis), we recommend ROAST or GSVA that 
+both test a \textbf{directional} hypothesis (genes in the set tend to be either
+predominantly up- or down-regulated). 
+Both methods can be applied for simple or extended experimental designs, where 
+ROAST is the more natural choice for the comparison of sample groups and also 
+allows one to test a \textbf{mixed} hypothesis (genes in the set tend to be 
+differentially expressed, regardless of the direction). 
+The main strength of GSVA lies in its capabilities for analyzing single samples.
+
+\item if the question of interest is to test for excess of differential expression in
+a gene set relative to genes outside the set (\textbf{competitive} null hypothesis), which
+we believe comes closest to the expectations and intuition of most end users when
+performing GSEA, we recommend PADOG, which is slower to run but resolves major 
+shortcomings of ORA, and has desirable properties for the analyzed criteria and 
+when compared to other competitive methods. 
+However, PADOG is limited to testing a mixed hypothesis in a comparison of two 
+sample groups, optionally including paired samples or sample batches.
+Therefore, we recommend the highly customizable SAFE for testing a directional
+hypothesis or in situations of more complex experimental designs such as
+comparisons between multiple groups, continuous phenotypes or the presence of
+covariates.
+
+\end{itemize}
+
+See also Reference~\cite{Geistlinger20} for the results of the benchmarking study 
+and the \Biocpkg{GSEABenchmarkeR} package for a general framework for reproducible 
+benchmarking of gene set enrichment methods.
+
+
+\subsubsection{Microarray data}
+
+Given normalized log2 intensities for the ALL microarray dataset, a basic ORA can
+be carried out via 
+
 <<sbea>>=
-sbea.res <- sbea(method="ora", se=allSE, gs=hsa.gs, perm=0, alpha=0.1)
+sbea.res <- sbea(method = "ora", se = allSE, gs = hsa.gs, perm = 0, alpha = 0.1)
 gsRanking(sbea.res)
 @
 
+Note that we set \Rcode{perm = 0} to invoke the classical hypergeometric test 
+without sample permutation, and that we chose a significance level $\alpha$ of 0.1 
+for demonstration purposes.
+
+\subsubsection{RNA-seq data}
+
+When analyzing RNA-seq datasets with expression values given as logTPMs 
+(or logRPKMs / logFPKMs), the available set-based enrichment methods can be 
+applied as for microarray data. 
+However, when given raw read counts as for the airway dataset, we recommend to 
+first apply a variance-stabilizing transformation such as \Rfunction{voom} to 
+arrive at library-size normalized logCPMs. 
+
+<<vst>>=
+airSE <- normalize(airSE, norm.method = "vst")
+@
+
+The mean-variance relationship of the transformed data is similar to what is 
+observed for microarray data, simplifying the application of legacy enrichment 
+methods such as GSEA and PADOG to RNA-seq data, and enable the use of fast and 
+established methods.
+
+
+\subsection{Result exploration}
+
 The result of every enrichment analysis is a ranking of gene sets by the 
-corresponding $p$-value. The \Rfunction{gsRanking} function displays only those
-gene sets satisfying the chosen significance level $\alpha$.
+corresponding $p$-value. The \Rfunction{gsRanking} function displays by default
+only those gene sets satisfying the chosen significance level $\alpha$, but we
+can use
+
+<<fullrank>>=
+gsRanking(sbea.res, signif.only = FALSE)
+@
+
+to obtain the full ranking.
 
 While such a ranked list is the standard output of existing enrichment tools, 
 the \Biocpkg{EnrichmentBrowser} package provides visualization 
@@ -555,38 +640,6 @@ eaBrowse(sbea.res)
     such as heatmap, $p$-value distribution, and volcano plot, (3) the pathway 
     in KEGG with differentially expressed genes highlighted in red.}\label{fig:oraRes}
 \end{figure*}
-
-The goal of the \Biocpkg{EnrichmentBrowser} package is to provide
-frequently used enrichment methods. However, it is also possible to exploit
-its visualization capabilities with user-defined set-based enrichment methods.
-
-This requires to implement a function that takes the characteristic arguments
-\Robject{se} (expression data) and \Robject{gs} (gene sets). 
-
-In addition, it must return a numeric vector \Robject{ps} storing the resulting
-$p$-value for each gene set in \Robject{gs}. The $p$-value vector must also be
-named accordingly (i.e.~\Rcode{names(ps) == names(gs)}).
-
-Let us consider the following dummy enrichment method, which randomly renders 
-five gene sets significant and the remaining insignificant.
-
-<<dummySBEA>>=
-dummySBEA <- function(se, gs)
-{
-        sig.ps <- sample(seq(0,0.05, length=1000),5)
-        insig.ps <- sample(seq(0.1,1, length=1000), length(gs)-5)
-        ps <- sample(c(sig.ps, insig.ps), length(gs))
-        names(ps) <- names(gs)
-        return(ps)
-}
-@
-
-We can plug this method into \Rfunction{sbea} as before.
-
-<<sbea2>>=
-sbea.res2 <- sbea(method=dummySBEA, se=allSE, gs=hsa.gs)
-gsRanking(sbea.res2)
-@ 
 
 \subsection{Network-based enrichment analysis}
 
@@ -682,10 +735,45 @@ ggeaGraphLegend()
 @
 \end{center}
 
-As described in the previous section, it is also possible to plug in user-defined
-network-based enrichment methods.
+\subsection{User-defined enrichment methods}
+
+The goal of the \Biocpkg{EnrichmentBrowser} package is to provide
+frequently used enrichment methods. However, it is also possible to exploit
+its visualization capabilities with user-defined set-based enrichment methods.
+
+This requires to implement a function that takes the characteristic arguments
+\Robject{se} (expression data) and \Robject{gs} (gene sets). 
+
+In addition, it must return a numeric vector \Robject{ps} storing the resulting
+$p$-value for each gene set in \Robject{gs}. The $p$-value vector must also be
+named accordingly (i.e.~\Rcode{names(ps) == names(gs)}).
+
+Let us consider the following dummy enrichment method, which randomly renders 
+five gene sets significant and the remaining insignificant.
+
+<<dummySBEA>>=
+dummySBEA <- function(se, gs)
+{
+        sig.ps <- sample(seq(0, 0.05, length = 1000), 5)
+        insig.ps <- sample(seq(0.1, 1, length = 1000), length(gs) - 5)
+        ps <- sample(c(sig.ps, insig.ps), length(gs))
+        names(ps) <- names(gs)
+        return(ps)
+}
+@
+
+We can plug this method into \Rfunction{sbea} as before.
+
+<<sbea2>>=
+sbea.res2 <- sbea(method = dummySBEA, se = allSE, gs = hsa.gs)
+gsRanking(sbea.res2)
+@ 
+
+As described in the previous section, it is also possible to analogously plug in
+user-defined network-based enrichment methods into \Rfunction{nbea}.
 
 \newpage
+
 \section{Combining results}
 Different enrichment analysis methods usually result in different gene set 
 rankings for the same dataset.

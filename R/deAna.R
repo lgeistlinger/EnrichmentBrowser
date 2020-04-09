@@ -4,7 +4,27 @@
 #' sample groups. Resulting fold changes and derived p-values are returned.
 #' Raw p-values are corrected for multiple testing.
 #' 
+#' Using a \code{\linkS4class{SummarizedExperiment}} with *multiple assays*:
 #' 
+#' For the typical use case within the EnrichmentBrowser workflow this will
+#' be a \code{\linkS4class{SummarizedExperiment}} with two assays: (i) an assay
+#' storing the *raw* expression values, and (ii) an assay storing the *norm*alized
+#' expression values as obtained with the \code{\link{normalize}} function. 
+#' 
+#' In this case, \code{assay = "auto"} will *auto*matically determine the assay 
+#' based on the data type provided. For microarray data, differential expression
+#' analysis will be carried out on the assay storing the *norm*alized log2 intensities. 
+#' For RNA-seq data, differential expression analysis will be carried out on the
+#' assay storing the *raw* read counts.
+#'
+#' For usage outside of the typical workflow, the \code{assay} argument can be
+#' used to provide the name of the assay for differential expression analysis.
+#' For differential expression analysis of microarray data with 
+#' \code{de.method = "limma"}, this assay should contain the *norm*alized log2 
+#' intensities. For differential expression analysis of RNA-seq data with either
+#' method (limma/voom, edgeR, or DESeq2), the specified assay should contain the
+#' *raw* read counts. 
+#'
 #' @aliases de.ana
 #' @param expr Expression data.  A numeric matrix. Rows correspond to genes,
 #' columns to samples.  Alternatively, this can also be an object of class
@@ -20,18 +40,23 @@
 #' @param de.method Differential expression method.  Use 'limma' for microarray
 #' and RNA-seq data.  Alternatively, differential expression for RNA-seq data
 #' can be also calculated using edgeR ('edgeR') or DESeq2 ('DESeq2').  Defaults
-#' to 'limma'.
+#' to \code{'limma'}.
 #' @param padj.method Method for adjusting p-values to multiple testing.  For
 #' available methods see the man page of the stats function
-#' \code{\link{p.adjust}}.  Defaults to 'BH'.
+#' \code{\link{p.adjust}}.  Defaults to \code{'BH'}.
 #' @param stat.only Logical. Should only the test statistic be returned?  This
 #' is mainly for internal use, in order to carry out permutation tests on the
-#' DE statistic for each gene.  Defaults to FALSE.
+#' DE statistic for each gene.  Defaults to \code{FALSE}.
 #' @param filter.by.expr Logical. For RNA-seq data: include only genes with
 #' sufficiently large counts in the DE analysis? If TRUE, excludes genes not 
 #' satisfying a minimum number of read counts across samples using the 
 #' \code{\link{filterByExpr}} function from the edgeR package.
 #' Defaults to TRUE.
+#' @param assay Character. The name of the assay for differential expression 
+#' analysis if \code{expr} is a \code{\linkS4class{SummarizedExperiment}} with 
+#' *multiple assays*. Defaults to \code{"auto"}, which automatically determines
+#' the appropriate assay based on data type provided and DE method selected. 
+#' See details.   
 #' @return A DE-table with measures of differential expression for each
 #' gene/row, i.e. a two-column matrix with log2 fold changes in the 1st column
 #' and derived p-values in the 2nd column.  If 'expr' is a
@@ -47,19 +72,20 @@
 #' @examples
 #' 
 #'     # (1) microarray data: intensity measurements
-#'     maSE <- makeExampleData(what="SE", type="ma")
+#'     maSE <- makeExampleData(what = "SE", type = "ma")
 #'     maSE <- deAna(maSE)
 #'     rowData(maSE)
 #'     
 #'     # (2) RNA-seq data: read counts
-#'     rseqSE <- makeExampleData(what="SE", type="rseq")
-#'     rseqSE <- deAna(rseqSE, de.method="DESeq2")
+#'     rseqSE <- makeExampleData(what = "SE", type = "rseq")
+#'     rseqSE <- deAna(rseqSE, de.method = "DESeq2")
 #'     rowData(rseqSE)
 #' 
 #' @export deAna
-deAna <- function(expr, grp=NULL, blk=NULL, 
-                    de.method=c("limma", "edgeR", "DESeq2"), 
-                    padj.method="BH", stat.only=FALSE, filter.by.expr=TRUE)
+deAna <- function(expr, grp = NULL, blk = NULL, 
+                    de.method = c("limma", "edgeR", "DESeq2"), 
+                    padj.method = "BH", stat.only = FALSE, filter.by.expr = TRUE,
+                    assay = "auto")
 {
     if(is(expr, "ExpressionSet")) expr <- as(expr, "SummarizedExperiment")
 
@@ -67,7 +93,7 @@ deAna <- function(expr, grp=NULL, blk=NULL,
     if(isSE) 
     { 
         se <- expr
-        info <- .extractInfoFromSE(se)
+        info <- .extractInfoFromSE(se, assay)
         expr <- info$expr
         grp <- info$grp
         blk <- info$blk
@@ -97,12 +123,12 @@ deAna <- function(expr, grp=NULL, blk=NULL,
     data.type <- .detectDataType(expr)
 
     if(data.type != "rseq" && de.method %in% c("edgeR", "DESeq2"))
-        stop(paste(de.method, "only applicable to integer read counts"))
+        stop(de.method, " only applicable to integer read counts")
 
     # filter low-expressed genes
     if(data.type == "rseq" && !stat.only && filter.by.expr)
     {
-        expr <- .filterRSeq(expr)
+        expr <- .filterRSeq(expr, group = group)
         if(isSE) se <- se[rownames(expr),]
 	}
 
@@ -134,17 +160,6 @@ deAna <- function(expr, grp=NULL, blk=NULL,
         return(se)
     }
     return(de.tbl)
-}
-
-#' @export
-#' @keywords internal
-de.ana <- function(expr, grp=NULL, blk=NULL, 
-                    de.method=c("limma", "edgeR", "DESeq"), 
-                    padj.method="BH", stat.only=FALSE)
-{
-    .Deprecated("deAna")
-    deAna(expr=expr, grp=grp, blk=blk, de.method=de.method,
-            padj.method=padj.method, stat.only=stat.only)
 }
 
 .limma <- function(expr, f, data.type, stat.only)
@@ -208,25 +223,26 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
     return(de.tbl)
 }
 
-.filterRSeq <- function(expr)
+.filterRSeq <- function(expr, group = NULL, index.only = FALSE)
 {
-    keep <- edgeR::filterByExpr(expr)
+    keep <- edgeR::filterByExpr(expr, group = group)
     nr.low <- sum(!keep)
     if(nr.low)
     { 
         message(paste("Excluding", nr.low, 
             "genes not satisfying min.cpm threshold")) 
-        expr <- expr[keep,]	
     }
-    return(expr)
+    if(index.only) return(keep)
+    else return(expr[keep,])	
 }
 
-.extractInfoFromSE <- function(se)
+.extractInfoFromSE <- function(se, assay = "auto")
 {
     GRP.COL <- configEBrowser("GRP.COL")    
     BLK.COL <- configEBrowser("BLK.COL")
 
-    expr <- assay(se)
+    if(length(assays(se)) > 1) expr <- .getAssay(se, assay) 
+    else expr <- assay(se)
     
     # check for group annotation
     if(!(GRP.COL %in% colnames(colData(se))))
@@ -237,6 +253,18 @@ de.ana <- function(expr, grp=NULL, blk=NULL,
     blk <- NULL
     if(BLK.COL %in% colnames(colData(se))) blk <- colData(se)[,BLK.COL] 
 
-    res <- list(expr=expr, grp=grp, blk=blk)
+    res <- list(expr = expr, grp = grp, blk = blk)
     return(res)
+}
+
+.getAssay <- function(se, assay = "auto")
+{
+    stopifnot(length(assay) == 1 && is.character(assay))
+    if(assay == "auto")
+    {
+        data.type <- .detectDataType(assay(se))
+        assay <- ifelse(data.type == "rseq", "raw", "norm")
+    }
+    stopifnot(assay %in% names(assays(se)))
+    assay(se, assay)
 }

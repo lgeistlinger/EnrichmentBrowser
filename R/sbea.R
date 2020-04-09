@@ -64,8 +64,8 @@ sbeaMethods <- function()
 #' 'samgs': significance analysis of microarrays on gene sets, extends the SAM
 #' method for single genes to gene set analysis (Dinu et al., 2007).
 #' 
-#' 'ebm': empirical Brown's method, combines $p$-values of genes in a gene set
-#' using Brown's method to combine $p$-values from dependent tests; implemented
+#' 'ebm': empirical Brown's method, combines p-values of genes in a gene set
+#' using Brown's method to combine p-values from dependent tests; implemented
 #' in the EmpiricalBrownsMethod package.
 #' 
 #' 'mgsa': model-based gene set analysis, Bayesian modeling approach taking set
@@ -78,6 +78,18 @@ sbeaMethods <- function()
 #' for each gene set in 'gs'. This vector must be named accordingly (i.e.
 #' names(ps) == names(gs)). See examples.
 #' 
+#' Using a \code{\linkS4class{SummarizedExperiment}} with *multiple assays*:
+#' 
+#' For the typical use case within the EnrichmentBrowser workflow this will
+#' be a \code{\linkS4class{SummarizedExperiment}} with two assays: (i) an assay
+#' storing the *raw* expression values, and (ii) an assay storing the *norm*alized
+#' expression values as obtained with the \code{\link{normalize}} function. 
+#' 
+#' In this case, \code{assay = "auto"} will *auto*matically determine the assay 
+#' based on the data type provided and the enrichment method selected. 
+#' For usage outside of the typical workflow, the \code{assay} argument can be
+#' used to provide the name of the assay for the enrichment analysis.
+#'
 #' @aliases ora gsea
 #' @param method Set-based enrichment analysis method.  Currently, the
 #' following set-based enrichment analysis methods are supported: \sQuote{ora},
@@ -113,6 +125,11 @@ sbeaMethods <- function()
 #' to.
 #' @param browse Logical. Should results be displayed in the browser for
 #' interactive exploration? Defaults to FALSE.
+#' @param assay Character. The name of the assay for enrichment 
+#' analysis if \code{se} is a \code{\linkS4class{SummarizedExperiment}} with 
+#' *multiple assays*. Defaults to \code{"auto"}, which automatically determines
+#' the appropriate assay based on data type provided and enrichment method selected. 
+#' See details.   
 #' @param ...  Additional arguments passed to individual sbea methods.  This
 #' includes currently for ORA and MGSA: \itemize{ \item beta: Log2 fold change
 #' significance level. Defaults to 1 (2-fold).  \item sig.stat: decides which
@@ -138,18 +155,16 @@ sbeaMethods <- function()
 #' 
 #' Other: \code{\link{nbea}} to perform network-based enrichment analysis.
 #' \code{\link{combResults}} to combine results from different methods.
-#' @references Goeman and Buhlmann (2007) Analyzing gene expression data in
-#' terms of gene sets: methodological issues.  Bioinformatics, 23, 980-7.
-#' 
-#' Barry et al. (2005) Significance Analysis of Function and Expression.
-#' Bioinformatics, 21:1943-9.
+#' @references 
+#' Geistlinger at al. (2020) Towards a gold standard for benchmarking  
+#' gene set enrichment analysis. Briefings in Bioinformatics.
+#'
+#' Goeman and Buhlmann (2007) Analyzing gene expression data in
+#' terms of gene sets: methodological issues. Bioinformatics, 23:980-7.
 #' 
 #' Subramanian et al. (2005) Gene Set Enrichment Analysis: a knowledge-based
-#' approach for interpreting genome-wide expression profiles.  Proc Natl Acad
-#' Sci USA, 102:15545-50.
+#' approach for interpreting genome-wide expression profiles. PNAS, 102:15545-50.
 #' 
-#' Dinu et al. (2007) Improving gene set analysis of microarray data by SAM-GS.
-#' BMC Bioinformatics, 8:242
 #' @examples
 #' 
 #'     # currently supported methods
@@ -191,14 +206,16 @@ sbeaMethods <- function()
 #' 
 #' @export sbea
 sbea <- function(   
-    method=EnrichmentBrowser::sbeaMethods(), 
+    method = EnrichmentBrowser::sbeaMethods(), 
     se, 
     gs, 
-    alpha=0.05, 
-    perm=1000, 
-    padj.method="none",
-    out.file=NULL,
-    browse=FALSE, ...)
+    alpha = 0.05, 
+    perm = 1000, 
+    padj.method = "none",
+    out.file = NULL,
+    browse = FALSE,
+    assay = "auto", 
+    ...)
 {   
     # get configuration
     GS.MIN.SIZE <- configEBrowser("GS.MIN.SIZE")
@@ -209,14 +226,19 @@ sbea <- function(
 
 	# TODO: disentangle DE and EA analysis
     se <- .preprocSE(se)
+    se <- .setAssay(method, se, perm, assay)
     
+    # data type: ma or rseq?
+    is.rseq <- metadata(se)$dataType == "rseq"
+
     # getting gene sets
     if(is(gs, "GeneSetCollection")) gs <- GSEABase::geneIds(gs)
     if(!is.list(gs)) gs <- getGenesets(gs)
 
     # restrict se and gs to intersecting genes
     igenes <- intersect(rownames(se), unique(unlist(gs)))
-    if(!length(igenes)) stop("Expression dataset (se) and gene sets (gs) have no gene IDs in common")
+    if(!length(igenes)) stop("Expression dataset (se)", " and ", 
+                                "gene sets (gs) have no gene IDs in common")
     se <- se[igenes,]
     gs <- lapply(gs, function(s) s[s %in% igenes]) 
     lens <- lengths(gs)
@@ -225,102 +247,36 @@ sbea <- function(
     if(is.character(method))
     { 
         method <- match.arg(method)
-        data.type <- metadata(se)$dataType
-        if(is.null(data.type)) data.type <- .detectDataType(assay(se))
-
-        # rseq? 
-        if(data.type == "rseq")
+    
+        # needs conversion of gs list to adj. matrix?
+        cmat.methods <- c("ora", "safe", "samgs", "ebm")
+        if(method %in% cmat.methods) 
         {
-            # mgsa
-            if(method == "mgsa") gs.ps <- .mgsa(se, gs, alpha, ...)
-            # globaltest
-            else if(method == "globaltest") gs.ps <- .globaltest(se, gs, perm)
-            # roast & camera
-            else if(method %in% c("roast", "camera"))
-                gs.ps <- .roast.camera(method, se, gs, perm, rseq=TRUE)
-		    # gsva
-		    else if(method == "gsva") gs.ps <- .gsva(se, gs, rseq=TRUE)
-            else
-            {
-                # gs2cmat
-                f <- file()
-                sink(file=f)
-                cmat <- safe::getCmatrix(gs, as.matrix=TRUE)
-                sink()
-                close(f)
-                se <- se[rownames(cmat),]
+            cmat <- .gs2cmat(gs)
+            se <- se[rownames(cmat),]
+        }        
 
-                # ora
-                if(method == "ora" & perm==0) 
-                {
-                    call <- .stdArgs(match.call(), formals())
-                    exargs <- .matchArgs(.ora, call, list(mode = 1, cmat = cmat))
-                    exargs$se <- se
-                    gs.ps <- do.call(.ora, lapply(exargs, eval.parent, n=2))
-                }
-                # ebm
-                else if(method == "ebm") gs.ps <- .ebm(se, cmat)
-		        # all others
-                else gs.ps <- .rseqSBEA(method, se, cmat, perm, alpha)
-            }
+        ## (1) data type independent (ora, mgsa, ebm)
+        ## (2) dedicated RNA-seq mode (camera, roast, gsva)
+        ## (3) need transformation (gsea, gsa, padog, safe, samgs, globaltest)
+        if(method == "ora") 
+        {
+            call <- .stdArgs(match.call(), formals())
+            exargs <- .matchArgs(.ora, call, list(mode = 1, cmat = cmat))
+            exargs$se <- se
+            gs.ps <- do.call(.ora, lapply(exargs, eval.parent, n = 2))
         }
-        # microarray
-        else
-        { 
-            # gsea
-            if(method == "gsea") gs.ps <- .gsea(se, gs, perm)
-            # gsa
-            else if(method == "gsa") gs.ps <- .gsa(se, gs, perm)
-            # padog
-	        else if(method == "padog") gs.ps <- .padog(se, gs, perm)
-	        # mgsa
-	        else if(method == "mgsa") gs.ps <- .mgsa(se, gs, alpha, ...)
-            # globaltest
-            else if(method == "globaltest") gs.ps <- .globaltest(se, gs, perm)
-            # roast & camera
-            else if(method %in% c("roast", "camera"))
-                gs.ps <- .roast.camera(method, se, gs, perm)
-	        # gsva
-	        else if(method == "gsva") gs.ps <- .gsva(se, gs)
-            else
-            {
-                # gs2cmat
-                #cmat <- .gmt2cmat(gs, rownames(se), GS.MIN.SIZE, GS.MAX.SIZE)
-                f <- file()
-                sink(file=f)
-                cmat <- safe::getCmatrix(gs, as.matrix=TRUE)
-                sink()
-                close(f)
-                se <- se[rownames(cmat),]
-
-                # ora
-                if(method == "ora")
-                {
-                    call <- .stdArgs(match.call(), formals())
-                    exargs <- .matchArgs(.ora, call, list(mode = 1, cmat = cmat))
-                    exargs$se <- se
-                    gs.ps <- do.call(.ora, lapply(exargs, eval.parent, n=2))
-                }
-                #safe
-                else if(method == "safe") 
-                    gs.ps <- .ora(2, se, cmat, perm, alpha)
-                # ebm
-                else if(method == "ebm") gs.ps <- .ebm(se, cmat)
-                # samgs
-                else if(method == "samgs")
-                {
-                    if(is.null(out.file)) out.dir <- configEBrowser("OUTDIR.DEFAULT")
-                    else out.dir <- sub("\\.[a-z]+$","_files", out.file)
-                    if(!file.exists(out.dir)) dir.create(out.dir, recursive=TRUE)
-                    samt.file <- file.path(out.dir, "samt.RData")
-                    GRP.COL <- configEBrowser("GRP.COL")
-                    gs.ps <- SAMGS(GS=as.data.frame(cmat), DATA=assay(se), 
-                        cl=as.factor(as.integer(se[[GRP.COL]])), 
-                        nbPermutations=perm, 
-                        tstat.file=samt.file)
-                }
-            }
-        }
+        else if(method == "gsea") gs.ps <- .gsea(se, gs, perm)
+	    else if(method == "padog") gs.ps <- .padog(se, gs, perm)        
+        else if(method == "safe") gs.ps <- .ora(2, se, cmat, perm, alpha)
+        else if(method %in% c("roast", "camera"))
+                gs.ps <- .roast.camera(method, se, gs, perm, rseq = is.rseq)
+		else if(method == "gsva") gs.ps <- .gsva(se, gs, rseq = is.rseq)
+        else if(method == "gsa") gs.ps <- .gsa(se, gs, perm)
+        else if(method == "globaltest") gs.ps <- .globaltest(se, gs, perm)
+        else if(method == "samgs") gs.ps <- .samgs(se, cmat, perm, out.file)
+        else if(method == "mgsa") gs.ps <- .mgsa(se, gs, alpha, ...)
+        else if(method == "ebm") gs.ps <- .ebm(se, cmat)
     }
     else if(is.function(method))
     { 
@@ -333,7 +289,6 @@ sbea <- function(
     else stop(paste(method, "is not a valid method for sbea"))
 
     res.tbl <- .formatEAResult(gs.ps, padj.method, out.file)
-      
     pcol <- ifelse(padj.method == "none", PVAL.COL, ADJP.COL) 
     res <- list(
         method = method, res.tbl = res.tbl,
@@ -357,19 +312,46 @@ gsRanking <- function(res, signif.only=TRUE)
     return(ranking)
 }
 
-#' @export
-#' @keywords internal
-gs.ranking <- function(res, signif.only=TRUE)
+.setAssay <- function(method, se, perm, assay = "auto")
 {
-    .Deprecated("gsRanking")
-    gsRanking(res, signif.only)
+    # reorder assays
+    if(length(assays(se)) > 1 && assay != "auto") se <- .reorderAssays(se, assay)
+    
+    # data type: ma or rseq?
+    data.type <- .detectDataType(assay(se))
+    metadata(se)$dataType <- data.type
+    
+    if(is.function(method)) return(se)
+    stopifnot(is.character(method))
+    
+    # works on the rowData (FC, PVAL) or the assay itself?
+    if(method == "ora" && perm == 0) method <- "ora0"
+    fdat.methods <- c("ora0", "ebm", "mgsa")
+    if(method %in% fdat.methods) return(se) 
+    
+    is.rseq <- data.type == "rseq"
+    is.raw <- method %in% c("camera", "roast", "gsva")
+    if(length(assays(se)) == 1)
+    {
+         if(!is.rseq || is.raw) return(se) 
+         se <- normalize(se, norm.method = "vst")
+    }
+    if(assay == "auto") assay <- ifelse(is.rseq && is.raw, "raw", "norm") 
+    .reorderAssays(se, assay)    
 }
 
-###
-#
-# HELPER
-# 
-###
+.reorderAssays <- function(se, assay)
+{
+    ind <- match(assay, names(assays(se)))
+    if(is.na(ind)) stop("Expression dataset (se) does not ",
+                        "contain an assay named \"", assay, "\"")
+    if(ind != 1)
+    { 
+        ind2 <- setdiff(seq_along(assays(se)), ind)
+        assays(se) <- assays(se)[c(ind, ind2)]
+    }
+    return(se)
+}
 
 .formatEAResult <- function(res, padj.method, out.file)
 {
@@ -419,6 +401,16 @@ gs.ranking <- function(res, signif.only=TRUE)
     return(se)
 }
 
+.gs2cmat <- function(gs)
+{
+    f <- file()
+    sink(file = f)
+    cmat <- safe::getCmatrix(gs, as.matrix = TRUE)
+    sink()
+    close(f)
+    return(cmat)
+}
+
 .gmt2cmat <- function(gs, features, min.size=0, max.size=Inf)
 {
     if(is.character(gs)) gs <- getGenesets(gs)
@@ -451,7 +443,6 @@ local.deAna <- function (X.mat, y.vec, args.local)
         return(stat)
     })
 }
-
 
 ###
 #
@@ -690,6 +681,22 @@ local.deAna <- function (X.mat, y.vec, args.local)
     return(gs.ps)
 }
 
+.samgs <- function(se, cmat, perm, out.file)
+{
+    GRP.COL <- configEBrowser("GRP.COL")
+    
+    if(is.null(out.file)) out.dir <- configEBrowser("OUTDIR.DEFAULT")
+    else out.dir <- sub("\\.[a-z]+$", "_files", out.file)
+
+    if(!file.exists(out.dir)) dir.create(out.dir, recursive = TRUE)
+    samt.file <- file.path(out.dir, "samt.RData")
+
+    SAMGS(GS = as.data.frame(cmat), DATA = assay(se), 
+            cl = as.factor(as.integer(se[[GRP.COL]])), 
+            nbPermutations = perm, 
+            tstat.file = samt.file)
+}
+
 # 5 EBM (_E_mpirical _B_rowns _M_ethod)
 .ebm <- function(se, cmat)
 {
@@ -873,6 +880,7 @@ global.PADOG <- function(cmat, u, args.global)
     isAvailable("globaltest", type="software")
 
     grp <- colData(se)[, configEBrowser("GRP.COL")]
+    names(assays(se))[1] <- "exprs"
     se <- as(se, "ExpressionSet")
     res <- gt(grp, se, subsets=gs, permutations=perm)
     res <- res@result[,2:1]

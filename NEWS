@@ -6,7 +6,11 @@ CHANGES IN VERSION 2.18.0
         for 11 different species (via msigdbr)
       - getGenesets(db = "enrichr") to obtain gene set libraries from Enrichr 
         for 5 different species
-    o ID mapping for gene sets and gene regulatory networks
+    o Gene ID mapping for gene sets and gene regulatory networks 
+      (function `idMap`)
+    o Implementation of a variance-stabilizing transformation for RNA-seq data
+      (function `normalize` with argument `norm.method = "vst"`) to simplify
+      the application of legacy enrichment methods   
 
 CHANGES IN VERSION 2.12.0
 -------------------------

@@ -34,10 +34,9 @@ message("Reading data ...")
 se <- readSE(exprs.file, cdat.file, rdat.file)
 
 message("DE analysis ...")
-se <- deAna(se, de.method=de.method, padj.method="none")
+se <- deAna(se, de.method=de.method)
 
-de.tbl <- rowData(se)[,sapply(c("FC.COL","ADJP.COL"), configEBrowser)]
-de.tbl <- cbind(de.tbl, p.adjust(de.tbl[,2], method="BH"))
+de.tbl <- rowData(se)[,sapply(c("FC.COL", "PVAL.COL", "ADJP.COL"), configEBrowser)]
 de.tbl <- cbind(names(se), de.tbl)
 colnames(de.tbl) <- c("GENE.ID", "log2FC", "RAW.PVAL", "ADJ.PVAL")
 

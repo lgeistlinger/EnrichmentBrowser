@@ -189,7 +189,7 @@ head(rownames(allSE))
 Note, that the mapping from probe to gene is done automatically as long as 
 as you have the corresponding annotation package, here the 
 \Biocpkg{hgu95av2.db} package, installed. Otherwise, the mapping can be 
-defined in the \Rfunction{rowData} slot.
+manually defined in the \Rfunction{rowData} slot.
 
 <<show-probe2gene>>=
 rowData(se)
@@ -604,6 +604,10 @@ observed for microarray data, simplifying the application of legacy enrichment
 methods such as GSEA and PADOG to RNA-seq data, and enable the use of fast and 
 established methods.
 
+<<gsea-rseq, eval=FALSE>>=
+air.res <- sbea(method = "gsea", se = airSE, gs = hsa.gs)
+gsRanking(sbea.res)
+@
 
 \subsection{Result exploration}
 

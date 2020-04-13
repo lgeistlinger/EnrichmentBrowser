@@ -89,7 +89,7 @@ Rscript eBrowserCMD.R --meth=ggea --org=hsa \
     --cdat=extdata/colData.tab \
     --rdat=extdata/rowData.tab \
     --gs=extdata/hsa_kegg_gs.gmt \
-    --grn=extdata/hsa_kegg_grn.tab
+    --grn=KEGG
 
 # Using GO gene sets and KEGG GRN
 Rscript eBrowserCMD.R --meth=ggea --org=hsa \ 

@@ -61,7 +61,7 @@
 #' \url{http://amigo.geneontology.org/amigo/term/} }
 #' 
 #' Default output directory: \itemize{ \item EBROWSER.HOME:
-#' \code{rappdirs::user_data_dir("EnrichmentBrowser")} \item OUTDIR.DEFAULT:
+#' \code{tools::R_user_dir("EnrichmentBrowser")} \item OUTDIR.DEFAULT:
 #' \code{file.path(EBROWSER.HOME, "results")} }
 #' 
 #' Gene set size: \itemize{ \item GS.MIN.SIZE: minimum number of genes per gene

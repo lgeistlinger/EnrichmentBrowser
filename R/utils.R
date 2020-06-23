@@ -74,7 +74,7 @@ colnames(SPECIES) <- c("common", "tax", "bioc", "kegg", "ucsc", "ncbi")
 {
     # are we running interactively?
     cache.dir <- ifelse(interactive(), 
-                    rappdirs::user_cache_dir(ucdir),
+                    tools::R_user_dir(ucdir, which = "cache"),
                     tempdir())
 
     bfc <- BiocFileCache::BiocFileCache(cache.dir)
@@ -92,7 +92,7 @@ colnames(SPECIES) <- c("common", "tax", "bioc", "kegg", "ucsc", "ncbi")
 {
     # are we running interactively?
     cache.dir <- ifelse(interactive(), 
-                    rappdirs::user_cache_dir(ucdir),
+                    tools::R_user_dir(ucdir, which = "cache"),
                     tempdir())
 
     bfc <- BiocFileCache::BiocFileCache(cache.dir)

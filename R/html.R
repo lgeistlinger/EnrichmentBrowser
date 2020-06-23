@@ -81,7 +81,7 @@ eaBrowse <- function(res, nr.show=-1,
 {
     isAvailable("ReportingTools", type="software")
 
-    method <- ifelse( is(res$method, "character"), res$method, NA)
+    method <- ifelse(is(res$method, "character"), res$method, NA)
     se <- res$se
     alpha <- res$alpha
     gs <- res$gs

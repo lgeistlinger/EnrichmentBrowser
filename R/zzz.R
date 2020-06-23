@@ -42,7 +42,7 @@
     
     # (3) file paths
     .ebrowser_config_cache[["EBROWSER.HOME"]] <- 
-        rappdirs::user_data_dir("EnrichmentBrowser")
+        tools::R_user_dir("EnrichmentBrowser")
     .ebrowser_config_cache[["OUTDIR.DEFAULT"]] <- 
         file.path(.ebrowser_config_cache[["EBROWSER.HOME"]], "results")
     

@@ -500,7 +500,8 @@ eaBrowse <- function(res, nr.show=-1,
             pathway.id=pwy.id, species=org, kegg.dir=out.dir, out.suffix="kpath")
     )
     pv.out <- file.path(getwd(), paste0(org, pwy.id, ".kpath.png"))
-    file.rename(from=pv.out, to=img.file)
+    file.copy(from = pv.out, to = img.file)
+    file.remove(pv.out)
     
     # 2: make the html
     kpath.html <- sub("png$", "html", img.file)

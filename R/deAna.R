@@ -67,7 +67,7 @@
 #' \code{\link{normalize}} for normalization of expression data,
 #' \code{\link{voom}} for preprocessing of RNA-seq data, \code{\link{p.adjust}}
 #' for multiple testing correction, \code{\link{eBayes}} for DE analysis with
-#' limma, \code{\link{glmFit}} for DE analysis with edgeR, and
+#' limma, \code{\link{glmQLFit}} for DE analysis with edgeR, and
 #' \code{DESeq} for DE analysis with DESeq2.
 #' @examples
 #' 

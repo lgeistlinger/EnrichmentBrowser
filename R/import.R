@@ -19,7 +19,7 @@
 #'
 #' @param obj Expression data object. Supported options include 
 #' \code{\linkS4class{EList}} (voom/limma),
-#' \code{\linkS4class{DGEList}} (edgeR), and \code{\linkS4class{DESeqDataSet}}
+#' \code{\linkS4class{DGEList}} (edgeR), and \code{DESeqDataSet}
 #' (DESeq2).
 #' @param res Differential expression results. Expected to match the provided
 #' expression data object type, i.e. should be an object of class \itemize{ 
@@ -27,8 +27,8 @@
 #' \code{\linkS4class{EList}} (voom/limma),
 #' \item \code{\linkS4class{TopTags}} if \code{obj} is provided as a
 #' \code{\linkS4class{DGEList}} (edgeR), and
-#' \item \code{\linkS4class{DESeqResults}} if \code{obj} is provided as a
-#' \code{\linkS4class{DESeqDataSet}} (DESeq2). See details.}
+#' \item \code{DESeqResults} if \code{obj} is provided as a
+#' \code{DESeqDataSet} (DESeq2). See details.}
 #' @param from Character. Differential expression method from which to import 
 #' results from. Defaults to \code{"auto"}, which automatically determines
 #' the import type based on the expression data object provided. 

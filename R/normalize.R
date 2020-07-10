@@ -141,8 +141,8 @@ normalize <- function(se,
         else
         {
             betweenLaneNormalization <- NULL
-            isAvailable("EDASeq")
-            if(norm.method == "quantile") norm.method <- "full"  
+            isAvailable("EDASeq", type = "software")
+            if(norm.method == "quantile") norm.method <- "upper"  
             assays(se)[[2]] <- betweenLaneNormalization(assay(se), 
                                                             which = norm.method)
         }

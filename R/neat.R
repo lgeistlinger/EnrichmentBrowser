@@ -32,7 +32,7 @@
   # compute neat
   nettype <- ifelse(directed, 'directed', 'undirected')
   res <- neat(alist = de.list, blist = fgs.list, network = network, 
-              nettype = nettype, nodes = all.nodes, mtc.type = 'fdr')
+              nettype = nettype, nodes = all.nodes, mtc.type = 'none')
   res <- as.data.frame(res)
   # restructure output of neat
   rownames(res) <- res$B

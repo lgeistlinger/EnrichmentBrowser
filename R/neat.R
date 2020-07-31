@@ -1,5 +1,6 @@
-# NEAT, 30 July 2020
-#
+# NEAT
+# v1: July 30, 2020
+# v2: July 31, 2020
 
 ###
 #
@@ -12,16 +13,14 @@
 #             (2 or 3 cols. Col 1: Regulator, col 2: Target. If present, col3 (effect) is ignored)
 #   alpha     ... Significance level. Defaults to 0.05.
 #   beta      ... Significant log2 fold change level. Defaults to 1 (two-fold).
-#   sig.stat  ... criterion to determine which genes in se are DE
-#   mtc       ... Multiple testing correction for the NEAT p-values. Default is 'fdr',
-#             which corresponds to the Benjamini-Hockberg method. To know the shortcuts 
-#             for other multiple testing correction methods, see ?p.adjust
-#
+#   sig.stat  ... criterion to determine which genes in se are DE. Default is 'p'
+#   directed  ... Logical. It specifies if grn corresponds to a directed (T) or 
+#             an undirected (F) network. Default is T
 # @returns: the NEAT enrichment table, reformatted following the EnrichmentBrowser format
 #
 ###   
 
-.neat = function(se, gs, grn, alpha, beta=1, sig.stat=c("p", "fc", "|", "&")) {
+.neat = function(se, gs, grn, alpha, beta=1, sig.stat=c("p", "fc", "|", "&"), directed = T) {
   isAvailable('neat', type='software')
   # derive genes for alist and blist
   isig <- .isSig(rowData(se), alpha, beta, sig.stat)
@@ -30,29 +29,15 @@
   # get network inputs
   network <- grn[ , 1:2]
   all.nodes <- unique(as.vector(network))
-  # double-check that all sets in fgs.list have at least one gene in network
-  fgs.list <- .pathcheck(pathway.list = fgs.list, nodes = all.nodes)
   # compute neat
+  nettype <- ifelse(directed, 'directed', 'undirected')
   res <- neat(alist = de.list, blist = fgs.list, network = network, 
-             nettype = 'directed', nodes = all.nodes, mtc.type = 'fdr')
+              nettype = nettype, nodes = all.nodes, mtc.type = 'fdr')
   res <- as.data.frame(res)
   # restructure output of neat
   rownames(res) <- res$B
-  res = res[ , -c(1:2)]
-  names(res) = c('n_AB', 'E(N_AB|H_0)', 'PVAL.COL', 'P.ADJUSTED')
+  res <- res[ , c('nab', 'expected_nab', 'pvalue')]
   res <- as.matrix(res)
+  colnames(res) <- c('n_AB', 'E(N_AB|H_0)', configEBrowser("PVAL.COL"))
   return(res) 
-}
-
-.pathcheck <- function(pathway.list, nodes) {
-  get.n.genes = function(path) length(which(path %in% nodes))
-  n.nodes = sapply(pathway.list, get.n.genes, simplify = T)
-  path.ids = which(n.nodes == 0)
-  if (length(path.ids) > 0) {
-    warn1 = paste('The following pathways were removed because they are not present in the network:',
-                  c(names(pathway.list)[path.ids]))
-    warning(warn1)
-    pathway.list = pathway.list[-path.ids]
-  }
-  return(pathway.list)
 }

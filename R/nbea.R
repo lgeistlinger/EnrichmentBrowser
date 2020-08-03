@@ -13,8 +13,8 @@
 #' @rdname nbea
 #' @export
 nbeaMethods <- function() 
-    c("ggea", "spia", "pathnet", "degraph", 
-		"ganpa", "cepa", "topologygsa", "netgsa")
+    c("ggea", "spia", "pathnet", "degraph",
+		"ganpa", "cepa", "topologygsa", "netgsa", "neat")
 
 
 #' Network-based enrichment analysis (NBEA)
@@ -61,6 +61,11 @@ nbeaMethods <- function()
 #' 'netgsa': network-based gene set analysis, incorporates external information
 #' about interactions among genes as well as novel interactions learned from
 #' data; implemented in CRAN's NetGSA package.
+#' 
+#' 'neat': the Network Enrichment Analysis Test (NEAT) proposed in Signorelli 
+#' et al. (2016) and implemented in CRAN's neat package. It compares the number
+#' of links observed between two gene sets to the one expected under an
+#' hypergeometric null model.
 #' 
 #' It is also possible to use additional network-based enrichment methods.
 #' This requires to implement a function that takes 'se', 'gs', and 'grn'
@@ -149,6 +154,9 @@ nbeaMethods <- function()
 #'
 #' Tarca et al. (2009) A novel signaling pathway impact analysis. 
 #' Bioinformatics, 25(1):75-82.
+#' 
+#' Signorelli et al. (2016). NEAT: an efficient network enrichment analysis test. 
+#' BMC Bioinformatics, 17, 352
 #'
 #' @examples
 #' 
@@ -252,6 +260,7 @@ nbea <- function(
         else if(method == "cepa") res.tbl <- .cepa(se, gs, grn)
         else if(method == "degraph") res.tbl <- .degraph(se, gs, grn)
         else if(method == "topologygsa") res.tbl <- .topogsa(se, gs, grn, alpha, perm, ...)
+        else if(method == "neat") res.tbl <- .neat(se, gs, grn, alpha, ...)
         else res.tbl <- .ggea(se, gs, grn, alpha, perm=perm, ...)      
     }
     else if(is.function(method)) 

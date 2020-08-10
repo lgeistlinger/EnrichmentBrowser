@@ -14,7 +14,7 @@
 #' @export
 nbeaMethods <- function() 
     c("ggea", "spia", "pathnet", "degraph",
-		"ganpa", "cepa", "topologygsa", "netgsa", "neat")
+	  "ganpa", "cepa", "topologygsa", "netgsa", "neat")
 
 
 #' Network-based enrichment analysis (NBEA)
@@ -62,10 +62,10 @@ nbeaMethods <- function()
 #' about interactions among genes as well as novel interactions learned from
 #' data; implemented in CRAN's NetGSA package.
 #' 
-#' 'neat': the Network Enrichment Analysis Test (NEAT) proposed in Signorelli 
-#' et al. (2016) and implemented in CRAN's neat package. It compares the number
-#' of links observed between two gene sets to the one expected under an
-#' hypergeometric null model.
+#' 'neat': network enrichment analysis test, compares the number of links between
+#' differentially expressed genes and a gene set of interest to the number of
+#' links expected under a hypergeometric null model; proposed by Signorelli et al.
+#' (2016) and implemented in CRAN's neat package.
 #' 
 #' It is also possible to use additional network-based enrichment methods.
 #' This requires to implement a function that takes 'se', 'gs', and 'grn'
@@ -78,9 +78,10 @@ nbeaMethods <- function()
 #' @param method Network-based enrichment analysis method.  Currently, the
 #' following network-based enrichment analysis methods are supported:
 #' \sQuote{ggea}, \sQuote{spia}, \sQuote{pathnet}, \sQuote{degraph},
-#' \sQuote{topologygsa}, \sQuote{ganpa}, \sQuote{cepa}, and \sQuote{netgsa}.
-#' Default is 'ggea'.  This can also be the name of a
-#' user-defined function implementing network-based enrichment. See Details.
+#' \sQuote{topologygsa}, \sQuote{ganpa}, \sQuote{cepa}, \sQuote{netgsa},
+#' and \sQuote{neat}. Default is 'ggea'.  This can also be the name of a
+#' user-defined function implementing a method for network-based enrichment analysis.
+#' See Details.
 #' @param se Expression dataset.  An object of class
 #' \code{\linkS4class{SummarizedExperiment}}.  Mandatory minimal annotations:
 #' \itemize{ \item colData column storing binary group assignment (named
@@ -116,7 +117,7 @@ nbeaMethods <- function()
 #' interactive exploration? Defaults to FALSE.
 #' @param ...  Additional arguments passed to individual nbea methods.  This
 #' includes currently: \itemize{ \item beta: Log2 fold change significance
-#' level. Defaults to 1 (2-fold).  } For SPIA and NEA: \itemize{ \item
+#' level. Defaults to 1 (2-fold).  } For SPIA and NEAT: \itemize{ \item
 #' sig.stat: decides which statistic is used for determining significant DE
 #' genes.  Options are: \itemize{ \item 'p' (Default): genes with adjusted p-value below
 #' alpha.  \item 'fc': genes with abs(log2(fold change)) above beta \item '&':
@@ -149,14 +150,14 @@ nbeaMethods <- function()
 #' Other: \code{\link{sbea}} to perform set-based enrichment analysis.
 #' \code{\link{combResults}} to combine results from different methods.
 #' @references Geistlinger et al. (2011) From sets to graphs: towards a
-#' realistic enrichment analysis of transcriptomic systems.  Bioinformatics,
+#' realistic enrichment analysis of transcriptomic systems. Bioinformatics,
 #' 27(13), i366-73.
 #'
 #' Tarca et al. (2009) A novel signaling pathway impact analysis. 
 #' Bioinformatics, 25(1):75-82.
 #' 
-#' Signorelli et al. (2016). NEAT: an efficient network enrichment analysis test. 
-#' BMC Bioinformatics, 17, 352
+#' Signorelli et al. (2016) NEAT: an efficient network enrichment analysis test.
+#' BMC Bioinformatics, 17:352.
 #'
 #' @examples
 #' 
@@ -799,3 +800,34 @@ nbea <- function(
     return(res)
 }
 
+#
+# 10
+#
+.neat <- function(se, gs, grn, 
+                  alpha, beta = 1, 
+                  sig.stat = c("p", "fc", "|", "&"),
+                  directed = TRUE)
+{
+    neat <- NULL
+    isAvailable("neat", type = "software")
+
+    # derive genes for alist and blist
+    isig <- .isSig(rowData(se), alpha, beta, sig.stat)
+    de.list <- list(de = rownames(se)[isig])
+  
+    # get network inputs
+    grn <- grn[,1:2]
+    all.nodes <- unique(as.vector(grn))
+
+    # execute neat
+    nettype <- ifelse(directed, "directed", "undirected")
+    res <- neat(alist = de.list, blist = gs, network = grn, 
+                nettype = nettype, nodes = all.nodes, mtc.type = "none")
+
+    # restructure output of neat
+    rownames(res) <- res$B
+    res <- res[,c("nab", "expected_nab", "pvalue")]
+    res <- as.matrix(res)
+    colnames(res) <- c("OBS.LINKS", "EXP.LINKS", configEBrowser("PVAL.COL"))
+    return(res) 
+}

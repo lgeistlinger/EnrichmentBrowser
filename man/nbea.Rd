@@ -27,9 +27,10 @@ nbea(
 \item{method}{Network-based enrichment analysis method.  Currently, the
 following network-based enrichment analysis methods are supported:
 \sQuote{ggea}, \sQuote{spia}, \sQuote{pathnet}, \sQuote{degraph},
-\sQuote{topologygsa}, \sQuote{ganpa}, \sQuote{cepa}, and \sQuote{netgsa}.
-Default is 'ggea'.  This can also be the name of a
-user-defined function implementing network-based enrichment. See Details.}
+\sQuote{topologygsa}, \sQuote{ganpa}, \sQuote{cepa}, \sQuote{netgsa},
+and \sQuote{neat}. Default is 'ggea'.  This can also be the name of a
+user-defined function implementing a method for network-based enrichment analysis.
+See Details.}
 
 \item{se}{Expression dataset.  An object of class
 \code{\linkS4class{SummarizedExperiment}}.  Mandatory minimal annotations:
@@ -75,7 +76,7 @@ interactive exploration? Defaults to FALSE.}
 
 \item{...}{Additional arguments passed to individual nbea methods.  This
 includes currently: \itemize{ \item beta: Log2 fold change significance
-level. Defaults to 1 (2-fold).  } For SPIA and NEA: \itemize{ \item
+level. Defaults to 1 (2-fold).  } For SPIA and NEAT: \itemize{ \item
 sig.stat: decides which statistic is used for determining significant DE
 genes.  Options are: \itemize{ \item 'p' (Default): genes with adjusted p-value below
 alpha.  \item 'fc': genes with abs(log2(fold change)) above beta \item '&':
@@ -144,6 +145,11 @@ pathways; implemented in CRAN's CePa package.
 about interactions among genes as well as novel interactions learned from
 data; implemented in CRAN's NetGSA package.
 
+'neat': network enrichment analysis test, compares the number of links between
+differentially expressed genes and a gene set of interest to the number of
+links expected under a hypergeometric null model; proposed by Signorelli et al.
+(2016) and implemented in CRAN's neat package.
+
 It is also possible to use additional network-based enrichment methods.
 This requires to implement a function that takes 'se', 'gs', and 'grn'
 and as arguments and returns a numeric matrix 'res.tbl' with a
@@ -199,11 +205,14 @@ rownames(res.tbl) == names(gs)). See examples.
 }
 \references{
 Geistlinger et al. (2011) From sets to graphs: towards a
-realistic enrichment analysis of transcriptomic systems.  Bioinformatics,
+realistic enrichment analysis of transcriptomic systems. Bioinformatics,
 27(13), i366-73.
 
 Tarca et al. (2009) A novel signaling pathway impact analysis. 
 Bioinformatics, 25(1):75-82.
+
+Signorelli et al. (2016) NEAT: an efficient network enrichment analysis test.
+BMC Bioinformatics, 17:352.
 }
 \seealso{
 Input: \code{\link{readSE}}, \code{\link{probe2gene}},

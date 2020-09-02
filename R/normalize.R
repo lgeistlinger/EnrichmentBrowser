@@ -48,14 +48,20 @@
 #' normalization methods see the man page of the EDASeq function
 #' \code{betweenLaneNormalization}.  Defaults to \code{'quantile'}, i.e.
 #' normalization is carried out so that quantiles between arrays/lanes/samples
-#' are equal. For RNA-seq data, this can also be \code{'voom'} or 
-#' \code{'vst'} to invoke a variance-stabilizing transformation that
-#' allows statistical modeling as for microarry data. See details.
+#' are equal. For RNA-seq data, this can also be \code{'vst'}, 
+#' \code{'voom'}, or \code{'deseq2'} to invoke a variance-stabilizing transformation
+#' that allows statistical modeling as for microarry data. See details.
 #' @param data.type Expression data type.  Use \code{'ma'} for microarray and 
 #' \code{'rseq'} for RNA-seq data.  If \code{NA}, the data type is automatically 
 #' guessed: if the expression values in \code{se} are decimal (float) numbers, 
 #' they are assumed to be microarray intensities;  whole (integer) numbers are 
 #' assumed to be RNA-seq read counts.  Defaults to \code{NA}.
+#' @param filter.by.expr Logical. For RNA-seq data: include only genes with
+#' sufficiently large counts in the DE analysis? If TRUE, excludes genes not 
+#' satisfying a minimum number of read counts across samples using the 
+#' \code{\link{filterByExpr}} function from the edgeR package.
+#' Defaults to TRUE.
+
 #' @return An object of class \code{\linkS4class{SummarizedExperiment}}.
 #' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
 #'
@@ -78,7 +84,8 @@
 #' \code{withinLaneNormalization} and \code{betweenLaneNormalization} from the 
 #' EDASeq package for normalization of RNA-seq data;
 #'
-#' \code{\link{cpm}} and \code{\link{estimateDisp}}
+#' \code{\link{cpm}}, \code{\link{estimateDisp}}, \code{\link{voom}}, and
+#' \code{varianceStabilizingTransformation} from the DESeq2 package.
 #' @examples
 #' 
 #'     #
@@ -108,7 +115,8 @@
 #' @export normalize
 normalize <- function(se, 
                       norm.method = "quantile", 
-                      data.type = c(NA, "ma", "rseq"))
+                      data.type = c(NA, "ma", "rseq"),
+                      filter.by.expr = TRUE)
 {
     # dealing with an SE?
     if(is.matrix(se)) se <- new("SummarizedExperiment", assays = list(raw = se))
@@ -130,14 +138,17 @@ normalize <- function(se,
     # rseq normalization
     if(data.type == "rseq")
     {
-        # remove genes with low read count
-        GRP.COL <- configEBrowser("GRP.COL")
-        if(GRP.COL %in% colnames(colData(se))) grp <- se[[GRP.COL]]
-        else grp <- sample(c(0,1), ncol(se), replace = TRUE, prob = c(0.5, 0.5))
+        if(filter.by.expr)
+        {
+            # remove genes with low read count
+            GRP.COL <- configEBrowser("GRP.COL")
+            if(GRP.COL %in% colnames(colData(se))) grp <- se[[GRP.COL]]
+            else grp <- sample(c(0,1), ncol(se), replace = TRUE, prob = c(0.5, 0.5))
         
-        keep <- .filterRSeq(assay(se), group = grp, index.only = TRUE)
-        se <- se[keep,]
-        if(norm.method %in% c("voom", "vst")) se <- .vst(se, norm.method)
+            keep <- .filterRSeq(assay(se), group = grp, index.only = TRUE)
+            se <- se[keep,]
+        }
+        if(norm.method %in% c("voom", "vst", "deseq2")) se <- .vst(se, norm.method)
         else
         {
             betweenLaneNormalization <- NULL
@@ -154,25 +165,36 @@ normalize <- function(se,
     return(se)
 }
 
-.vst <- function(se, method = c("vst", "voom"))
+.vst <- function(se, method = c("vst", "voom", "deseq2"))
 {
     method <- match.arg(method)
     design <- .getDesign(se)
 
-    dge <- edgeR::DGEList(counts = assay(se), group = design[,"group1"])
-    dge <- edgeR::calcNormFactors(dge)
-
-    # anscombe
-    if(method == "vst")
-    {
-        dge <- edgeR::estimateDisp(dge, design, robust = TRUE)
-        pc <- 0.5 / dge$common.dispersion
-        cpms <- edgeR::cpm(dge, log = TRUE, prior.count = pc)
+    if(method == "deseq2")
+    { 
+        varianceStabilizingTransformation <- DESeqDataSet <- NULL
+        isAvailable("DESeq2", type = "software")
+        dds <- DESeqDataSet(se, design = design)
+        dds <- varianceStabilizingTransformation(dds, blind = FALSE)
+        cpms <- assay(dds) 
     }
-    # voom 
-    else cpms <- limma::voom(dge, design)$E
-    
-    se <- se[rownames(dge),]
+
+    else
+    {
+        dge <- edgeR::DGEList(counts = assay(se), group = design[,"group1"])
+        dge <- edgeR::calcNormFactors(dge)
+
+        # anscombe
+        if(method == "vst")
+        {
+            dge <- edgeR::estimateDisp(dge, design, robust = TRUE)
+            pc <- 0.5 / dge$common.dispersion
+            cpms <- edgeR::cpm(dge, log = TRUE, prior.count = pc)
+        }
+        # voom 
+        else cpms <- limma::voom(dge, design)$E
+        se <- se[rownames(dge),]
+    }
     assays(se)[[2]] <- cpms
     return(se)
 }

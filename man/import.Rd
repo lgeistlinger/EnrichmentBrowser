@@ -10,7 +10,7 @@ import(obj, res, from = c("auto", "limma", "edgeR", "DESeq2"), anno = NA)
 \item{obj}{Expression data object. Supported options include 
 \code{\linkS4class{EList}} (voom/limma),
 \code{\linkS4class{DGEList}} (edgeR), and \code{DESeqDataSet}
-(DESeq2).}
+(DESeq2). See details.}
 
 \item{res}{Differential expression results. Expected to match the provided
 expression data object type, i.e. should be an object of class \itemize{ 
@@ -58,6 +58,24 @@ differential expression (DE) analysis from limma, edgeR, and DESeq2.
 The imported data is converted to a \code{\linkS4class{SummarizedExperiment}},
 annotating experimental design and genewise differential expression, which
 then allows straightforward application of enrichment analysis methods.
+}
+\details{
+The expression data object (argument \code{obj}) is expected to be fully
+processed (including normalization and dispersion estimation) and to have
+the experimental design annotated.
+The experimental design is expected to describe *a comparison of two groups*
+with an optional blocking variable for paired samples / sample batches (i.e.
+\code{design = ~ group} or \code{design = ~ batch + group}.)
+
+The differential expression result (argument \code{res}) is expected to have
+the same number of rows as the expression data object,
+and also that the order of the rows is the same / consistent, i.e. that there
+is a 1:1 correspondence between the rownames of \code{obj} and the rownames 
+of \code{res}. Note that the expression dataset is automatically restricted
+to the genes for which DE results are available. However, for an appropriate
+estimation of the size of the universe for competitive gene set tests, it is
+recommended to provide DE results for all genes in the expression data object
+whenever possible (see examples).
 }
 \examples{
 

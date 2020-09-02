@@ -16,11 +16,27 @@
 #' annotating experimental design and genewise differential expression, which
 #' then allows straightforward application of enrichment analysis methods. 
 #' 
+#' The expression data object (argument \code{obj}) is expected to be fully
+#' processed (including normalization and dispersion estimation) and to have
+#' the experimental design annotated.
+#' The experimental design is expected to describe *a comparison of two groups*
+#' with an optional blocking variable for paired samples / sample batches (i.e.
+#' \code{design = ~ group} or \code{design = ~ batch + group}.)
+#'
+#' The differential expression result (argument \code{res}) is expected to have
+#' the same number of rows as the expression data object,
+#' and also that the order of the rows is the same / consistent, i.e. that there
+#' is a 1:1 correspondence between the rownames of \code{obj} and the rownames 
+#' of \code{res}. Note that the expression dataset is automatically restricted
+#' to the genes for which DE results are available. However, for an appropriate
+#' estimation of the size of the universe for competitive gene set tests, it is
+#' recommended to provide DE results for all genes in the expression data object
+#' whenever possible (see examples).
 #'
 #' @param obj Expression data object. Supported options include 
 #' \code{\linkS4class{EList}} (voom/limma),
 #' \code{\linkS4class{DGEList}} (edgeR), and \code{DESeqDataSet}
-#' (DESeq2).
+#' (DESeq2). See details.
 #' @param res Differential expression results. Expected to match the provided
 #' expression data object type, i.e. should be an object of class \itemize{ 
 #' \item \code{\link{data.frame}} if \code{obj} is provided as an
@@ -151,9 +167,22 @@ import <- function(obj, res,
     from <- match.arg(from)
     if(from == "auto") from <- .detectImportType(obj)
 
-    stopifnot(nrow(obj) == nrow(res))
-    stopifnot(all(rownames(obj) == rownames(res)))
-
+    if(nrow(obj) != nrow(res) || !all(rownames(obj) == rownames(res)))
+    {
+        n <- intersect(rownames(obj), rownames(res))
+        len <- length(n)
+        if(!len) stop("\'obj\' and \'res\' have no gene IDs in common")
+        if(len < nrow(obj))
+        { 
+            message("Restricting \'obj\' and \'res\' to ", 
+                    len, " common gene IDs")
+            message("It is recommended to provide DE results",
+                    " for all genes in \'obj\'")
+        }
+        obj <- obj[n,]
+        res <- res[n,]
+    }
+    
     if(from == "limma") se <- .importFromLimma(obj, res)
     else if(from == "edgeR") se <- .importFromEdgeR(obj, res) 
     else se <- .importFromDESeq2(obj, res)
@@ -270,6 +299,9 @@ import <- function(obj, res,
     se <- SummarizedExperiment(assays = list(counts = obj$counts),
                                colData = obj$samples)
 
+    assay(se, "norm") <- limma::voom(obj)$E
+    names(assays(se))[1] <- "raw" 
+
     # (1) rowData
     rrnames <- c("FC.COL", "PVAL.COL", "ADJP.COL")
     rrnames <- vapply(rrnames, configEBrowser, character(1), USE.NAMES = FALSE)
@@ -319,11 +351,16 @@ import <- function(obj, res,
     rnames <- c("log2FoldChange", "stat", "pvalue", "padj")
     stopifnot(all(rnames %in% colnames(res)))
 
+    varianceStabilizingTransformation <- NULL
     isAvailable("DESeq2", type = "software")
-    se <- SummarizedExperiment(assays = assays(obj),
+    se <- SummarizedExperiment(assays = assays(obj)[1],
                                colData = colData(obj),
                                rowData = rowData(obj),
                                metadata = metadata(obj))
+
+    dts <- varianceStabilizingTransformation(dds, blind = FALSE)
+    assay(se, "norm") <- assay(dts)
+    names(assays(se))[1] <- "raw" 
 
     # (1) rowData
     if(length(unlist(rowRanges(obj)))) rowRanges(se) <- rowRanges(obj)

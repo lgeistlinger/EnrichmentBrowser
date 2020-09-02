@@ -4,7 +4,12 @@
 \alias{normalize}
 \title{Normalization of microarray and RNA-seq expression data}
 \usage{
-normalize(se, norm.method = "quantile", data.type = c(NA, "ma", "rseq"))
+normalize(
+  se,
+  norm.method = "quantile",
+  data.type = c(NA, "ma", "rseq"),
+  filter.by.expr = TRUE
+)
 }
 \arguments{
 \item{se}{An object of class \code{\linkS4class{SummarizedExperiment}}.}
@@ -15,15 +20,21 @@ function \code{\link{normalizeBetweenArrays}}.  For available RNA-seq
 normalization methods see the man page of the EDASeq function
 \code{betweenLaneNormalization}.  Defaults to \code{'quantile'}, i.e.
 normalization is carried out so that quantiles between arrays/lanes/samples
-are equal. For RNA-seq data, this can also be \code{'voom'} or 
-\code{'vst'} to invoke a variance-stabilizing transformation that
-allows statistical modeling as for microarry data. See details.}
+are equal. For RNA-seq data, this can also be \code{'vst'}, 
+\code{'voom'}, or \code{'deseq2'} to invoke a variance-stabilizing transformation
+that allows statistical modeling as for microarry data. See details.}
 
 \item{data.type}{Expression data type.  Use \code{'ma'} for microarray and 
 \code{'rseq'} for RNA-seq data.  If \code{NA}, the data type is automatically 
 guessed: if the expression values in \code{se} are decimal (float) numbers, 
 they are assumed to be microarray intensities;  whole (integer) numbers are 
 assumed to be RNA-seq read counts.  Defaults to \code{NA}.}
+
+\item{filter.by.expr}{Logical. For RNA-seq data: include only genes with
+sufficiently large counts in the DE analysis? If TRUE, excludes genes not 
+satisfying a minimum number of read counts across samples using the 
+\code{\link{filterByExpr}} function from the edgeR package.
+Defaults to TRUE.}
 }
 \value{
 An object of class \code{\linkS4class{SummarizedExperiment}}.
@@ -107,7 +118,8 @@ for normalization of microarray data;
 \code{withinLaneNormalization} and \code{betweenLaneNormalization} from the 
 EDASeq package for normalization of RNA-seq data;
 
-\code{\link{cpm}} and \code{\link{estimateDisp}}
+\code{\link{cpm}}, \code{\link{estimateDisp}}, \code{\link{voom}}, and
+\code{varianceStabilizingTransformation} from the DESeq2 package.
 }
 \author{
 Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>

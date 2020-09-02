@@ -140,16 +140,29 @@ whenever possible (see examples).
   # (3c) import
   se <- import(el, res)
   
-  # (4) import from limma (microarray intensity data)
+  # (4) import from limma-trend (RNA-seq count data)
   # (4a) create the expression data object
-  el <- new("EList", list(E = intens, design = mdesign))
+  logCPM <- edgeR::cpm(counts[keep,], log = TRUE, prior.count = 3)
+  el <- new("EList", list(E = logCPM, design = rdesign))
   
   # (4b) obtain differential expression results 
-  fit <- lmFit(el, mdesign)
-  fit <- eBayes(fit, robust = TRUE) 
-  res <- topTable(fit, coef = 2, number = nrow(intens), sort.by = "none")
+  fit <- lmFit(el, rdesign)
+  fit <- eBayes(fit, trend = TRUE) 
+  res <- topTable(fit, coef = 2, number = nrow(el), sort.by = "none")
 
   # (4c) import
+  se <- import(el, res)
+
+  # (5) import from limma (microarray intensity data)
+  # (5a) create the expression data object
+  el <- new("EList", list(E = intens, design = mdesign))
+  
+  # (5b) obtain differential expression results 
+  fit <- lmFit(el, mdesign)
+  fit <- eBayes(fit, robust = TRUE) 
+  res <- topTable(fit, coef = 2, number = nrow(el), sort.by = "none")
+
+  # (5c) import
   se <- import(el, res)
 
 }

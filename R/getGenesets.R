@@ -234,7 +234,7 @@ getGenesets <- function(org,
 
 .getMSigDb <- function(org, cache, return.type,
                         cat = c("H", paste0("C", 1:7)), 
-                        subcat = "")
+                        subcat = NA)
 {
     cat <- match.arg(cat)
     
@@ -416,10 +416,18 @@ getGenesets <- function(org,
     id.type <- .detectGeneIdType(gs[[1]][1])
     if(is.na(id.type) || id.type != "entrez") 
     {
-        map.k2e <- KEGGREST::keggConv("ncbi-geneid", org)
-        names(map.k2e) <- sub(org.start, "", names(map.k2e))
-        map.k2e <- sub("^ncbi-geneid:", "", map.k2e)
-        gs <- lapply(gs, function(s) unname(map.k2e[s]))
+        map.k2e <- try(KEGGREST::keggConv("ncbi-geneid", org), silent = TRUE)
+        if(is(map.k2e, "try-error"))
+        {
+            message("NCBI Gene ID mapping is not available for: ", org)
+            message("Returning KEGG native gene IDs ...")
+        }
+        else
+        {
+            names(map.k2e) <- sub(org.start, "", names(map.k2e))
+            map.k2e <- sub("^ncbi-geneid:", "", map.k2e)
+            gs <- lapply(gs, function(s) unname(map.k2e[s]))
+        }
     }
     if(return.type == "GeneSetCollection") gs <- .makeKeggGSC(gs, pwys, org)
     else names(gs) <- .makeGSNames(names(pwys), pwys)

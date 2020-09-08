@@ -372,8 +372,8 @@ import <- function(obj, res,
                                rowData = rowData(obj),
                                metadata = metadata(obj))
 
-    dts <- varianceStabilizingTransformation(dds, blind = FALSE)
-    assay(se, "norm") <- assay(dts)
+    dts <- varianceStabilizingTransformation(obj, blind = FALSE)
+    assay(se, "norm", withDimnames = FALSE) <- assay(dts)
     names(assays(se))[1] <- "raw" 
 
     # (1) rowData

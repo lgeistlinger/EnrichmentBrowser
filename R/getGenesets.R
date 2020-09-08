@@ -234,7 +234,7 @@ getGenesets <- function(org,
 
 .getMSigDb <- function(org, cache, return.type,
                         cat = c("H", paste0("C", 1:7)), 
-                        subcat = "")
+                        subcat = NA)
 {
     cat <- match.arg(cat)
     

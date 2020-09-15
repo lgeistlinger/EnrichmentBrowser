@@ -188,7 +188,7 @@ getGenesets <- function(org,
     getURL <- NULL
     isAvailable("RCurl")               
     
-    eurl <- paste0("https://amp.pharm.mssm.edu/", eorg, 
+    eurl <- paste0("https://maayanlab.cloud/", eorg, 
                     "/geneSetLibrary?mode=text&libraryName=", lib)
     gs <- getURL(eurl)
     gs <- unlist(strsplit(gs, "\n"))

@@ -188,7 +188,7 @@ getGenesets <- function(org,
     getURL <- NULL
     isAvailable("RCurl")               
     
-    eurl <- paste0("https://amp.pharm.mssm.edu/", eorg, 
+    eurl <- paste0("https://maayanlab.cloud/", eorg, 
                     "/geneSetLibrary?mode=text&libraryName=", lib)
     gs <- getURL(eurl)
     gs <- unlist(strsplit(gs, "\n"))
@@ -216,7 +216,7 @@ getGenesets <- function(org,
 
 .enrichrLibs <- function(eorg)
 {
-    eurl <- paste0("https://amp.pharm.mssm.edu/", eorg, "/datasetStatistics")
+    eurl <- paste0("https://maayanlab.cloud/", eorg, "/datasetStatistics")
     GET <- fromJSON <- NULL
     isAvailable("httr", type = "software")
     dbs <- GET(eurl)

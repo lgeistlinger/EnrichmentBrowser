@@ -155,7 +155,10 @@ getGenesets <- function(org,
     libs <- .enrichrLibs(eorg)
     if(show.libs) return(libs)
 
-    gsc.name <- paste(org, "enrichr", lib, "gs", sep=".") 
+    gs.tag <- "gs"
+    if(return.type == "GeneSetCollection") gs.tag <- paste0(gs.tag, "c")
+    gsc.name <- paste(org, "enrichr", lib, gs.tag, sep=".")
+ 
     # should a cached version be used?
     if(cache)
     {
@@ -238,7 +241,10 @@ getGenesets <- function(org,
 {
     cat <- match.arg(cat)
     
-    gsc.name <- paste(org, "msigdb", cat, subcat, "gs", sep=".") 
+    gs.tag <- "gs"
+    if(return.type == "GeneSetCollection") gs.tag <- paste0(gs.tag, "c")
+
+    gsc.name <- paste(org, "msigdb", cat, subcat, gs.tag, sep=".") 
     # should a cached version be used?
     if(cache)
     {
@@ -279,7 +285,11 @@ getGenesets <- function(org,
                     mode=c("GO.db","biomart"))
 {
     onto <- match.arg(onto)
-    gsc.name <- paste(org, "go", tolower(onto), "gs", sep=".") 
+
+    gs.tag <- "gs"
+    if(return.type == "GeneSetCollection") gs.tag <- paste0(gs.tag, "c")
+
+    gsc.name <- paste(org, "go", tolower(onto), gs.tag, sep=".") 
     # should a cached version be used?
     if(cache)
     {
@@ -392,7 +402,10 @@ getGenesets <- function(org,
 
 .dwnldAllKeggGS <- function(org, cache, return.type)
 {
-    gsc.name <- paste(org, "kegg", "gs", sep=".") 
+    gs.tag <- "gs"
+    if(return.type == "GeneSetCollection") gs.tag <- paste0(gs.tag, "c")
+    gsc.name <- paste(org, "kegg", gs.tag, sep = ".") 
+    
     # should a cached version be used?
     if(cache)
     {

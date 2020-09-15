@@ -80,7 +80,7 @@ colnames(SPECIES) <- c("common", "tax", "bioc", "kegg", "ucsc", "ncbi")
     bfc <- BiocFileCache::BiocFileCache(cache.dir)
     
     # replace existing version if necessary 
-    qgsc <-  BiocFileCache::bfcquery(bfc, rname)
+    qgsc <-  BiocFileCache::bfcquery(bfc, rname, exact = TRUE)
     if(BiocFileCache::bfccount(qgsc)) BiocFileCache::bfcremove(bfc, qgsc$rid) 
     
     cache.file <- BiocFileCache::bfcnew(bfc, rname)
@@ -96,7 +96,7 @@ colnames(SPECIES) <- c("common", "tax", "bioc", "kegg", "ucsc", "ncbi")
                     tempdir())
 
     bfc <- BiocFileCache::BiocFileCache(cache.dir)
-    qgsc <-  BiocFileCache::bfcquery(bfc, rname)
+    qgsc <-  BiocFileCache::bfcquery(bfc, rname, exact = TRUE)
 
     # is there already a cached version?
     res <- NULL

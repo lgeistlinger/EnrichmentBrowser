@@ -216,7 +216,7 @@ getGenesets <- function(org,
 
 .enrichrLibs <- function(eorg)
 {
-    eurl <- paste0("https://amp.pharm.mssm.edu/", eorg, "/datasetStatistics")
+    eurl <- paste0("https://maayanlab.cloud/", eorg, "/datasetStatistics")
     GET <- fromJSON <- NULL
     isAvailable("httr", type = "software")
     dbs <- GET(eurl)

@@ -66,6 +66,10 @@
 #' @param gmt.file Gene set file in GMT format. See details.
 #' @return For \code{getGenesets}: a list of gene sets (vectors of gene IDs).
 #' For \code{writeGMT}: none, writes to file.
+#'
+#' For \code{showAvailableSpecies} and \code{showAvailableCollections}: 
+#' a \code{\linkS4class{DataFrame}}, displaying supported species and
+#' available gene set collections for a gene set database of choice.
 #' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
 #' @seealso \code{\link{annFUN}} for general GO2gene mapping used in the
 #' 'GO.db' mode, and the biomaRt package for general queries to BioMart. 
@@ -80,7 +84,7 @@
 #'
 #' MSigDB: \url{http://software.broadinstitute.org/gsea/msigdb/collections.jsp}
 #'
-#' Enrichr: \url{https://amp.pharm.mssm.edu/Enrichr/#stats}
+#' Enrichr: \url{https://maayanlab.cloud/Enrichr/#stats}
 #'
 #' GMT file format:
 #' \url{http://www.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats}
@@ -88,31 +92,47 @@
 #' 
 #'     # (1) Typical usage for gene set enrichment analysis with GO:
 #'     # Biological process terms based on BioC annotation (for human)
-#'     go.gs <- getGenesets(org="hsa", db="go")
+#'     go.gs <- getGenesets(org = "hsa", db = "go")
 #'     
 #'     # eq.:  
-#'     # go.gs <- getGenesets(org="hsa", db="go", onto="BP", mode="GO.db")
+#'     # go.gs <- getGenesets(org = "hsa", db = "go", onto = "BP", mode = "GO.db")
 #'     \donttest{
 #'     # Alternatively:
 #'     # downloading from BioMart 
 #'     # this may take a few minutes ...
-#'     go.gs <- getGenesets(org="hsa", db="go", mode="biomart")
+#'     go.gs <- getGenesets(org = "hsa", db = "go", mode = "biomart")
+#'
+#'     # list supported species for obtaining gene sets from GO 
+#'     showAvailableSpecies(db = "go")
 #'     }
 #'     # (2) Defining gene sets according to KEGG  
-#'     kegg.gs <- getGenesets(org="hsa", db="kegg")
+#'     kegg.gs <- getGenesets(org = "hsa", db = "kegg")
 #'     \donttest{
+#'     # list supported species for obtaining gene sets from KEGG 
+#'     showAvailableSpecies(db = "kegg")
+#'
 #'     # (3) Obtaining *H*allmark gene sets from MSigDB
-#'     hall.gs <- getGenesets(org="hsa", db="msigdb", cat="H")
-#'     }
-#'     \donttest{
+#'     hall.gs <- getGenesets(org = "hsa", db = "msigdb", cat = "H")
+#'
+#'     # list supported species for obtaining gene sets from MSigDB
+#'     showAvailableSpecies(db = "msigdb")
+#'
+#'     # list available gene set collections in the MSigDB
+#'     showAvailableCollections(db = "msigdb") 
+#'
 #'     # (4) Obtaining gene sets from Enrichr
-#'     tfppi.gs <- getGenesets(org="hsa", db="enrichr", lib="Transcription_Factor_PPIs")
-#'     
-#'     # displaying available Enrichr gene set libraries
-#'     getGenesets(org="hsa", db="enrichr", show.libs=TRUE)        
+#'     tfppi.gs <- getGenesets(org = "hsa", db = "enrichr", 
+#'                             lib = "Transcription_Factor_PPIs")
+#'
+#'     # list supported species for obtaining gene sets from Enrichr
+#'     showAvailableSpecies(db = "enrichr")
+#'
+#'     # list available Enrichr gene set libraries
+#'     showAvailableCollections(org = "hsa", db = "enrichr")        
 #'     }
 #'     # (6) parsing gene sets from GMT
-#'     gmt.file <- system.file("extdata/hsa_kegg_gs.gmt", package="EnrichmentBrowser")
+#'     gmt.file <- system.file("extdata/hsa_kegg_gs.gmt",
+#'                             package = "EnrichmentBrowser")
 #'     gs <- getGenesets(gmt.file)     
 #'     
 #'     # (7) writing gene sets to file
@@ -124,6 +144,7 @@ NULL
 #' @rdname getGenesets
 getGenesets <- function(org, 
     db = c("go", "kegg", "msigdb", "enrichr"), 
+    # gene.id.type = "ENTREZID",
     cache = TRUE,
     return.type = c("list", "GeneSetCollection"),
     ...)
@@ -146,13 +167,66 @@ getGenesets <- function(org,
     return(gs)
 }
 
+#' @export
+#' @rdname getGenesets
+showAvailableSpecies <- function(db = c("go", "kegg", "msigdb", "enrichr"),
+                                 cache = TRUE)
+{
+    db <- match.arg(db)
+    if(db == "kegg") .keggSpecies(cache)
+    else if(db == "go") .goSpecies(cache)
+    else if(db == "msigdb") .msigdbSpecies(cache)
+    else .enrichrSpecies()
+}
+
+#' @export
+#' @rdname getGenesets
+showAvailableCollections <- function(org, 
+                                     db = c("go", "kegg", "msigdb", "enrichr"),
+                                     cache = TRUE)
+{
+    db <- match.arg(db)
+    if(db == "kegg") .keggCollections(cache)
+    else if(db == "go") .goCollections(cache)
+    else if(db == "msigdb") .msigdbCollections(cache)
+    else .getEnrichr(org, cache, show.libs = TRUE)
+}
+
+# write genesets to file in GMT format
+#' @export
+#' @rdname getGenesets
+writeGMT <- function(gs, gmt.file)
+{
+    ## collapse geneset members to one tab separated string 
+    gs.strings <- vapply(gs, 
+        function(x) paste(x, collapse="\t"),
+        character(1))
+    
+    ## paste an not annotated second column (artifact of gmt format)
+    ann <- paste(names(gs), rep(NA,length(gs)), sep="\t")
+    
+    ## paste all together
+    all <- paste(ann, gs.strings, sep="\t")
+    
+    ## collapse all together to a single newline separated string
+    all.str <- paste(all, collapse="\n")
+    all.str <- paste(all, "\n", sep="")
+    
+    ## write the gs in gmt format
+    cat(all.str, file=gmt.file, sep="")
+}
+
+
+#
+# ENRICHR
+#
 .getEnrichr <- function(org, cache, return.type, lib, show.libs = FALSE)
 {
     # convert organism
     eorg <- .org2enrichr(org)
     
     # only show available gene set libraries?
-    libs <- .enrichrLibs(eorg)
+    libs <- .enrichrLibs(eorg, cache)
     if(show.libs) return(libs)
 
     gs.tag <- "gs"
@@ -209,7 +283,7 @@ getGenesets <- function(org,
 
 .org2enrichr <- function(org)
 {
-    sorgs <- c("cel", "dme", "dre", "hsa", "sce")
+    sorgs <- .enrichrSpecies()[,"kegg"] 
     if(!(org %in% sorgs)) stop("Organism not supported") 
     eorgs <- c("Worm", "Fly", "Fish", "", "Yeast")
     names(eorgs) <- sorgs
@@ -217,8 +291,14 @@ getGenesets <- function(org,
     paste0(eorg, "Enrichr")
 }
 
-.enrichrLibs <- function(eorg)
+.enrichrLibs <- function(eorg, cache)
 {
+    selibs <- paste(eorg, "elibs", sep = ".")
+    if(cache)
+    {
+        elibs <- .getResourceFromCache(selibs)
+        if(!is.null(elibs)) return(elibs)
+    }
     eurl <- paste0("https://maayanlab.cloud/", eorg, "/datasetStatistics")
     GET <- fromJSON <- NULL
     isAvailable("httr", type = "software")
@@ -232,9 +312,23 @@ getGenesets <- function(org,
     dbs <- lapply(dbs$statistics, function(x) do.call(cbind.data.frame, x))
     dbs <- do.call(rbind.data.frame, dbs)
     options(stringsAsFactors = dfSAF)
+    cols <- c("libraryName", "link", "numTerms", "geneCoverage", "genesPerTerm")
+    dbs <- dbs[,cols]
+    dbs <- DataFrame(dbs)
+    .cacheResource(dbs, selibs)
     dbs
 }
 
+.enrichrSpecies <- function()
+{
+    sorgs <- c("cel", "dme", "dre", "hsa", "sce")
+    ind <- match(sorgs, SPECIES[,"kegg"])
+    DataFrame(SPECIES[ind, c("kegg", "tax", "common")])
+}
+
+#
+# MSigDB
+#
 .getMSigDb <- function(org, cache, return.type,
                         cat = c("H", paste0("C", 1:7)), 
                         subcat = NA)
@@ -279,6 +373,48 @@ getGenesets <- function(org,
     .cacheResource(gs, gsc.name)
     return(gs)
 }
+
+.msigdbSpecies <- function(cache)
+{
+    sms <- "msigdb.species" 
+    if(cache)
+    {
+        morgs <- .getResourceFromCache(sms)
+        if(!is.null(morgs)) return(morgs)
+    }
+    msigdbr_show_species <- NULL
+    isAvailable("msigdbr", type = "software")
+    ms <- msigdbr_show_species()
+    ms[ms == "Canis lupus familiaris"] <- "Canis familiaris"
+    ind <- match(ms, SPECIES[,"tax"])
+    morgs <- SPECIES[ind, c("kegg", "tax", "common")]
+    morgs <- DataFrame(morgs)
+    .cacheResource(morgs, sms)
+    return(morgs)
+}
+
+.msigdbCollections <- function(cache)
+{
+    msdb.colls <- "msigdb.collects" 
+    if(cache)
+    {
+        colls <- .getResourceFromCache(msdb.colls)
+        if(!is.null(colls)) return(colls)
+    }
+    msigdbr <- NULL
+    isAvailable("msigdbr", type = "software")
+    df <- as.data.frame(unique(msigdbr()[,c("gs_cat", "gs_subcat")]))
+    df <- df[do.call(order, df),]
+    rownames(df) <- NULL
+    colnames(df) <- sub("^gs_", "", colnames(df))
+    df <- DataFrame(df)
+    .cacheResource(df, msdb.colls)
+    return(df)
+}
+
+#
+# GO
+#
 
 .getGO <- function(org, cache, return.type, 
                     onto=c("BP", "MF", "CC"), 
@@ -325,7 +461,7 @@ getGenesets <- function(org,
 .getGOFromBiomart <- function(org, onto, return.type)
 {
     useMart <- listDatasets <- useDataset <- getBM <- NULL
-    isAvailable("biomaRt", type="software")
+    isAvailable("biomaRt", type = "software")
     # setting mart
     ensembl <- useMart("ensembl")
     ds <- listDatasets(ensembl)[,"dataset"]
@@ -368,25 +504,40 @@ getGenesets <- function(org,
     return(gs)
 }
 
-.makeGSC <- function(gs, titles, org, ctype)
+.goSpecies <- function(cache)
 {
-    it <- EntrezIdentifier()
-    .makeGeneSet <- function(s)
+    if(cache)
     {
-        sname <- gsub("[<>:\\?\\|\"\\*\\/]", "", s)
-        is.idcoll <- !is(ctype, "ComputedCollection") && !is(ctype, "BroadCollection")
-        if(is.idcoll) ctype@ids <- s 
-        gset <- GeneSet(setName=sname,
-                    geneIds=gs[[s]],
-                    type=it,
-                    collectionType=ctype,
-                    shortDescription=unname(titles[s]),
-                    organism=org)
-        return(gset)
+        gorgs <- .getResourceFromCache("go.orgs")
+        if(!is.null(gorgs)) return(gorgs)
     }
-    gs <- lapply(names(gs), .makeGeneSet)
-    gs <- GeneSetCollection(gs)
+    useMart <- listDatasets <- NULL
+    isAvailable("biomaRt", type = "software")
+    ensembl <- useMart("ensembl")
+    ds <- listDatasets(ensembl)
+
+    dat <- ds[,"dataset"]
+    desc <- ds[,"description"]
+    kegg <- substring(dat, 1, 3)
+    tax <- sub("_gene_ensembl$", "", dat)
+    tax1 <- substring(tax, 1, 1)
+    tax1 <- toupper(tax1)
+    tax1 <- paste0(tax1, ". ")
+    tax2 <- sub("^[a-z]", "", tax)
+    tax <- paste0(tax1, tax2)
+    common <- vapply(desc, 
+                     function(x) unlist(strsplit(x, " genes "))[1],
+                     character(1),
+                     USE.NAMES = FALSE)
+
+    gorgs <- DataFrame(kegg = kegg, tax = tax, common = common)
+    .cacheResource(gorgs, "go.orgs")
+    return(gorgs)
 }
+
+#
+# KEGG
+#
 
 .getKEGG <- function(pwys, cache, gmt.file=NULL, return.type)
 {
@@ -399,6 +550,29 @@ getGenesets <- function(org,
     return(gs)
 }
 
+.keggSpecies <- function(cache) 
+{
+    if(cache)
+    {
+        korgs <- .getResourceFromCache("kegg.orgs")
+        if(!is.null(korgs)) return(korgs)
+    }
+    korgs <- KEGGREST::keggList("organism")
+    .fspl <- function(x)
+    {
+        spl <- unlist(strsplit(x, " \\("))
+        if(length(spl) < 2) spl <- c(spl, "")
+        else spl[2] <- sub("\\)$", "", spl[2])
+        unname(spl[1:2])
+    }
+
+    spl <- vapply(korgs[,"species"], .fspl, character(2), USE.NAMES = FALSE) 
+    korgs <- cbind(korgs[,c("organism")], t(spl))
+    colnames(korgs) <- c("kegg", "tax", "common")
+    korgs <- DataFrame(korgs)
+    .cacheResource(korgs, "kegg.orgs")
+    return(korgs)
+}
 
 .dwnldAllKeggGS <- function(org, cache, return.type)
 {
@@ -532,8 +706,30 @@ getGenesets <- function(org,
 }
 
 #
-# (3) UTILS
+# UTILS
 #
+
+# make GeneSetCollection from gene set list
+.makeGSC <- function(gs, titles, org, ctype)
+{
+    it <- EntrezIdentifier()
+    .makeGeneSet <- function(s)
+    {
+        sname <- gsub("[<>:\\?\\|\"\\*\\/]", "", s)
+        is.idcoll <- !is(ctype, "ComputedCollection") && !is(ctype, "BroadCollection")
+        if(is.idcoll) ctype@ids <- s 
+        gset <- GeneSet(setName=sname,
+                    geneIds=gs[[s]],
+                    type=it,
+                    collectionType=ctype,
+                    shortDescription=unname(titles[s]),
+                    organism=org)
+        return(gset)
+    }
+    gs <- lapply(names(gs), .makeGeneSet)
+    gs <- GeneSetCollection(gs)
+}
+
 
 # build first gmt column: the ID (format: <pwy.nr>_<pwy.title>)
 .makeGSNames <- function(ids, titles)
@@ -588,30 +784,6 @@ getGenesets <- function(org,
     }
     names(gs) <- gs.names
     return(gs)
-}
-
-# write genesets to file in GMT format
-#' @export
-#' @rdname getGenesets
-writeGMT <- function(gs, gmt.file)
-{
-    ## collapse geneset members to one tab separated string 
-    gs.strings <- vapply(gs, 
-        function(x) paste(x, collapse="\t"),
-        character(1))
-    
-    ## paste an not annotated second column (artifact of gmt format)
-    ann <- paste(names(gs), rep(NA,length(gs)), sep="\t")
-    
-    ## paste all together
-    all <- paste(ann, gs.strings, sep="\t")
-    
-    ## collapse all together to a single newline separated string
-    all.str <- paste(all, collapse="\n")
-    all.str <- paste(all, "\n", sep="")
-    
-    ## write the gs in gmt format
-    cat(all.str, file=gmt.file, sep="")
 }
 
 # prepare gene sets as gene set collection from a variety of input formats

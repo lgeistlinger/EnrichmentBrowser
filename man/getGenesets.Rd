@@ -5,6 +5,8 @@
 \alias{get.go.genesets}
 \alias{get.kegg.genesets}
 \alias{parse.genesets.from.GMT}
+\alias{showAvailableSpecies}
+\alias{showAvailableCollections}
 \alias{writeGMT}
 \title{Definition of gene sets according to different sources}
 \usage{
@@ -14,6 +16,14 @@ getGenesets(
   cache = TRUE,
   return.type = c("list", "GeneSetCollection"),
   ...
+)
+
+showAvailableSpecies(db = c("go", "kegg", "msigdb", "enrichr"), cache = TRUE)
+
+showAvailableCollections(
+  org,
+  db = c("go", "kegg", "msigdb", "enrichr"),
+  cache = TRUE
 )
 
 writeGMT(gs, gmt.file)
@@ -67,6 +77,10 @@ based on associations with NIH grants. See references.
 \value{
 For \code{getGenesets}: a list of gene sets (vectors of gene IDs).
 For \code{writeGMT}: none, writes to file.
+
+For \code{showAvailableSpecies} and \code{showAvailableCollections}: 
+a \code{\linkS4class{DataFrame}}, displaying supported species and
+available gene set collections for a gene set database of choice.
 }
 \description{
 Functionality for retrieving gene sets for an organism under
@@ -82,31 +96,47 @@ the gene set. See references.
 
     # (1) Typical usage for gene set enrichment analysis with GO:
     # Biological process terms based on BioC annotation (for human)
-    go.gs <- getGenesets(org="hsa", db="go")
+    go.gs <- getGenesets(org = "hsa", db = "go")
     
     # eq.:  
-    # go.gs <- getGenesets(org="hsa", db="go", onto="BP", mode="GO.db")
+    # go.gs <- getGenesets(org = "hsa", db = "go", onto = "BP", mode = "GO.db")
     \donttest{
     # Alternatively:
     # downloading from BioMart 
     # this may take a few minutes ...
-    go.gs <- getGenesets(org="hsa", db="go", mode="biomart")
+    go.gs <- getGenesets(org = "hsa", db = "go", mode = "biomart")
+
+    # list supported species for obtaining gene sets from GO 
+    showAvailableSpecies(db = "go")
     }
     # (2) Defining gene sets according to KEGG  
-    kegg.gs <- getGenesets(org="hsa", db="kegg")
+    kegg.gs <- getGenesets(org = "hsa", db = "kegg")
     \donttest{
+    # list supported species for obtaining gene sets from KEGG 
+    showAvailableSpecies(db = "kegg")
+
     # (3) Obtaining *H*allmark gene sets from MSigDB
-    hall.gs <- getGenesets(org="hsa", db="msigdb", cat="H")
-    }
-    \donttest{
+    hall.gs <- getGenesets(org = "hsa", db = "msigdb", cat = "H")
+
+    # list supported species for obtaining gene sets from MSigDB
+    showAvailableSpecies(db = "msigdb")
+
+    # list available gene set collections in the MSigDB
+    showAvailableCollections(db = "msigdb") 
+
     # (4) Obtaining gene sets from Enrichr
-    tfppi.gs <- getGenesets(org="hsa", db="enrichr", lib="Transcription_Factor_PPIs")
-    
-    # displaying available Enrichr gene set libraries
-    getGenesets(org="hsa", db="enrichr", show.libs=TRUE)        
+    tfppi.gs <- getGenesets(org = "hsa", db = "enrichr", 
+                            lib = "Transcription_Factor_PPIs")
+
+    # list supported species for obtaining gene sets from Enrichr
+    showAvailableSpecies(db = "enrichr")
+
+    # list available Enrichr gene set libraries
+    showAvailableCollections(org = "hsa", db = "enrichr")        
     }
     # (6) parsing gene sets from GMT
-    gmt.file <- system.file("extdata/hsa_kegg_gs.gmt", package="EnrichmentBrowser")
+    gmt.file <- system.file("extdata/hsa_kegg_gs.gmt",
+                            package = "EnrichmentBrowser")
     gs <- getGenesets(gmt.file)     
     
     # (7) writing gene sets to file
@@ -120,7 +150,7 @@ KEGG Organism code: \url{http://www.genome.jp/kegg/catalog/org_list.html}
 
 MSigDB: \url{http://software.broadinstitute.org/gsea/msigdb/collections.jsp}
 
-Enrichr: \url{https://amp.pharm.mssm.edu/Enrichr/#stats}
+Enrichr: \url{https://maayanlab.cloud/Enrichr/#stats}
 
 GMT file format:
 \url{http://www.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats}

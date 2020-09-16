@@ -5,7 +5,11 @@ CHANGES IN VERSION 2.20.0
       analysis with limma, edgeR, and DESeq2
     o Including NEAT among nbea methods
     o Dedicated vignettes for microarray and RNA-seq analysis
-
+    o New function `showAvailableSpecies` to list supported species
+      for a gene set database of choice (GO, KEGG, MSigDB, Enrichr, ...)
+    o New function `showAvailableCollections` to list provided
+      gene set collections for a supported species of a gene set database of
+      choice (GO, KEGG, MSigDB, Enrichr, ...)
 
 CHANGES IN VERSION 2.18.0
 -------------------------

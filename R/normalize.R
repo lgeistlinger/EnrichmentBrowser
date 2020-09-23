@@ -46,10 +46,13 @@
 #' For available microarray normalization methods see the man page of the limma
 #' function \code{\link{normalizeBetweenArrays}}.  For available RNA-seq
 #' normalization methods see the man page of the EDASeq function
-#' \code{betweenLaneNormalization}.  Defaults to \code{'quantile'}, i.e.
-#' normalization is carried out so that quantiles between arrays/lanes/samples
-#' are equal. For RNA-seq data, this can also be \code{'vst'}, 
-#' \code{'voom'}, or \code{'deseq2'} to invoke a variance-stabilizing transformation
+#' \code{betweenLaneNormalization}.  For microarray data, defaults to
+#' \code{'quantile'}, i.e. normalization is carried out so that quantiles
+#' between arrays/samples are equal. For RNA-seq data, defaults to \code{'upper'},
+#' i.e. normalization is carried out so that quantiles between lanes/samples are
+#' equal up to the upper quartile. 
+#' For RNA-seq data, this can also be \code{'vst'}, \code{'voom'}, or 
+#' \code{'deseq2'} to invoke a variance-stabilizing transformation
 #' that allows statistical modeling as for microarry data. See details.
 #' @param data.type Expression data type.  Use \code{'ma'} for microarray and 
 #' \code{'rseq'} for RNA-seq data.  If \code{NA}, the data type is automatically 

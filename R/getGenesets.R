@@ -31,6 +31,9 @@
 #' gene sets in GMT format. See details.
 #' @param db Database from which gene sets should be retrieved. Currently, 
 #' either 'go' (default), 'kegg', 'msigdb', or 'enrichr'. 
+#' @param gene.id.type Character. Gene ID type of the returned gene sets.
+#' Defaults to \code{"ENTREZID"}. See \code{\link{idTypes}} for available
+#' gene ID types.
 #' @param cache Logical.  Should a locally cached version used if available?
 #' Defaults to \code{TRUE}.
 #' @param return.type Character. Determines whether gene sets are returned
@@ -144,7 +147,7 @@ NULL
 #' @rdname getGenesets
 getGenesets <- function(org, 
     db = c("go", "kegg", "msigdb", "enrichr"), 
-    # gene.id.type = "ENTREZID",
+    gene.id.type = "ENTREZID",
     cache = TRUE,
     return.type = c("list", "GeneSetCollection"),
     ...)
@@ -159,10 +162,12 @@ getGenesets <- function(org,
                         "or a file in GMT format"))
 
         db <- match.arg(db)
-        if(db == "go") gs <- .getGO(org, cache, return.type, ...)
-        else if(db == "kegg") gs <- .getKEGG(org, cache, return.type = return.type)
-        else if(db == "msigdb") gs <- .getMSigDb(org, cache, return.type, ...)
-        else gs <- .getEnrichr(org, cache, return.type, ...)
+        if(db == "go") gs <- .getGO(org, gene.id.type, cache, return.type, ...)
+        else if(db == "kegg") 
+            gs <- .getKEGG(org, gene.id.type, cache, return.type)
+        else if(db == "msigdb") 
+            gs <- .getMSigDb(org, gene.id.type, cache, return.type, ...)
+        else gs <- .getEnrichr(org, gene.id.type, cache, return.type, ...)
     }
     return(gs)
 }
@@ -186,10 +191,10 @@ showAvailableCollections <- function(org,
                                      cache = TRUE)
 {
     db <- match.arg(db)
-    if(db == "kegg") .keggCollections(cache)
-    else if(db == "go") .goCollections(cache)
+    if(db == "kegg") .keggCollections()
+    else if(db == "go") .goCollections()
     else if(db == "msigdb") .msigdbCollections(cache)
-    else .getEnrichr(org, cache, show.libs = TRUE)
+    else .enrichrLibs(.org2enrichr(org), cache)
 }
 
 # write genesets to file in GMT format
@@ -220,18 +225,17 @@ writeGMT <- function(gs, gmt.file)
 #
 # ENRICHR
 #
-.getEnrichr <- function(org, cache, return.type, lib, show.libs = FALSE)
+.getEnrichr <- function(org, gene.id.type, cache, return.type, lib)
 {
     # convert organism
     eorg <- .org2enrichr(org)
     
     # only show available gene set libraries?
-    libs <- .enrichrLibs(eorg, cache)
-    if(show.libs) return(libs)
+    libs <- suppressMessages(.enrichrLibs(eorg, cache))
 
     gs.tag <- "gs"
     if(return.type == "GeneSetCollection") gs.tag <- paste0(gs.tag, "c")
-    gsc.name <- paste(org, "enrichr", lib, gs.tag, sep=".")
+    gsc.name <- paste(org, "enrichr", lib, gene.id.type, gs.tag, sep =".")
  
     # should a cached version be used?
     if(cache)
@@ -246,16 +250,21 @@ writeGMT <- function(gs, gmt.file)
 
     # ID mapping
     from <- ifelse(org == "sce", "GENENAME", "SYMBOL")
-    suppressMessages(
-        gs <- .idMapGS(gs, org, from = from, to = "ENTREZID")
-    )
+    
     if(return.type == "GeneSetCollection")
     {
         ct <- ComputedCollection()
         titles <- vapply(names(gs), .extractTitle, character(1))
-        gs <- .makeGSC(gs, titles, org, ct)        
+        it <- if(org == "sce") GenenameIdentifier() else SymbolIdentifier()
+        gs <- .makeGSC(gs, titles, org, ct, it)        
     }
     
+    if(gene.id.type != from)
+    {
+        suppressMessages(
+            gs <- idMap(gs, org, from = from, to = gene.id.type)
+        )
+    }
     .cacheResource(gs, gsc.name)
     return(gs)
 }
@@ -278,7 +287,8 @@ writeGMT <- function(gs, gmt.file)
     .trim <- function(x) vapply(x, 
                                 function(y) unlist(strsplit(y, ","))[1], 
                                 character(1), USE.NAMES=FALSE)
-    lapply(gs, .trim)
+    gs <- lapply(gs, .trim)
+    lapply(gs, function(s) s[!is.na(s)])
 }
 
 .org2enrichr <- function(org)
@@ -329,7 +339,7 @@ writeGMT <- function(gs, gmt.file)
 #
 # MSigDB
 #
-.getMSigDb <- function(org, cache, return.type,
+.getMSigDb <- function(org, gene.id.type, cache, return.type,
                         cat = c("H", paste0("C", 1:7)), 
                         subcat = NA)
 {
@@ -338,7 +348,8 @@ writeGMT <- function(gs, gmt.file)
     gs.tag <- "gs"
     if(return.type == "GeneSetCollection") gs.tag <- paste0(gs.tag, "c")
 
-    gsc.name <- paste(org, "msigdb", cat, subcat, gs.tag, sep=".") 
+    gsc.name <- paste(org, "msigdb", cat, 
+                      subcat, gene.id.type, gs.tag, sep = ".")
     # should a cached version be used?
     if(cache)
     {
@@ -350,11 +361,11 @@ writeGMT <- function(gs, gmt.file)
     isAvailable("msigdbr", type = "software")
 
     ind <- match(org, SPECIES[,"kegg"])
-    org <- SPECIES[ind, "tax"]
+    morg <- SPECIES[ind, "tax"]
 
-    if(!(org %in% msigdbr_show_species())) stop("Organism not supported")
+    if(!(morg %in% msigdbr_show_species())) stop("Organism not supported")
 
-    df <- msigdbr(org, cat, subcat)
+    df <- msigdbr(morg, cat, subcat)
     gs <- split(as.character(df$entrez_gene), df$gs_id)
     gs.names <- unique(df$gs_name)
     gs.ids <- unique(df$gs_id)
@@ -370,6 +381,12 @@ writeGMT <- function(gs, gmt.file)
         gs <- .makeGSC(gs, titles, org, ct)        
     }
     
+    if(gene.id.type != "ENTREZID")
+    {
+        suppressMessages( 
+            gs <- idMap(gs, org, from = "ENTREZID", to = gene.id.type)
+        )
+    }
     .cacheResource(gs, gsc.name)
     return(gs)
 }
@@ -416,7 +433,7 @@ writeGMT <- function(gs, gmt.file)
 # GO
 #
 
-.getGO <- function(org, cache, return.type, 
+.getGO <- function(org, gene.id.type, cache, return.type, 
                     onto=c("BP", "MF", "CC"), 
                     mode=c("GO.db","biomart"))
 {
@@ -425,7 +442,7 @@ writeGMT <- function(gs, gmt.file)
     gs.tag <- "gs"
     if(return.type == "GeneSetCollection") gs.tag <- paste0(gs.tag, "c")
 
-    gsc.name <- paste(org, "go", tolower(onto), gs.tag, sep=".") 
+    gsc.name <- paste(org, "go", tolower(onto), gene.id.type, gs.tag, sep = ".")
     # should a cached version be used?
     if(cache)
     {
@@ -437,6 +454,13 @@ writeGMT <- function(gs, gmt.file)
     mode <- match.arg(mode)
     if(mode=="GO.db") gs <- .getGOFromGODB(org, onto, return.type)
     else gs <- .getGOFromBiomart(org, onto, return.type)
+
+    if(gene.id.type != "ENTREZID")
+    {
+        suppressMessages( 
+            gs <- idMap(gs, org, from = "ENTREZID", to = gene.id.type)
+        )
+    }
     .cacheResource(gs, gsc.name)
     return(gs)
 }
@@ -535,18 +559,24 @@ writeGMT <- function(gs, gmt.file)
     return(gorgs)
 }
 
+.goCollections <- function()
+{
+    onto <- c("BP", "MF", "CC")
+    desc <- c("Biological Process", "Molecular Function", "Cellular Component")
+    DataFrame(onto = onto, desc = desc)
+}
+
 #
 # KEGG
 #
 
-.getKEGG <- function(pwys, cache, gmt.file=NULL, return.type)
+.getKEGG <- function(pwys, gene.id.type, cache, return.type)
 {
     is.org <- length(pwys) == 1 && grepl("^[a-z]{3}$", pwys)
     # download all gs of organism
-    if(is.org) gs <- .dwnldAllKeggGS(pwys, cache, return.type)
+    if(is.org) gs <- .dwnldAllKeggGS(pwys, gene.id.type, cache, return.type)
     # download selected ids
     else gs <- .dwnldSelectedKeggGS(pwys)
-    if(!is.null(gmt.file)) writeGMT(gs, gmt.file=gmt.file)
     return(gs)
 }
 
@@ -574,11 +604,15 @@ writeGMT <- function(gs, gmt.file)
     return(korgs)
 }
 
-.dwnldAllKeggGS <- function(org, cache, return.type)
+.keggCollections <- function()
+    message("KEGG gene sets are currently returned as a single collection")
+
+
+.dwnldAllKeggGS <- function(org, gene.id.type, cache, return.type)
 {
     gs.tag <- "gs"
     if(return.type == "GeneSetCollection") gs.tag <- paste0(gs.tag, "c")
-    gsc.name <- paste(org, "kegg", gs.tag, sep = ".") 
+    gsc.name <- paste(org, "kegg", gene.id.type, gs.tag, sep = ".") 
     
     # should a cached version be used?
     if(cache)
@@ -616,8 +650,16 @@ writeGMT <- function(gs, gmt.file)
             gs <- lapply(gs, function(s) unname(map.k2e[s]))
         }
     }
+
     if(return.type == "GeneSetCollection") gs <- .makeKeggGSC(gs, pwys, org)
     else names(gs) <- .makeGSNames(names(pwys), pwys)
+
+    if(gene.id.type != "ENTREZID")
+    {
+        suppressMessages( 
+            gs <- idMap(gs, org, from = "ENTREZID", to = gene.id.type)
+        )
+    }
     .cacheResource(gs, gsc.name)
     return(gs)
 }
@@ -710,9 +752,8 @@ writeGMT <- function(gs, gmt.file)
 #
 
 # make GeneSetCollection from gene set list
-.makeGSC <- function(gs, titles, org, ctype)
+.makeGSC <- function(gs, titles, org, ctype, it = EntrezIdentifier())
 {
-    it <- EntrezIdentifier()
     .makeGeneSet <- function(s)
     {
         sname <- gsub("[<>:\\?\\|\"\\*\\/]", "", s)

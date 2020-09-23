@@ -13,6 +13,7 @@
 getGenesets(
   org,
   db = c("go", "kegg", "msigdb", "enrichr"),
+  gene.id.type = "ENTREZID",
   cache = TRUE,
   return.type = c("list", "GeneSetCollection"),
   ...
@@ -35,6 +36,10 @@ gene sets in GMT format. See details.}
 
 \item{db}{Database from which gene sets should be retrieved. Currently, 
 either 'go' (default), 'kegg', 'msigdb', or 'enrichr'.}
+
+\item{gene.id.type}{Character. Gene ID type of the returned gene sets.
+Defaults to \code{"ENTREZID"}. See \code{\link{idTypes}} for available
+gene ID types.}
 
 \item{cache}{Logical.  Should a locally cached version used if available?
 Defaults to \code{TRUE}.}

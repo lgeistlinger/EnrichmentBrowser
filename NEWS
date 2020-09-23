@@ -10,6 +10,8 @@ CHANGES IN VERSION 2.20.0
     o New function `showAvailableCollections` to list provided
       gene set collections for a supported species of a gene set database of
       choice (GO, KEGG, MSigDB, Enrichr, ...)
+    o Gene sets: obtaining and caching of gene sets for different gene ID 
+      types (new argument `gene.id.types` for function `getGenesets`)
 
 CHANGES IN VERSION 2.18.0
 -------------------------

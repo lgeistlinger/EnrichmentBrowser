@@ -195,7 +195,9 @@ idMap <- function(obj, org=NA,
     sgenes <- unique(unlist(gs))
     sgenes <- .mapStats(sgenes, org, from, to, multi.to)
     gs <- lapply(gs, function(s) unname(sgenes[s]))
-    lapply(gs, function(s) s[!is.na(s)])
+    gs <- lapply(gs, function(s) s[!is.na(s)])
+    gs <- lapply(gs, unique)
+    lapply(gs, sort)
 }
 
 .mapStats <- function(sgenes, org, from, to, multi.to)
@@ -203,6 +205,8 @@ idMap <- function(obj, org=NA,
     orgpkg <- .getAnnoPkg(org)
     sgenes <- sgenes[!is.na(sgenes)]
     sgenes <- sgenes[sgenes != ""]
+    ind <- sgenes %in% AnnotationDbi::keys(orgpkg, from)
+    sgenes <- sgenes[ind]
     suppressMessages(
         sgenes <- AnnotationDbi::mapIds(orgpkg, keys = sgenes, 
                                                 column = to, 

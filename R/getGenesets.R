@@ -754,6 +754,8 @@ writeGMT <- function(gs, gmt.file)
 # make GeneSetCollection from gene set list
 .makeGSC <- function(gs, titles, org, ctype, it = EntrezIdentifier())
 {
+    gs <- lapply(gs, function(s) s[!is.na(s)])
+    gs <- lapply(gs, unique)
     .makeGeneSet <- function(s)
     {
         sname <- gsub("[<>:\\?\\|\"\\*\\/]", "", s)

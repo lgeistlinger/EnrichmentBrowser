@@ -57,7 +57,7 @@ and volcano plot (fold change vs. p-value).
 }
 \seealso{
 \code{\link{deAna}} for differential expression analysis,
-\code{\link{Heatmap}} and \code{\link{hist}} for generic plotting.
+\code{ComplexHeatmap::Heatmap}, and \code{\link{hist}} for generic plotting.
 }
 \author{
 Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>

@@ -49,10 +49,16 @@ as a simple list of gene sets (each being a character vector of gene IDs), or
 as an object of class \code{\linkS4class{GeneSetCollection}}.}
 
 \item{...}{Additional arguments for individual gene set databases. 
-For \code{db = "GO"}: \itemize{ \item onto: Character. Specifies one of the
-three GO ontologies: 'BP'
+For \code{db = "GO"}:
+\itemize{
+\item onto: Character. Specifies one of the three GO ontologies: 'BP'
 (biological process), 'MF' (molecular function), 'CC' (cellular component).
-Defaults to 'BP'. \item mode: Character. Determines in which way the gene 
+Defaults to 'BP'.
+\item evid: Character. Specifies one or more GO evidence code(s) such as 
+IEP (inferred from expression pattern) or TAS (traceable author statement).
+Defaults to \code{NA} which includes all annotations, i.e. does not filter by
+evidence codes. See references for a list of available evidence codes. 
+\item mode: Character. Determines in which way the gene 
 sets are retrieved. This can be either 'GO.db' or 'biomart'. 
 The 'GO.db' mode creates the gene sets based on BioC annotation packages - 
 which is fast, but represents not
@@ -151,6 +157,8 @@ the gene set. See references.
 \references{
 GO: \url{http://geneontology.org/}
 
+GO evidence codes: \url{http://geneontology.org/docs/guide-go-evidence-codes/}
+
 KEGG Organism code: \url{http://www.genome.jp/kegg/catalog/org_list.html}
 
 MSigDB: \url{http://software.broadinstitute.org/gsea/msigdb/collections.jsp}
@@ -161,7 +169,7 @@ GMT file format:
 \url{http://www.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats}
 }
 \seealso{
-\code{\link{annFUN}} for general GO2gene mapping used in the
+the \code{GO.db} package for GO2gene mapping used in
 'GO.db' mode, and the biomaRt package for general queries to BioMart. 
 
 \code{\link{keggList}} and \code{\link{keggLink}} for accessing the KEGG REST

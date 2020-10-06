@@ -91,9 +91,8 @@ makeExampleData <- function(
     # (b) RNA-seq data: read counts
     else
     {
-        makeExampleDESeqDataSet <- NULL
         isAvailable("DESeq2", type="software")
-        exds <- makeExampleDESeqDataSet(n=nfeat)
+        exds <- DESeq2::makeExampleDESeqDataSet(n=nfeat)
         exmpl.exprs <- assay(exds)
     }
     rownames(exmpl.exprs) <- paste0("g", seq_len(nfeat))

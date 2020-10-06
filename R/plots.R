@@ -23,7 +23,7 @@
 #' @return None, plots to a graphics device.
 #' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
 #' @seealso \code{\link{deAna}} for differential expression analysis,
-#' \code{\link{Heatmap}} and \code{\link{hist}} for generic plotting.
+#' \code{ComplexHeatmap::Heatmap}, and \code{\link{hist}} for generic plotting.
 #' @examples
 #' 
 #'     # (1) simulating expression data: 100 genes, 12 samples
@@ -64,6 +64,8 @@ volcano <- function(fc, p)
 #' @rdname plots
 exprsHeatmap <- function(expr, grp, scale.rows=TRUE, log.thresh=100)
 {
+    isAvailable("ComplexHeatmap", type = "software")
+
 	# log-transform?
 	dd <- diff(range(expr, na.rm=TRUE))
     if(dd > log.thresh) expr <- log(expr + 1, base=2)

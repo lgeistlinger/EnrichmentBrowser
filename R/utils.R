@@ -12,9 +12,9 @@
 #' Convenience function for checking and installing required packages.
 #' 
 #' Checks whether a required package is available in the library.  If yes, the
-#' package is loaded via \code{\link{require}}.  If not, the package is
+#' package is loaded via \code{\link{requireNamespace}}.  If not, the package is
 #' optionally installed via \code{\link{install}} and,
-#' subsequently, loaded via \code{\link{require}}.
+#' subsequently, loaded via \code{\link{requireNamespace}}.
 #' 
 #' @param pkg Character vector of length 1.  A valid name of an existing R
 #' package.
@@ -44,7 +44,7 @@ isAvailable <- function(pkg, type=c("annotation", "software", "data"))
         if(choice == "y") BiocManager::install(pkg, update=FALSE)
         else stop(paste("Package", pkg, "is not available"))
     }   
-    require(pkg, character.only=TRUE, quietly=TRUE)
+    require(pkg, character.only = TRUE, quietly=TRUE)
 }
 
 SPECIES <- rbind(

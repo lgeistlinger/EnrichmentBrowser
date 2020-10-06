@@ -21,9 +21,9 @@ Convenience function for checking and installing required packages.
 }
 \details{
 Checks whether a required package is available in the library.  If yes, the
-package is loaded via \code{\link{require}}.  If not, the package is
+package is loaded via \code{\link{requireNamespace}}.  If not, the package is
 optionally installed via \code{\link{install}} and,
-subsequently, loaded via \code{\link{require}}.
+subsequently, loaded via \code{\link{requireNamespace}}.
 }
 \examples{
 

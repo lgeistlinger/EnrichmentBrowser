@@ -7,10 +7,35 @@ Author: Ludwig Geistlinger [aut, cre], Gergely Csaba [aut], Mara Santarelli [ctb
         Mirko Signorelli [ctb], Marcel Ramos [ctb], Levi Waldron [ctb], Ralf Zimmer [aut]
 Maintainer: Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
 Depends: SummarizedExperiment, graph
-Imports: AnnotationDbi, BiocFileCache, BiocManager, ComplexHeatmap, GSEABase, 
-         GO.db, KEGGREST, KEGGgraph, Rgraphviz, S4Vectors, SPIA, biocGraph, edgeR,
-         geneplotter, graphite, hwriter, limma, methods, pathview, safe, topGO
-Suggests: ALL, BiocStyle, DESeq2, ReportingTools, airway, hgu95av2.db, knitr
+Imports: 
+    AnnotationDbi,
+    BiocFileCache,
+    BiocManager,
+    GSEABase, 
+    GO.db,
+    KEGGREST,
+    KEGGgraph,
+    Rgraphviz,
+    S4Vectors,
+    SPIA,
+    edgeR,
+    graphite,
+    hwriter,
+    limma,
+    methods,
+    pathview,
+    safe
+Suggests: 
+    ALL, 
+    BiocStyle,
+    ComplexHeatmap,
+    DESeq2,
+    ReportingTools,
+    airway,
+    biocGraph,
+    hgu95av2.db,
+    geneplotter,
+    knitr
 Description: The EnrichmentBrowser package implements essential functionality 
     for the enrichment analysis of gene expression data. The analysis combines 
     the advantages of set-based and network-based enrichment analysis in order 
@@ -21,7 +46,17 @@ Description: The EnrichmentBrowser package implements essential functionality
 License: Artistic-2.0
 Encoding: UTF-8
 VignetteBuilder: knitr
-biocViews: ImmunoOncology, Microarray, RNASeq, GeneExpression, DifferentialExpression,
-           Pathways, GraphAndNetwork, Network, GeneSetEnrichment, NetworkEnrichment,
-           Visualization, ReportWriting
+biocViews:
+    ImmunoOncology,
+    Microarray,
+    RNASeq,
+    GeneExpression,
+    DifferentialExpression,
+    Pathways,
+    GraphAndNetwork,
+    Network,
+    GeneSetEnrichment,
+    NetworkEnrichment,
+    Visualization,
+    ReportWriting
 RoxygenNote: 7.1.1

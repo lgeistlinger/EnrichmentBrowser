@@ -40,10 +40,16 @@
 #' as a simple list of gene sets (each being a character vector of gene IDs), or
 #' as an object of class \code{\linkS4class{GeneSetCollection}}.
 #' @param ... Additional arguments for individual gene set databases. 
-#' For \code{db = "GO"}: \itemize{ \item onto: Character. Specifies one of the
-#' three GO ontologies: 'BP'
+#' For \code{db = "GO"}:
+#' \itemize{
+#' \item onto: Character. Specifies one of the three GO ontologies: 'BP'
 #' (biological process), 'MF' (molecular function), 'CC' (cellular component).
-#' Defaults to 'BP'. \item mode: Character. Determines in which way the gene 
+#' Defaults to 'BP'.
+#' \item evid: Character. Specifies one or more GO evidence code(s) such as 
+#' IEP (inferred from expression pattern) or TAS (traceable author statement).
+#' Defaults to \code{NA} which includes all annotations, i.e. does not filter by
+#' evidence codes. See references for a list of available evidence codes. 
+#' \item mode: Character. Determines in which way the gene 
 #' sets are retrieved. This can be either 'GO.db' or 'biomart'. 
 #' The 'GO.db' mode creates the gene sets based on BioC annotation packages - 
 #' which is fast, but represents not
@@ -74,7 +80,7 @@
 #' a \code{\linkS4class{DataFrame}}, displaying supported species and
 #' available gene set collections for a gene set database of choice.
 #' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
-#' @seealso \code{\link{annFUN}} for general GO2gene mapping used in the
+#' @seealso the \code{GO.db} package for GO2gene mapping used in
 #' 'GO.db' mode, and the biomaRt package for general queries to BioMart. 
 #' 
 #' \code{\link{keggList}} and \code{\link{keggLink}} for accessing the KEGG REST
@@ -83,6 +89,8 @@
 #' \code{msigdbr::msigdbr} for obtaining gene sets from the MSigDB.
 #' @references GO: \url{http://geneontology.org/}
 #' 
+#' GO evidence codes: \url{http://geneontology.org/docs/guide-go-evidence-codes/}
+#'
 #' KEGG Organism code: \url{http://www.genome.jp/kegg/catalog/org_list.html}
 #'
 #' MSigDB: \url{http://software.broadinstitute.org/gsea/msigdb/collections.jsp}
@@ -434,8 +442,9 @@ writeGMT <- function(gs, gmt.file)
 #
 
 .getGO <- function(org, gene.id.type, cache, return.type, 
-                    onto=c("BP", "MF", "CC"), 
-                    mode=c("GO.db","biomart"))
+                    onto = c("BP", "MF", "CC"),
+                    evid = NA,
+                    mode = c("GO.db","biomart"))
 {
     onto <- match.arg(onto)
 
@@ -452,8 +461,8 @@ writeGMT <- function(gs, gmt.file)
 
     # from GO.db or from biomart?
     mode <- match.arg(mode)
-    if(mode=="GO.db") gs <- .getGOFromGODB(org, onto, return.type)
-    else gs <- .getGOFromBiomart(org, onto, return.type)
+    if(mode=="GO.db") gs <- .getGOFromGODB(org, onto, evid, return.type)
+    else gs <- .getGOFromBiomart(org, onto, evid, return.type)
 
     if(gene.id.type != "ENTREZID")
     {
@@ -465,24 +474,34 @@ writeGMT <- function(gs, gmt.file)
     return(gs)
 }
 
-.getGOFromGODB <- function(org, onto, return.type)
+.getGOFromGODB <- function(org, onto, evid, return.type)
 {
-    gs <- topGO::annFUN.org(whichOnto=onto, mapping=.org2pkg(org))
+    orgpkg <- .getAnnoPkg(org)
     GO2descr <- AnnotationDbi::as.list(GO.db::GOTERM)
+    org.terms <- AnnotationDbi::keys(orgpkg, keytype = "GO")
+    org.terms <- sort(org.terms)
+    dbmap <- AnnotationDbi::select(orgpkg, 
+                                   keys = org.terms,
+                                   columns = "ENTREZID",
+                                   keytype = "GO")
+    dbmap <- subset(dbmap, ONTOLOGY %in% onto)
+    if(!is.na(evid)) dbmap <- subset(dbmap, EVIDENCE %in% evid)
+    gs <- split(dbmap$ENTREZID, dbmap$GO)
+
     gs <- gs[intersect(names(gs), names(GO2descr))]
     GO2descr <- GO2descr[names(gs)]
     GO2descr <- vapply(GO2descr, AnnotationDbi::Term, character(1))
 
     if(return.type == "GeneSetCollection")
     {
-        ct <- GOCollection(evidenceCode=NA_character_, ontology=onto)
+        ct <- GOCollection(evidenceCode = NA_character_, ontology = onto)
         gs <- .makeGSC(gs, GO2descr, org, ct)        
     }
     else names(gs) <- paste(names(gs), gsub(" ", "_", GO2descr), sep="_")
     return(gs)
 }
 
-.getGOFromBiomart <- function(org, onto, return.type)
+.getGOFromBiomart <- function(org, onto, evid, return.type)
 {
     useMart <- listDatasets <- useDataset <- getBM <- NULL
     isAvailable("biomaRt", type = "software")
@@ -507,11 +526,13 @@ writeGMT <- function(gs, gmt.file)
     }
     ontos <- vapply(GO2descr[,3], .getOnto, character(1)) 
     GO2descr <- GO2descr[ontos==onto,1:2]
-    
-    gene2GO <- getBM(attributes = c("entrezgene_id", "go_id"), mart=ensembl)
+   
+    attrs <- c("entrezgene_id", "go_id", "go_linkage_type") 
+    gene2GO <- getBM(attributes = attrs, mart = ensembl)
     gene2GO <- gene2GO[apply(gene2GO, 1 , function(r) all(r != "")), ]
     gene2GO <- gene2GO[order(gene2GO[,"go_id"]),]
     gene2GO <- gene2GO[gene2GO[,"go_id"] %in% GO2descr[,"go_id"],]
+    if(!is.na(evid)) gene2GO <- subset(gene2GO, go_linkage_type %in% evid)
     gs <- lapply(GO2descr[,"go_id"], 
         function(g) gene2GO[gene2GO[,"go_id"] == g, "entrezgene_id"])
     gs <- lapply(gs, function(s) sort(as.character(s)))

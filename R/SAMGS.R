@@ -9,13 +9,10 @@
 # SAMGS stat as global.stat for safe
 global.SAMGS <- function(cmat, u, ...)
 {
-    # SparseM::as.matrix
     isAvailable("SparseM", type="software")
-    #pos <- grep("SparseM", search())
-    am <- getMethod("as.matrix", signature="matrix.csr")#, where=pos)
+    am <- getMethod("as.matrix", signature = "matrix.csr")
     cmat <- t(am(cmat))
-
-    return(function(u, cmat2=cmat) as.vector(cmat2 %*% u^2))
+    function(u, cmat2=cmat) as.vector(cmat2 %*% u^2)
 }
 
 # SAM t-like stat as local.stat for safe

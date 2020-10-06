@@ -425,7 +425,7 @@ eaBrowse <- function(res, nr.show=-1,
 }
 
 .makeVolcHTML <- function(se, img.file)
-{    
+{   
     width <- configEBrowser("PLOT.WIDTH") 
     height <- configEBrowser("PLOT.HEIGHT")
 
@@ -483,6 +483,7 @@ eaBrowse <- function(res, nr.show=-1,
     gn.cols <- sapply(c("SYM.COL", "GN.COL"), configEBrowser)
     titles <- apply(rowData(se)[,gn.cols], 1, paste, collapse=": ") 
     refs <- paste0(configEBrowser("GENE.URL"), names(se))
+    isAvailable("geneplotter", type = "software")
     geneplotter::imageMap(coord, con, 
         list(HREF=refs, TITLE=titles, TARGET=rep("gene", nrow(coord))), 
         basename(img.file))    
@@ -541,6 +542,7 @@ eaBrowse <- function(res, nr.show=-1,
             paste(paste(org, n, sep=":"), collapse="+"), USE.NAMES=FALSE)
         con <- file(kgraph.html, open="w")
         refs <- paste0(configEBrowser("KEGG.GENE.URL"), kstr)
+        isAvailable("biocGraph", type = "software")
         biocGraph::imageMap(gr, con=con,
             tags=list(HREF=refs, TITLE = nam, TARGET = rep("gene", length(nd))),
             imgname=basename(img.file), width=width, height=height)    
@@ -552,6 +554,7 @@ eaBrowse <- function(res, nr.show=-1,
 
 .makeGGraphHTML <- function(se, sgrn, alpha, img.file)
 {
+
     width <- configEBrowser("PLOT.WIDTH") 
     height <- configEBrowser("PLOT.HEIGHT")
 
@@ -594,6 +597,7 @@ eaBrowse <- function(res, nr.show=-1,
         nam <- gnam[nd]
         con <- file(ggraph.html, open="w")
         refs <- paste0(configEBrowser("GENE.URL"),  nd)
+        isAvailable("biocGraph", type = "software")
         biocGraph::imageMap(sggeaGraph, con=con,
             tags=list(HREF=refs, TITLE = nam, TARGET = rep("gene", length(nd))),
             imgname=basename(img.file), width=width, height=height)    

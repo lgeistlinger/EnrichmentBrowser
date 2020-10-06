@@ -761,8 +761,7 @@ global.GSA <- function(cmat, u, ...)
 {
     # SparseM::as.matrix
     isAvailable("SparseM", type="software")
-    #pos <- grep("SparseM", search())
-    am <- getMethod("as.matrix", signature="matrix.csr")#, where=pos)
+    am <- getMethod("as.matrix", signature="matrix.csr")
     tcmat <- t(am(cmat))
 
     return(
@@ -858,7 +857,7 @@ global.PADOG <- function(cmat, u, args.global)
 .mgsa <- function(se, gs, alpha=0.05, beta=1, sig.stat=c("p", "fc", "|", "&"))
 {
     mgsa <- setsResults <- NULL
-    isAvailable("mgsa", type="software")
+    isAvailable("mgsa", type = "software")
     
     # extract significant (DE) genes
     isig <- .isSig(rowData(se), alpha, beta, sig.stat)

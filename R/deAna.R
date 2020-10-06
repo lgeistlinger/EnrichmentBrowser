@@ -206,17 +206,16 @@ deAna <- function(expr, grp = NULL, blk = NULL,
 
 .deseq <- function(expr, group, paired, block, f, stat.only)
 {
-    DESeqDataSetFromMatrix <- DESeq <- results <- NULL
     isAvailable("DESeq2", type="software")
     
     colData <- data.frame(group=group)
     if(paired) colData$block <- block
     suppressMessages({
-        dds <- DESeqDataSetFromMatrix(
+        dds <- DESeq2::DESeqDataSetFromMatrix(
             countData=expr, colData=colData, design=f)
-        dds <- DESeq(dds)
+        dds <- DESeq2::DESeq(dds)
     })
-    res <- results(dds, pAdjustMethod="none")
+    res <- DESeq2::results(dds, pAdjustMethod="none")
     if(stat.only) return(res[,"stat"])
     de.tbl <- data.frame(res[,c("log2FoldChange","pvalue","stat")])
     colnames(de.tbl)[3] <- "DESeq2.STAT"

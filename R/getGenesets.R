@@ -365,15 +365,13 @@ writeGMT <- function(gs, gmt.file)
         if(!is.null(gs)) return(gs)
     }
 
-    msigdbr_show_species <- msigdbr <- NULL
-    isAvailable("msigdbr", type = "software")
-
     ind <- match(org, SPECIES[,"kegg"])
     morg <- SPECIES[ind, "tax"]
 
-    if(!(morg %in% msigdbr_show_species())) stop("Organism not supported")
+    isAvailable("msigdbr", type = "software")
+    if(!(morg %in% msigdbr::msigdbr_show_species())) stop("Organism not supported")
 
-    df <- msigdbr(morg, cat, subcat)
+    df <- msigdbr::msigdbr(morg, cat, subcat)
     gs <- split(as.character(df$entrez_gene), df$gs_id)
     gs.names <- unique(df$gs_name)
     gs.ids <- unique(df$gs_id)
@@ -407,9 +405,8 @@ writeGMT <- function(gs, gmt.file)
         morgs <- .getResourceFromCache(sms)
         if(!is.null(morgs)) return(morgs)
     }
-    msigdbr_show_species <- NULL
     isAvailable("msigdbr", type = "software")
-    ms <- msigdbr_show_species()
+    ms <- msigdbr::msigdbr_show_species()
     ms[ms == "Canis lupus familiaris"] <- "Canis familiaris"
     ind <- match(ms, SPECIES[,"tax"])
     morgs <- SPECIES[ind, c("kegg", "tax", "common")]
@@ -426,9 +423,9 @@ writeGMT <- function(gs, gmt.file)
         colls <- .getResourceFromCache(msdb.colls)
         if(!is.null(colls)) return(colls)
     }
-    msigdbr <- NULL
     isAvailable("msigdbr", type = "software")
-    df <- as.data.frame(unique(msigdbr()[,c("gs_cat", "gs_subcat")]))
+    df <- msigdbr::msigdbr()[,c("gs_cat", "gs_subcat")]
+    df <- as.data.frame(unique(df))
     df <- df[do.call(order, df),]
     rownames(df) <- NULL
     colnames(df) <- sub("^gs_", "", colnames(df))

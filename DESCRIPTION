@@ -1,5 +1,5 @@
 Package: EnrichmentBrowser
-Version: 2.19.13
+Version: 2.19.14
 Date: 2020-08-10
 Title: Seamless navigation through combined results of set-based and
        network-based enrichment analysis
@@ -35,7 +35,9 @@ Suggests:
     biocGraph,
     hgu95av2.db,
     geneplotter,
-    knitr
+    knitr,
+    msigdbr,
+    rmarkdown
 Description: The EnrichmentBrowser package implements essential functionality 
     for the enrichment analysis of gene expression data. The analysis combines 
     the advantages of set-based and network-based enrichment analysis in order 
@@ -44,6 +46,7 @@ Description: The EnrichmentBrowser package implements essential functionality
     Besides, the package facilitates the visualization and exploration of such 
     sets and pathways.
 License: Artistic-2.0
+BugReports: https://github.com/lgeistlinger/EnrichmentBrowser/issues
 Encoding: UTF-8
 VignetteBuilder: knitr
 biocViews:

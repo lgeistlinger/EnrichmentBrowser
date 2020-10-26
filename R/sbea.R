@@ -284,7 +284,7 @@ sbea <- function(
         exargs <- .matchArgs(method, call)
         exargs$se <- se
         exargs$gs <- gs
-        gs.ps <- do.call(method, lapply(exargs, eval.parent, n=2))
+        gs.ps <- do.call(method, lapply(exargs, eval.parent, n = 2))
     }
     else stop(paste(method, "is not a valid method for sbea"))
 

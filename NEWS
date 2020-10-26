@@ -12,7 +12,6 @@ CHANGES IN VERSION 2.20.0
       types (new argument `gene.id.types` for function `getGenesets`)
     o GO gene sets: filter by GO evidence codes (new argument `evid` for 
       function `getGenesets`)  
-    o Dedicated vignettes for microarray and RNA-seq analysis
     o Including NEAT among nbea methods
 
 

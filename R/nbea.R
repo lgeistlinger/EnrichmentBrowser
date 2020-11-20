@@ -340,15 +340,23 @@ nbea <- function(
         save(path.info, file=file.path(data.dir, "SPIA.RData"))
         data.dir <- paste0(data.dir, "/")
     }
+
     res <- SPIA::spia(de=de, all=all, organism=organism, data.dir=data.dir, nB=perm)
+    
+    if(is.kegg)
+    {
+        spl <- strsplit(names(gs), "_")
+        ids <- vapply(spl, function(n) n[1], character(1))
+        ids <- sub(organism, "", ids)   
+        res <- res[res$ID %in% ids, ]
+    }
+
     res[,"Name"] <- gsub(" ", "_", res[,"Name"])
     rownames(res) <- paste(paste0(organism, res[,"ID"]), res[,"Name"], sep="_")
     res <- res[, c("pSize", "NDE", "tA", "Status", "pG")]
     colnames(res) <- c("SIZE", "NDE", "T.ACT", "STATUS", PVAL.COL)
     res[,"STATUS"] <- ifelse(res[,"STATUS"] == "Activated", 1, -1)
-    res <- as.matrix(res)
-    message("Finished SPIA analysis")
-    return(res)
+    as.matrix(res)
 }
 
 # spia helper: create pathway data from gs and grn

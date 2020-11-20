@@ -252,8 +252,7 @@ deAna <- function(expr, grp = NULL, blk = NULL,
     blk <- NULL
     if(BLK.COL %in% colnames(colData(se))) blk <- colData(se)[,BLK.COL] 
 
-    res <- list(expr = expr, grp = grp, blk = blk)
-    return(res)
+    list(expr = expr, grp = grp, blk = blk)
 }
 
 .getAssay <- function(se, assay = "auto")

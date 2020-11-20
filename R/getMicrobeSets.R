@@ -1,19 +1,57 @@
+#' @name getMicrobeSets
+#'
+#' @title Definition of microbe sets according to different sources
+#' 
+#' @description Functionality for retrieving microbe sets from databases such as
+#' BugSigDB and the MicrobeDirectory. 
+#'
+#' @param db Database from which microbe sets should be retrieved. Currently, 
+#' either 'bugsigdb' (default), 'manalyst', 'mpattern', or 'mdirectory'. 
+#' @param tax.id.type Character. Taxonomic ID type of the returned microbe sets.
+#' Currently either 'ncbi' (default) or 'metaphlan'.
+#' @param cache Logical.  Should a locally cached version used if available?
+#' Defaults to \code{TRUE}.
+#' @param ... Additional arguments for individual microbe set databases.
+#' For \code{db = "manalyst"}: \itemize{ \item lib: Character. MicrobiomeAnalyst
+#' taxon set library. Options include taxon sets associated with human genetic
+#' variations ('gene'), host-intrinsic ('host_int'), host-extrinsic ('host_ext'),
+#' environmental ('env'), and microbiome-intrinsic ('mic_int') factors.
+#' See references.}
+#' @references BugSigDB: \url{https://bugsigdb.org}
+#' 
+#' MicrobiomeAnalyst: \url{https://www.microbiomeanalyst.ca}
+#'
+#' @export
 getMicrobeSets <- function(db = c("bugsigdb",
                                   "manalyst",
-                                  "micropattern",
+                                  "mpattern",
                                   "mdirectory"),
-                           tax.id.type = c("ncbi", "metaphlan"))
+                           tax.id.type = c("ncbi", "metaphlan"),
+                           cache = TRUE, 
+                           ...)
 {
     db <- match.arg(db)
-    if(db == "bugsigdb") .getBugSigDB(tax.id.type)
+    if(db == "bugsigdb") .getBugSigDB(tax.id.type, cache)
+    else if(db == "manalyst") .getMAnalyst(tax.id.type, cache, ...)
+    #else if(db == "mpattern") .getMPattern(tax.id.type)
+    #else if(db == "mdirectory") .getMPattern(tax.id.type)
 }
 
-.getBugSigDB <- function(id.type = c("ncbi", "metaphlan"))
+.getBugSigDB <- function(id.type = c("ncbi", "metaphlan"), cache)
 {
     id.type <- match.arg(id.type)
     id.col <- ifelse(id.type == "ncbi",
                      "NCBI.Taxonomy.IDs",
                      "MetaPhlAn.taxon.names")
+    # cache ?
+    msc.name <- paste("bugsigdb", id.type, sep = ".")
+ 
+    # should a cached version be used?
+    if(cache)
+    {
+        sigs <- .getResourceFromCache(msc.name)
+        if(!is.null(sigs)) return(sigs)
+    }
      
     s2pmid <- .study2pmid()
     einfo <- .getExpInfo()   
@@ -32,6 +70,7 @@ getMicrobeSets <- function(db = c("bugsigdb",
     sigs <- sigs[[id.col]]
     sigs <- strsplit(sigs, ",")
     names(sigs) <- paste(id, titles, sep = "_")
+    .cacheResource(sigs, msc.name)
     sigs
 }
 
@@ -67,4 +106,41 @@ getMicrobeSets <- function(db = c("bugsigdb",
     s2pmid
 }
  
+# TODO: ID mapping
+.getMAnalyst <- function(tax.id.type,
+                         cache, 
+                         lib = c("host_int", "host_ext", "env", "mic_int", "gene"))
+{
 
+    id.type <- match.arg(id.type)
+    lib <- match.arg(lib)
+    
+    # cache ?
+    msc.name <- paste("mana", lib, id.type, sep = ".")
+ 
+    # should a cached version be used?
+    if(cache)
+    {
+        sigs <- .getResourceFromCache(msc.name)
+        if(!is.null(sigs)) return(sigs)
+    }
+    
+    ma.url <- paste0("https://www.microbiomeanalyst.ca/MicrobiomeAnalyst/",
+                           "resources/lib/tsea/tsea_")
+    ma.url <- paste0(ma.url, lib, ".csv")
+    cont <- read.csv(ma.url)
+    rel.cols <- c("name", "member", "abund_change")
+    cont <- cont[,rel.cols]
+    
+    sigs <- strsplit(cont[["member"]], "; +")
+    up.down <- ifelse(cont[["abund_change"]] == "Increase", "UP", "DOWN")
+    titles <- sub(" \\(.+\\)$", "", cont[["name"]]) 
+    titles <- gsub(" ", "_", titles)   
+
+    id <- seq_along(sigs)
+    id <- paste0("MA", id)
+
+    names(sigs) <- paste(id, titles, up.down, sep = "_")
+    .cacheResource(sigs, msc.name)
+    sigs
+}

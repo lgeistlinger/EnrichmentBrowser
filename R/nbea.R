@@ -74,6 +74,18 @@ nbeaMethods <- function()
 #' set in 'gs'. The rows of this matrix must be named accordingly (i.e.
 #' rownames(res.tbl) == names(gs)). See examples.
 #' 
+#' Using a \code{\linkS4class{SummarizedExperiment}} with *multiple assays*:
+#' 
+#' For the typical use case within the EnrichmentBrowser workflow this will
+#' be a \code{\linkS4class{SummarizedExperiment}} with two assays: (i) an assay
+#' storing the *raw* expression values, and (ii) an assay storing the *norm*alized
+#' expression values as obtained with the \code{\link{normalize}} function. 
+#' 
+#' In this case, \code{assay = "auto"} will *auto*matically determine the assay 
+#' based on the data type provided and the enrichment method selected. 
+#' For usage outside of the typical workflow, the \code{assay} argument can be
+#' used to provide the name of the assay for the enrichment analysis.
+#'
 #' @aliases ggea spia
 #' @param method Network-based enrichment analysis method.  Currently, the
 #' following network-based enrichment analysis methods are supported:
@@ -215,7 +227,9 @@ nbea <- function(
     perm=1000, 
     padj.method="none",
     out.file=NULL,
-    browse=FALSE, ...)
+    browse=FALSE,
+    assay = "auto", 
+    ...)
 {
     # get configuration
     GS.MIN.SIZE <- configEBrowser("GS.MIN.SIZE")
@@ -225,7 +239,8 @@ nbea <- function(
 
     # TODO: disentangle DE and EA analysis
     se <- .preprocSE(se)
-   
+    se <- .setAssay(method, se, perm, assay)
+    
     # getting gene sets & grn
     if(is(gs, "GeneSetCollection")) gs <- GSEABase::geneIds(gs)
     if(!is.list(gs)) gs <- getGenesets(gs)
@@ -349,6 +364,9 @@ nbea <- function(
         ids <- vapply(spl, function(n) n[1], character(1))
         ids <- sub(organism, "", ids)   
         res <- res[res$ID %in% ids, ]
+        names(spl) <- ids
+        .acc <- function(s) paste(s[2:length(s)], collapse = " ")
+        res$Name <- vapply(spl[res$ID], .acc, character(1))
     }
 
     res[,"Name"] <- gsub(" ", "_", res[,"Name"])
@@ -484,8 +502,7 @@ nbea <- function(
         character(1), USE.NAMES=FALSE)
     res <- res[-1]    
     colnames(res) <- c("NR.GENES", "NR.SIG.GENES", "NR.SIG.COMB.GENES", PVAL.COL)
-    res <- as.matrix(res)
-    return(res)
+    as.matrix(res)
 }
 
 # pathnet helper: extract pathway data from gs and grn

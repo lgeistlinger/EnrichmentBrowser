@@ -20,6 +20,7 @@ nbea(
   padj.method = "none",
   out.file = NULL,
   browse = FALSE,
+  assay = "auto",
   ...
 )
 }
@@ -156,6 +157,18 @@ and as arguments and returns a numeric matrix 'res.tbl' with a
 mandatory column named 'PVAL' storing the resulting p-value for each gene
 set in 'gs'. The rows of this matrix must be named accordingly (i.e.
 rownames(res.tbl) == names(gs)). See examples.
+
+Using a \code{\linkS4class{SummarizedExperiment}} with *multiple assays*:
+
+For the typical use case within the EnrichmentBrowser workflow this will
+be a \code{\linkS4class{SummarizedExperiment}} with two assays: (i) an assay
+storing the *raw* expression values, and (ii) an assay storing the *norm*alized
+expression values as obtained with the \code{\link{normalize}} function. 
+
+In this case, \code{assay = "auto"} will *auto*matically determine the assay 
+based on the data type provided and the enrichment method selected. 
+For usage outside of the typical workflow, the \code{assay} argument can be
+used to provide the name of the assay for the enrichment analysis.
 }
 \examples{
 

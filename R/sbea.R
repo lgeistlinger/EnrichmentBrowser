@@ -326,7 +326,7 @@ gsRanking <- function(res, signif.only=TRUE)
     
     # works on the rowData (FC, PVAL) or the assay itself?
     if(method == "ora" && perm == 0) method <- "ora0"
-    fdat.methods <- c("ora0", "ebm", "mgsa")
+    fdat.methods <- c("ora0", "ebm", "mgsa", "ggea", "spia", "pathnet", "neat")
     if(method %in% fdat.methods) return(se) 
     
     is.rseq <- data.type == "rseq"

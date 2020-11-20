@@ -77,9 +77,7 @@ chosen MSigDB collection category. For example, 'MIR' to obtain microRNA targets
 from the 'C3' collection. See references.}
 For \code{db = "enrichr"}: \itemize{ \item lib: Character. Enrichr gene set 
 library. For example, 'Genes_Associated_with_NIH_Grants' to obtain gene sets 
-based on associations with NIH grants. See references.
-\item show.libs: Logical. Show available gene set libraries? Defaults to 
-\code{FALSE}.}}
+based on associations with NIH grants. See references.}}
 
 \item{gs}{A list of gene sets (character vectors of gene IDs).}
 

@@ -68,9 +68,7 @@
 #' from the 'C3' collection. See references.}
 #' For \code{db = "enrichr"}: \itemize{ \item lib: Character. Enrichr gene set 
 #' library. For example, 'Genes_Associated_with_NIH_Grants' to obtain gene sets 
-#' based on associations with NIH grants. See references.
-#' \item show.libs: Logical. Show available gene set libraries? Defaults to 
-#' \code{FALSE}.}
+#' based on associations with NIH grants. See references.}
 #' @param gs A list of gene sets (character vectors of gene IDs).
 #' @param gmt.file Gene set file in GMT format. See details.
 #' @return For \code{getGenesets}: a list of gene sets (vectors of gene IDs).
@@ -201,7 +199,7 @@ showAvailableCollections <- function(org,
     db <- match.arg(db)
     if(db == "kegg") .keggCollections()
     else if(db == "go") .goCollections()
-    else if(db == "msigdb") .msigdbCollections(cache)
+    else if(db == "msigdb") .msigdbCollections()
     else .enrichrLibs(.org2enrichr(org), cache)
 }
 
@@ -369,7 +367,8 @@ writeGMT <- function(gs, gmt.file)
     morg <- SPECIES[ind, "tax"]
 
     isAvailable("msigdbr", type = "software")
-    if(!(morg %in% msigdbr::msigdbr_show_species())) stop("Organism not supported")
+    if(!(morg %in% msigdbr::msigdbr_species()$species_name)) 
+        stop("Organism not supported")
 
     df <- msigdbr::msigdbr(morg, cat, subcat)
     gs <- split(as.character(df$entrez_gene), df$gs_id)
@@ -406,7 +405,7 @@ writeGMT <- function(gs, gmt.file)
         if(!is.null(morgs)) return(morgs)
     }
     isAvailable("msigdbr", type = "software")
-    ms <- msigdbr::msigdbr_show_species()
+    ms <- msigdbr::msigdbr_species()$species_name
     ms[ms == "Canis lupus familiaris"] <- "Canis familiaris"
     ind <- match(ms, SPECIES[,"tax"])
     morgs <- SPECIES[ind, c("kegg", "tax", "common")]
@@ -415,23 +414,24 @@ writeGMT <- function(gs, gmt.file)
     return(morgs)
 }
 
-.msigdbCollections <- function(cache)
+.msigdbCollections <- function()
 {
-    msdb.colls <- "msigdb.collects" 
-    if(cache)
-    {
-        colls <- .getResourceFromCache(msdb.colls)
-        if(!is.null(colls)) return(colls)
-    }
     isAvailable("msigdbr", type = "software")
-    df <- msigdbr::msigdbr()[,c("gs_cat", "gs_subcat")]
-    df <- as.data.frame(unique(df))
-    df <- df[do.call(order, df),]
-    rownames(df) <- NULL
-    colnames(df) <- sub("^gs_", "", colnames(df))
-    df <- DataFrame(df)
-    .cacheResource(df, msdb.colls)
-    return(df)
+    DataFrame(msigdbr::msigdbr_collections())    
+#    msdb.colls <- "msigdb.collects" 
+#    if(cache)
+#    {
+#        colls <- .getResourceFromCache(msdb.colls)
+#        if(!is.null(colls)) return(colls)
+#    }
+#    df <- msigdbr::msigdbr()[,c("gs_cat", "gs_subcat")]
+#    df <- as.data.frame(unique(df))
+#    df <- df[do.call(order, df),]
+#    rownames(df) <- NULL
+#    colnames(df) <- sub("^gs_", "", colnames(df))
+#    df <- DataFrame(df)
+#    .cacheResource(df, msdb.colls)
+#    return(df)
 }
 
 #

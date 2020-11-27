@@ -116,22 +116,27 @@ colnames(SPECIES) <- c("common", "tax", "bioc", "kegg", "ucsc", "ncbi")
 
 .detectGeneIdType <- function(id)
 {
-    type <- NA
-    if(grepl("^[Ee][Nn][Ss][A-Za-z]{0,3}[Gg][0-9]+", id)) type <- "ensembl"
-    else if(grepl("^[0-9]+$", id)) type <- "entrez"
-    else if(grepl("^[Yy][A-Za-z]{2}[0-9]{3}[A-Za-z]", id)) type <- "sgd"
-    else if(grepl("^[Aa][Tt][0-9][A-Za-z][0-9]{5}", id)) type <- "tair"
-    return(type)
+    if(grepl("^[Ee][Nn][Ss][A-Za-z]{0,3}[Gg][0-9]+", id)) "ensembl"
+    else if(grepl("^[0-9]+$", id)) "entrez"
+    else if(grepl("^[Yy][A-Za-z]{2}[0-9]{3}[A-Za-z]", id)) "sgd"
+    else if(grepl("^[Aa][Tt][0-9][A-Za-z][0-9]{5}", id)) "tair"
+    else NA
 }
 
 .getOrgIdType <- function(org)
 {
-    it <- "eg"
-    if(org == "At") it <- "tair"
-    else if(org == "Pf") it <- "plasmo"
-    else if(org == "Sc") it <- "sgd"
-    return(it)
+    if(org == "At") "tair"
+    else if(org == "Pf") "plasmo"
+    else if(org == "Sc") "sgd"
+    else "eg"
 }   
+
+.detectTaxIdType <- function(id)
+{
+    if(grepl("^[0-9]+$", id)) "ncbi"
+    else if(grepl("^[kpcofgst]__", id)) "metaphlan"
+    else NA
+}
 
 #.supportedOrganisms <- function() sub(".db0$", "", available.db0pkgs())
 

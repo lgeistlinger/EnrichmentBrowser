@@ -58,6 +58,11 @@ Defaults to 'BP'.
 IEP (inferred from expression pattern) or TAS (traceable author statement).
 Defaults to \code{NA} which includes all annotations, i.e. does not filter by
 evidence codes. See references for a list of available evidence codes. 
+\item hierarchical: Logical. Incorporate hierarchical relationships between
+GO terms ('is_a' and 'has_a'). If set to \code{TRUE}, this will return
+all genes annotated to a particular GO term OR TO ONE OF IT’S CHILD NODES 
+in the GO ontology. Defaults to \code{FALSE}, which will then
+only collect genes directly annotated to a GO term. 
 \item mode: Character. Determines in which way the gene 
 sets are retrieved. This can be either 'GO.db' or 'biomart'. 
 The 'GO.db' mode creates the gene sets based on BioC annotation packages - 

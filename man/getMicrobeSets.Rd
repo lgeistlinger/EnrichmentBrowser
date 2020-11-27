@@ -6,7 +6,8 @@
 \usage{
 getMicrobeSets(
   db = c("bugsigdb", "manalyst", "mpattern", "mdirectory"),
-  tax.id.type = c("ncbi", "metaphlan"),
+  tax.id.type = c("ncbi", "metaphlan", "taxname"),
+  tax.level = "mixed",
   cache = TRUE,
   ...
 )

@@ -26,52 +26,99 @@ getMicrobeSets <- function(db = c("bugsigdb",
                                   "manalyst",
                                   "mpattern",
                                   "mdirectory"),
-                           tax.id.type = c("ncbi", "metaphlan"),
+                           tax.id.type = c("ncbi", "metaphlan", "taxname"),
+                           tax.level = "mixed", 
                            cache = TRUE, 
                            ...)
 {
     db <- match.arg(db)
-    if(db == "bugsigdb") .getBugSigDB(tax.id.type, cache)
-    else if(db == "manalyst") .getMAnalyst(tax.id.type, cache, ...)
+    tax.id.type <- match.arg(tax.id.type)
+    
+    stopifnot(is.character(tax.level))
+    if("mixed" %in% tax.level) tax.level <- "mixed" 
+    else if(!all(tax.level %in% TAX.LEVELS))
+            stop("tax.level must be a subset of { ",
+                 paste(TAX.LEVELS, collapse = ", "), " }")
+
+    if(db == "bugsigdb") .getBugSigDB(tax.id.type, tax.level, cache)
+    else if(db == "manalyst") .getMAnalyst(tax.id.type, tax.level, cache, ...)
     #else if(db == "mpattern") .getMPattern(tax.id.type)
-    #else if(db == "mdirectory") .getMPattern(tax.id.type)
+    #else if(db == "mdirectory") .getMDir(tax.id.type)
 }
 
-.getBugSigDB <- function(id.type = c("ncbi", "metaphlan"), cache)
+TAX.LEVELS <- c("kingdom", "phylum", "class", "order",
+                "family", "genus", "species", "strain")
+MPA.TAX.LEVELS <- c(substring(TAX.LEVELS[1:7], 1, 1), "t")
+names(MPA.TAX.LEVELS) <- TAX.LEVELS
+
+.getBugSigDB <- function(id.type, tax.level, cache)
 {
-    id.type <- match.arg(id.type)
-    id.col <- ifelse(id.type == "ncbi",
-                     "NCBI.Taxonomy.IDs",
-                     "MetaPhlAn.taxon.names")
-    # cache ?
-    msc.name <- paste("bugsigdb", id.type, sep = ".")
- 
     # should a cached version be used?
+    msc.name <- paste("bugsigdb", id.type, sep = ".")
     if(cache)
     {
         sigs <- .getResourceFromCache(msc.name)
         if(!is.null(sigs)) return(sigs)
     }
-     
-    s2pmid <- .study2pmid()
+    
+    # obtain study, experiment, and signature tables 
     einfo <- .getExpInfo()   
-
     sigs <- read.csv("https://bugsigdb.org/Special:Ask/-5B-5BCategory:Signatures-5D-5D/-3FOriginal-20page-20name%3DSignature-20page-20name/-3FRelated-20experiment%3DExperiment/-3FRelated-20study%3DStudy/-3FSource-20data%3DSource/-3FCurated-20date/-3FCurator/-3FRevision-20editor/-3FDescription/-3FAbundance-20in-20Group-201/-3FNCBI-20export%3DMetaPhlAn-20taxon-20names/-3FNCBI-20export-20ids%3DNCBI-20Taxonomy-20IDs/mainlabel%3D-2D/limit%3D5000/offset%3D0/format%3Dcsv/searchlabel%3DDownload-20all-20Signatures-20(CSV)/filename%3Dsignatures.csv")
 
+    # extract signatures
+    snames <- .makeSigNames(sigs, einfo) 
+    sigs <- .extractSigs(sigs, id.type, tax.level)
+    names(sigs) <- paste(snames$id, snames$titles, sep = "_")
+    .cacheResource(sigs, msc.name)
+    sigs
+}
+
+.extractSigs <- function(sigs, id.type, tax.level)
+{
+   id.col <- ifelse(id.type == "ncbi",
+                     "NCBI.Taxonomy.IDs",
+                     "MetaPhlAn.taxon.names")
+    sigs <- sigs[[id.col]]
+    sigs <- strsplit(sigs, ",")
+    sigs <- lapply(sigs, .getTaxLevel, tax.level = tax.level, id.type = id.type)
+    if(id.type == "taxname")
+    {
+        sigs <- lapply(sigs, .getTip)
+        sigs <- lapply(sigs, function(s) sub("^[kpcofgst]__", "", s))
+    } 
+    sigs
+}
+
+.getTip <- function(n)
+{ 
+    spl <- strsplit(n, "\\|")
+    vapply(spl, function(s) s[length(s)], character(1)) 
+}
+
+.getTaxLevel <- function(s, tax.level, id.type)
+{
+    if(tax.level[1] == "mixed") return(s)
+    if(id.type == "metaphlan")
+    {
+        tip <- .getTip(s)
+        tip <- substring(tip, 1, 1)
+        mtl <- MPA.TAX.LEVEL[tax.level]
+        s[tip %in% mtl]        
+    }
+    # TODO: else
+}
+
+.makeSigNames <- function(sigs, einfo)
+{
     eid <- sub("^Experiment ", "", sigs[["Experiment"]])
     sid <- sub("^Study ", "", sigs[["Study"]])
     id <- paste(sid, eid, sep = "/")
-
     sgid <- sub("^Signature ", "", sigs[["Signature.page.name"]])
     up.down <- ifelse(sigs[["Abundance.in.Group.1"]] == "increased", "UP", "DOWN")
     titles <- paste(unname(einfo[id]), up.down, sep = "_")
     id <- paste(id, sgid, sep = "/")
     id <- paste("bsdb", id, sep = ":")
-    sigs <- sigs[[id.col]]
-    sigs <- strsplit(sigs, ",")
-    names(sigs) <- paste(id, titles, sep = "_")
-    .cacheResource(sigs, msc.name)
-    sigs
+    list(id = id, titles = titles)
 }
 
 .getExpInfo <- function()
@@ -107,12 +154,11 @@ getMicrobeSets <- function(db = c("bugsigdb",
 }
  
 # TODO: ID mapping
-.getMAnalyst <- function(tax.id.type,
+.getMAnalyst <- function(id.type,
+                         tax.level,
                          cache, 
                          lib = c("host_int", "host_ext", "env", "mic_int", "gene"))
 {
-
-    id.type <- match.arg(id.type)
     lib <- match.arg(lib)
     
     # cache ?
@@ -144,3 +190,5 @@ getMicrobeSets <- function(db = c("bugsigdb",
     .cacheResource(sigs, msc.name)
     sigs
 }
+
+

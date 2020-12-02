@@ -127,6 +127,11 @@ nbeaMethods <- function()
 #' to.
 #' @param browse Logical. Should results be displayed in the browser for
 #' interactive exploration? Defaults to FALSE.
+#' @param assay Character. The name of the assay for enrichment 
+#' analysis if \code{se} is a \code{\linkS4class{SummarizedExperiment}} with 
+#' *multiple assays*. Defaults to \code{"auto"}, which automatically determines
+#' the appropriate assay based on data type provided and enrichment method selected. 
+#' See details.   
 #' @param ...  Additional arguments passed to individual nbea methods.  This
 #' includes currently: \itemize{ \item beta: Log2 fold change significance
 #' level. Defaults to 1 (2-fold).  } For SPIA and NEAT: \itemize{ \item

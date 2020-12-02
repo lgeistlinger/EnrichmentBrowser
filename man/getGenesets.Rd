@@ -56,13 +56,14 @@ For \code{db = "GO"}:
 Defaults to 'BP'.
 \item evid: Character. Specifies one or more GO evidence code(s) such as 
 IEP (inferred from expression pattern) or TAS (traceable author statement).
-Defaults to \code{NA} which includes all annotations, i.e. does not filter by
+Defaults to \code{NULL} which includes all annotations, i.e. does not filter by
 evidence codes. See references for a list of available evidence codes. 
 \item hierarchical: Logical. Incorporate hierarchical relationships between
-GO terms ('is_a' and 'has_a'). If set to \code{TRUE}, this will return
-all genes annotated to a particular GO term OR TO ONE OF IT’S CHILD NODES 
-in the GO ontology. Defaults to \code{FALSE}, which will then
-only collect genes directly annotated to a GO term. 
+GO terms ('is_a' and 'has_a') when collecting genes annotated to a GO term?
+If set to \code{TRUE}, this will return all genes annotated to a GO term
+*or to one of its child terms* in the GO ontology.
+Defaults to \code{FALSE}, which will then only collect genes directly
+annotated to a GO term. 
 \item mode: Character. Determines in which way the gene 
 sets are retrieved. This can be either 'GO.db' or 'biomart'. 
 The 'GO.db' mode creates the gene sets based on BioC annotation packages - 

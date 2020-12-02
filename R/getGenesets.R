@@ -47,13 +47,14 @@
 #' Defaults to 'BP'.
 #' \item evid: Character. Specifies one or more GO evidence code(s) such as 
 #' IEP (inferred from expression pattern) or TAS (traceable author statement).
-#' Defaults to \code{NA} which includes all annotations, i.e. does not filter by
+#' Defaults to \code{NULL} which includes all annotations, i.e. does not filter by
 #' evidence codes. See references for a list of available evidence codes. 
 #' \item hierarchical: Logical. Incorporate hierarchical relationships between
-#' GO terms ('is_a' and 'has_a'). If set to \code{TRUE}, this will return
-#' all genes annotated to a particular GO term OR TO ONE OF IT’S CHILD NODES 
-#' in the GO ontology. Defaults to \code{FALSE}, which will then
-#' only collect genes directly annotated to a GO term. 
+#' GO terms ('is_a' and 'has_a') when collecting genes annotated to a GO term?
+#' If set to \code{TRUE}, this will return all genes annotated to a GO term
+#' *or to one of its child terms* in the GO ontology.
+#' Defaults to \code{FALSE}, which will then only collect genes directly
+#' annotated to a GO term. 
 #' \item mode: Character. Determines in which way the gene 
 #' sets are retrieved. This can be either 'GO.db' or 'biomart'. 
 #' The 'GO.db' mode creates the gene sets based on BioC annotation packages - 
@@ -442,18 +443,20 @@ writeGMT <- function(gs, gmt.file)
 #
 # GO
 #
-
 .getGO <- function(org, gene.id.type, cache, return.type, 
-                    onto = c("BP", "MF", "CC"),
-                    evid = NA,
-                    mode = c("GO.db","biomart"))
+                   onto = c("BP", "MF", "CC"),
+                   evid = NULL,
+                   hierarchical = FALSE,
+                   mode = c("GO.db", "biomart"))
 {
     onto <- match.arg(onto)
 
     gs.tag <- "gs"
     if(return.type == "GeneSetCollection") gs.tag <- paste0(gs.tag, "c")
-
-    gsc.name <- paste(org, "go", tolower(onto), gene.id.type, gs.tag, sep = ".")
+    hier.tag <- ifelse(hierarchical, "hier", "")
+    gsc.name <- paste(org, "go", tolower(onto),
+                      gene.id.type, gs.tag, hier.tag, sep = ".")
+    
     # should a cached version be used?
     if(cache)
     {
@@ -463,8 +466,9 @@ writeGMT <- function(gs, gmt.file)
 
     # from GO.db or from biomart?
     mode <- match.arg(mode)
-    if(mode=="GO.db") gs <- .getGOFromGODB(org, onto, evid, return.type)
-    else gs <- .getGOFromBiomart(org, onto, evid, return.type)
+    if(mode == "GO.db")
+        gs <- .getGOFromGODB(org, onto, evid, hierarchical, return.type)
+    else gs <- .getGOFromBiomart(org, onto, evid, hierarchical, return.type)
 
     if(gene.id.type != "ENTREZID")
     {
@@ -476,19 +480,29 @@ writeGMT <- function(gs, gmt.file)
     return(gs)
 }
 
-.getGOFromGODB <- function(org, onto, evid, return.type)
+.getGOFromGODB <- function(org, onto, evid, hierarchical, return.type)
 {
     orgpkg <- .getAnnoPkg(org)
     GO2descr <- AnnotationDbi::as.list(GO.db::GOTERM)
     org.terms <- AnnotationDbi::keys(orgpkg, keytype = "GO")
     org.terms <- sort(org.terms)
-    dbmap <- AnnotationDbi::select(orgpkg, 
-                                   keys = org.terms,
-                                   columns = "ENTREZID",
-                                   keytype = "GO")
-    dbmap <- subset(dbmap, ONTOLOGY %in% onto)
-    if(!is.na(evid)) dbmap <- subset(dbmap, EVIDENCE %in% evid)
-    gs <- split(dbmap$ENTREZID, dbmap$GO)
+    htag <- ifelse(hierarchical, "ALL", "")
+    kt <- paste0("GO", htag)
+    
+    suppressMessages(
+        dbmap <- AnnotationDbi::select(orgpkg, 
+                                       keys = org.terms,
+                                       columns = "ENTREZID",
+                                       keytype = kt)
+    )
+    ot <- paste0("ONTOLOGY", htag)
+    dbmap <- subset(dbmap, dbmap[[ot]] %in% onto)
+    if(!is.null(evid))
+    { 
+        et <- paste0("EVIDENCE", htag)
+        dbmap <- subset(dbmap, dbmap[[et]] %in% evid)
+    }
+    gs <- split(dbmap$ENTREZID, dbmap[[kt]])
 
     gs <- gs[intersect(names(gs), names(GO2descr))]
     GO2descr <- GO2descr[names(gs)]
@@ -496,15 +510,18 @@ writeGMT <- function(gs, gmt.file)
 
     if(return.type == "GeneSetCollection")
     {
-        ct <- GOCollection(evidenceCode = NA_character_, ontology = onto)
+        if(is.null(evid)) evid <- NA_character_
+        ct <- GOCollection(evidenceCode = evid, ontology = onto)
         gs <- .makeGSC(gs, GO2descr, org, ct)        
     }
-    else names(gs) <- paste(names(gs), gsub(" ", "_", GO2descr), sep="_")
+    else names(gs) <- paste(names(gs), gsub(" ", "_", GO2descr), sep = "_")
     return(gs)
 }
 
-.getGOFromBiomart <- function(org, onto, evid, return.type)
+.getGOFromBiomart <- function(org, onto, evid, hierarchical, return.type)
 {
+    if(hierarchical) stop("hierarchical GO gene set definition is currently ",
+                          "supported in GO.db mode only")
     useMart <- listDatasets <- useDataset <- getBM <- NULL
     isAvailable("biomaRt", type = "software")
     # setting mart
@@ -534,7 +551,7 @@ writeGMT <- function(gs, gmt.file)
     gene2GO <- gene2GO[apply(gene2GO, 1 , function(r) all(r != "")), ]
     gene2GO <- gene2GO[order(gene2GO[,"go_id"]),]
     gene2GO <- gene2GO[gene2GO[,"go_id"] %in% GO2descr[,"go_id"],]
-    if(!is.na(evid)) gene2GO <- subset(gene2GO, go_linkage_type %in% evid)
+    if(!is.null(evid)) gene2GO <- subset(gene2GO, go_linkage_type %in% evid)
     gs <- lapply(GO2descr[,"go_id"], 
         function(g) gene2GO[gene2GO[,"go_id"] == g, "entrezgene_id"])
     gs <- lapply(gs, function(s) sort(as.character(s)))
@@ -544,7 +561,8 @@ writeGMT <- function(gs, gmt.file)
     names(gs) <- names(GO2descr) <- ids
     if(return.type == "GeneSetCollection")
     {
-        ct <- GOCollection(evidenceCode=NA_character_, ontology=onto)
+        if(is.null(evid)) evid <- NA_character_
+        ct <- GOCollection(evidenceCode = evid, ontology = onto)
         gs <- .makeGSC(gs, GO2descr, org, ct)        
     }
     else names(gs) <- paste(ids, gsub(" ", "_", unname(GO2descr)), sep="_")

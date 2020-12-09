@@ -16,7 +16,7 @@ knitr::opts_chunk$set(message = FALSE)
 \bioctitle[EnrichmentBrowser]{Seamless navigation through combined
         results of set- \& network-based enrichment analysis}
 \author{Ludwig Geistlinger} 
-\affil{School of Public Health, City University of New York}
+\affil{Center for Computational Biomedicine, Harvard Medical School}
 
 \begin{document}
 

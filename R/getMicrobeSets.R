@@ -73,19 +73,38 @@ names(MPA.TAX.LEVELS) <- TAX.LEVELS
     sigs
 }
 
-.extractSigs <- function(sigs, id.type, tax.level)
+.extractSigs <- function(sigdf, id.type, tax.level)
 {
-   id.col <- ifelse(id.type == "ncbi",
+    id.col <- ifelse(id.type == "ncbi",
                      "NCBI.Taxonomy.IDs",
                      "MetaPhlAn.taxon.names")
-    sigs <- sigs[[id.col]]
+    sigs <- sigdf[[id.col]]
     sigs <- strsplit(sigs, ",")
-    sigs <- lapply(sigs, .getTaxLevel, tax.level = tax.level, id.type = id.type)
-    if(id.type == "taxname")
+    
+    if(tax.level[1] != "mixed")
+    {
+        if(id.type == "ncbi")
+        {
+            msigs <- sigdf[["MetaPhlAn.taxon.names"]]
+            msigs <- strsplit(msigs, ",")
+        }
+        else msigs <- sigs
+        bugs <- unique(unlist(msigs))
+
+        ind <- lapply(msigs, function(s) match(s, bugs))
+        istl <- .isTaxLevel(bugs, tax.level, "metaphlan")
+        
+        subind <- istl[unlist(ind)]
+        subind <- relist(subind, ind)
+        for(i in seq_along(sigs)) sigs[[i]] <- sigs[[i]][subind[[i]]]
+    }
+
+    if(id.type != "metaphlan")
     {
         sigs <- lapply(sigs, .getTip)
-        sigs <- lapply(sigs, function(s) sub("^[kpcofgst]__", "", s))
-    } 
+        if(id.type == "taxname")
+            sigs <- lapply(sigs, function(s) sub("^[kpcofgst]__", "", s))
+    }
     sigs
 }
 
@@ -95,6 +114,31 @@ names(MPA.TAX.LEVELS) <- TAX.LEVELS
     vapply(spl, function(s) s[length(s)], character(1)) 
 }
 
+.isTaxLevel <- function(s, tax.level, id.type)
+{
+    if(tax.level[1] == "mixed") return(rep(TRUE, length(s)))
+    if(id.type == "metaphlan")
+    {
+        tip <- .getTip(s)
+        tip <- substring(tip, 1, 1)
+        mtl <- MPA.TAX.LEVELS[tax.level]
+        istl <- tip %in% mtl        
+    }
+    else
+    {
+        isAvailable("taxize")
+        sink(tempfile())
+        suppressMessages(
+            ranks <- taxize::tax_rank(s, db = "ncbi")
+        )
+        sink()        
+        ranks <- vapply(ranks, function(x) x[1], character(1))
+        istl <- ranks %in% tax.level
+    }
+    return(istl)
+}
+
+
 .getTaxLevel <- function(s, tax.level, id.type)
 {
     if(tax.level[1] == "mixed") return(s)
@@ -102,10 +146,21 @@ names(MPA.TAX.LEVELS) <- TAX.LEVELS
     {
         tip <- .getTip(s)
         tip <- substring(tip, 1, 1)
-        mtl <- MPA.TAX.LEVEL[tax.level]
-        s[tip %in% mtl]        
+        mtl <- MPA.TAX.LEVELS[tax.level]
+        s <- s[tip %in% mtl]        
     }
-    # TODO: else
+    else
+    {
+        isAvailable("taxize")
+        sink(tempfile())
+        suppressMessages(
+            ranks <- taxize::tax_rank(s, db = "ncbi")
+        )
+        sink()        
+        ranks <- vapply(ranks, function(x) x[1], character(1))
+        s <- s[ranks %in% tax.level]
+    }
+    return(s)
 }
 
 .makeSigNames <- function(sigs, einfo)
@@ -159,8 +214,8 @@ names(MPA.TAX.LEVELS) <- TAX.LEVELS
                          cache, 
                          lib = c("host_int", "host_ext", "env", "mic_int", "gene"))
 {
-    lib <- match.arg(lib)
-    
+    lib <- match.arg(lib)    
+
     # cache ?
     msc.name <- paste("mana", lib, id.type, sep = ".")
  
@@ -173,6 +228,12 @@ names(MPA.TAX.LEVELS) <- TAX.LEVELS
     
     ma.url <- paste0("https://www.microbiomeanalyst.ca/MicrobiomeAnalyst/",
                            "resources/lib/tsea/tsea_")
+
+    if(!(lib %in% c("host_int", "host_ext")))
+        lib <- switch(lib, 
+                        gene = "host_snps_new",
+                        mic_int = "microbiome_int",
+                        env = "environment")
     ma.url <- paste0(ma.url, lib, ".csv")
     cont <- read.csv(ma.url)
     rel.cols <- c("name", "member", "abund_change")

@@ -1,4 +1,4 @@
-###############################################################################
+##############################################################################
 # 
 # Author: ludwig geistlinger
 # Date: 16 June 2010
@@ -68,7 +68,7 @@
 #' MSigDB collection category: 'H' (hallmark), 
 #' 'C1' (genomic position), 'C2' (curated databases), 'C3' (binding site motifs),
 #' 'C4' (computational cancer), 'C5' (Gene Ontology), 'C6' (oncogenic), 
-#' 'C7' (immunologic). See references. 
+#' 'C7' (immunologic), 'C8' (cell type). See references. 
 #' \item subcat: Character. MSigDB collection subcategory. Depends on the
 #' chosen MSigDB collection category. For example, 'MIR' to obtain microRNA targets
 #' from the 'C3' collection. See references.}
@@ -352,11 +352,15 @@ writeGMT <- function(gs, gmt.file)
 # MSigDB
 #
 .getMSigDb <- function(org, gene.id.type, cache, return.type,
-                        cat = c("H", paste0("C", 1:7)), 
+                        cat = c("H", paste0("C", 1:8)), 
                         subcat = NA)
 {
-    cat <- match.arg(cat)
-    
+    isAvailable("msigdbr", type = "software")
+    supp.cats <- unique(msigdbr::msigdbr_collections()$gs_cat)
+    if(!(cat %in% supp.cats))
+        stop(gettextf("'cat' should be one of %s", 
+                      paste(dQuote(supp.cats), collapse = ", ")), domain = NA)
+ 
     gs.tag <- "gs"
     if(return.type == "GeneSetCollection") gs.tag <- paste0(gs.tag, "c")
 
@@ -372,7 +376,6 @@ writeGMT <- function(gs, gmt.file)
     ind <- match(org, SPECIES[,"kegg"])
     morg <- SPECIES[ind, "tax"]
 
-    isAvailable("msigdbr", type = "software")
     if(!(morg %in% msigdbr::msigdbr_species()$species_name)) 
         stop("Organism not supported")
 

@@ -50,6 +50,7 @@ TAX.LEVELS <- c("kingdom", "phylum", "class", "order",
                 "family", "genus", "species", "strain")
 MPA.TAX.LEVELS <- c(substring(TAX.LEVELS[1:7], 1, 1), "t")
 names(MPA.TAX.LEVELS) <- TAX.LEVELS
+MPA.REGEXP <- "^[kpcofgst]__"
 
 .getBugSigDB <- function(id.type, tax.level, cache)
 {
@@ -96,14 +97,14 @@ names(MPA.TAX.LEVELS) <- TAX.LEVELS
         
         subind <- istl[unlist(ind)]
         subind <- relist(subind, ind)
-        for(i in seq_along(sigs)) sigs[[i]] <- sigs[[i]][subind[[i]]]
+        sigs <- mlapply(`[`, sigs, subind)
     }
 
     if(id.type != "metaphlan")
     {
         sigs <- lapply(sigs, .getTip)
         if(id.type == "taxname")
-            sigs <- lapply(sigs, function(s) sub("^[kpcofgst]__", "", s))
+            sigs <- lapply(sigs, function(s) sub(MPA.REGEXP, "", s))
     }
     sigs
 }

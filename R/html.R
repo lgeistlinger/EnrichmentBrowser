@@ -319,8 +319,8 @@ eaBrowse <- function(res, nr.show=-1,
 
 .viewPath <- function(s, se, out.prefix)
 {
-    org <- substring(s, 1, 3)
-    pwy.id <- sub("^[a-z]{3}", "", s)
+    org <- sub("[0-9]+$", "", s)
+    pwy.id <- sub("^[a-z]{3,4}", "", s)
     fc <- rowData(se)[,configEBrowser("FC.COL")]
     gn.cols <- sapply(c("SYM.COL", "GN.COL"), configEBrowser)
     gnam <- apply(rowData(se)[,gn.cols], 1, paste, collapse=": ")
@@ -610,7 +610,7 @@ eaBrowse <- function(res, nr.show=-1,
 .getHTMLOfMarkedPathway <- function(pwy, oids)
 {
     pwy <- sub("^path:", "", pwy)
-    oids <- gsub("[a-z]{3}:", "", oids)
+    oids <- gsub("[a-z]{3,4}:", "", oids)
     coids <- paste(oids, collapse="+")
     request <- pwy
     if(nchar(coids)) request <- paste(request, coids, sep="+")

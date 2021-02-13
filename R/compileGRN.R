@@ -210,7 +210,7 @@ compileGRN <- function(org, db="kegg",
 {
     if(is.character(pwys))
     {
-        if(nchar(pwys) == 3) pwys <- downloadPathways(pwys)
+        if(nchar(pwys) %in% c(3,4)) pwys <- downloadPathways(pwys)
         else pwys <- .extractPwys(pwys)
     }
 
@@ -286,6 +286,6 @@ compileGRN <- function(org, db="kegg",
         ncomp <- getComponent(n)
         ids <- unlist(lapply(ncomp, function(comp) getName(nodes[[comp]])))
     }
-    ids <- sub("^[a-z]{3}:", "", ids)
+    ids <- sub("^[a-z]{3,4}:", "", ids)
     return(ids)
 }

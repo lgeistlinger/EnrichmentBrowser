@@ -367,7 +367,7 @@ ebrowser <- function(
     {
         has.pcol <- configEBrowser("PRB.COL") %in% colnames(rowData(se))
         anno <- metadata(se)$annotation
-        has.anno <- ifelse(length(anno), nchar(anno) > 3, FALSE)
+        has.anno <- ifelse(length(anno), nchar(anno) > 4, FALSE)
         if(has.pcol || has.anno)
         {
             message("Transform probe expression to gene expression ...")    

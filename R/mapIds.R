@@ -296,7 +296,7 @@ idTypes <- function(org)
 .getAnnoPkg <- function(anno)
 {
     # org or chip?
-    is.org <- grepl("^[a-z]{3}$", anno)
+    is.org <- grepl("^[a-z]{3,4}$", anno)
     if(is.org) anno.pkg <- .org2pkg(anno)
     else anno.pkg <- paste0(anno, ".db")
     
@@ -307,7 +307,7 @@ idTypes <- function(org)
 
 .annotateSE <- function(se, anno)
 {
-    is.org <- grepl("^[a-z]{3}$", anno)
+    is.org <- grepl("^[a-z]{3,4}$", anno)
     if(!is.org)
     { 
         anno.pkg <- .getAnnoPkg(anno)

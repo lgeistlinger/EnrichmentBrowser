@@ -103,7 +103,7 @@ makeExampleData <- function(
     se$GROUP <- c(rep(0, nr.controls), rep(1, nr.cases))
 
     # sample batch effects: 3 sample blocks
-    if(blk) se$BLOCK <- sample(rep(c(1,2,3), ceiling(nsmpl/3)))[seq_len(nsmpl)]
+    if(blk) se$BLOCK <- sample(rep(1:3, ceiling(nsmpl/3)))[seq_len(nsmpl)]
     
     if(norm) se <- normalize(se)
     if(de.ana) se <- deAna(se) 

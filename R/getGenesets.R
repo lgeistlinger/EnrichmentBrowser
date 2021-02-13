@@ -169,7 +169,7 @@ getGenesets <- function(org,
     if(file.exists(org)) gs <- .parseGMT(org, return.type)
     else
     {
-        if(!grepl("^[a-z]{3}$", org))
+        if(!grepl("^[a-z]{3,4}$", org))
             stop(paste("\'org\' must be an organism in KEGG three letter code",
                         "or a file in GMT format"))
 
@@ -616,7 +616,7 @@ writeGMT <- function(gs, gmt.file)
 
 .getKEGG <- function(pwys, gene.id.type, cache, return.type)
 {
-    is.org <- length(pwys) == 1 && grepl("^[a-z]{3}$", pwys)
+    is.org <- length(pwys) == 1 && grepl("^[a-z]{3,4}$", pwys)
     # download all gs of organism
     if(is.org) gs <- .dwnldAllKeggGS(pwys, gene.id.type, cache, return.type)
     # download selected ids
@@ -725,16 +725,16 @@ writeGMT <- function(gs, gmt.file)
     .dwnld <- function(pwy)
     { 
         info <- KEGGREST::keggLink(paste0("path:", pwy))
-        genes <- grep(paste0("^", 
-            substring(pwy, 1, 3), ":"), info, value=TRUE)
-        genes <- sub("^[a-z]{3}:", "", genes)
+        org <- sub("[0-9]+$", "", pwy)
+        genes <- grep(paste0("^", org, ":"), info, value=TRUE)
+        genes <- sub("^[a-z]{3,4}:", "", genes)
         genes <- unname(sort(genes))
         return(genes)
     }
     gs <- lapply(pwys, .dwnld) 
     .makeTitle <- function(pwy)
     {
-        ti <- paste0("map", sub("^[a-z]{3}", "", pwy))
+        ti <- paste0("map", sub("^[a-z]{3,4}", "", pwy))
         ti <- KEGGREST::keggList(ti)
         return(ti)
     }
@@ -761,7 +761,7 @@ writeGMT <- function(gs, gmt.file)
         function(pwy)
         {
             genes <- .getGenesByPwy(pwy)
-            genes <- sub("^[a-z]{3}:", "", genes)
+            genes <- sub("^[a-z]{3,4}:", "", genes)
             genes <- sort(genes)
             return(genes)
         })
@@ -915,7 +915,7 @@ writeGMT <- function(gs, gmt.file)
     
     # org
     spl <- unlist(strsplit(first, "_")) 
-    org <- ifelse(gs.type == "KEGG", substring(spl[1], 1, 3), NA_character_)
+    org <- ifelse(gs.type == "KEGG", sub("[0-9]+$", "", spl[1]), NA_character_)
        
     # ids & titles
     spl <- lapply(names(gs.list), function(s) unlist(strsplit(s, "_"))) 
@@ -950,7 +950,7 @@ writeGMT <- function(gs, gmt.file)
 .detectGSType <- function(gs.id)
 {
 	if(substring(gs.id, 1, 3) == "GO:") return("GO")
-	else if(grepl("^[a-z]{3}[0-9]{5}", gs.id)) return("KEGG")
+	else if(grepl("^[a-z]{3,4}[0-9]{5}", gs.id)) return("KEGG")
 	else return("Computed") 
 }
 

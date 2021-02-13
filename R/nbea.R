@@ -351,7 +351,7 @@ nbea <- function(
     is.kegg <- .detectGSType(names(gs)[1]) == "KEGG"
     organism <- ""
     data.dir <- NULL
-    if(is.kegg) organism <- substring(names(gs)[1],1,3)
+    if(is.kegg) organism <- sub("[0-9]+$", "", names(gs)[1])
     else
     {     
         message("making SPIA data ...")

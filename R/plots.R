@@ -14,12 +14,6 @@
 #' @param scale.rows Should rows of the expression matrix be scaled for better
 #' visibility of expression differences between sample groups? Defaults to
 #' TRUE.
-#' @param log.thresh Threshold for log2-transformation of the expression
-#' matrix.  Particularly useful for heatmap visualization of RNA-seq read count
-#' data, where the max and the min of the expression matrix typically differ by
-#' several orders of magnitude.  If the difference between min and max of the
-#' expression matrix is greater than the indicated threshold,
-#' log2-transformation is applied.
 #' @return None, plots to a graphics device.
 #' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
 #' @seealso \code{\link{deAna}} for differential expression analysis,
@@ -62,17 +56,17 @@ volcano <- function(fc, p)
 # Heatmap: based on ComplexHeatmap
 #' @export
 #' @rdname plots
-exprsHeatmap <- function(expr, grp, scale.rows=TRUE, log.thresh=100)
+exprsHeatmap <- function(expr, grp, scale.rows = TRUE)
 {
     isAvailable("ComplexHeatmap", type = "software")
 
-	# log-transform?
-	dd <- diff(range(expr, na.rm=TRUE))
-    if(dd > log.thresh) expr <- log(expr + 1, base=2)
+    dtype <- .detectDataType(expr)
+    if(dtype == "rseq") edgeR::cpm(expr, log = TRUE) 
   
     # scale?
-    if(scale.rows) expr <- t(scale(t(expr)))
-  
+    expr <- t(scale(t(expr)))
+    expr[is.nan(expr)] <- 0
+
 	# group colors
 	grp <- as.factor(grp)
 	coll <- c("#B62A84", "#2AB68C")

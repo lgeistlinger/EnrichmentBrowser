@@ -383,7 +383,7 @@ eaBrowse <- function(res, nr.show=-1,
     expr <- assay(se)
     rownames(expr) <- rowData(se)[,configEBrowser("SYM.COL")]
     png(img.file, width=width, height=height)
-    exprsHeatmap(expr=expr, grp=se[[configEBrowser("GRP.COL")]])
+    exprsHeatmap(expr = expr, grp = se[[configEBrowser("GRP.COL")]])
     dev.off()
     img.tag <- hwriter::hwriteImage(basename(img.file))
 
@@ -554,7 +554,6 @@ eaBrowse <- function(res, nr.show=-1,
 
 .makeGGraphHTML <- function(se, sgrn, alpha, img.file)
 {
-
     width <- configEBrowser("PLOT.WIDTH") 
     height <- configEBrowser("PLOT.HEIGHT")
 

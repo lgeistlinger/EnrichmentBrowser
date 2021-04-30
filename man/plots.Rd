@@ -11,7 +11,7 @@ pdistr(p)
 
 volcano(fc, p)
 
-exprsHeatmap(expr, grp, scale.rows = TRUE, log.thresh = 100)
+exprsHeatmap(expr, grp, scale.rows = TRUE)
 }
 \arguments{
 \item{p}{Numeric vector of p-values for each gene.}
@@ -26,13 +26,6 @@ unaffected (controls) and affected (cases) samples, respectively.}
 \item{scale.rows}{Should rows of the expression matrix be scaled for better
 visibility of expression differences between sample groups? Defaults to
 TRUE.}
-
-\item{log.thresh}{Threshold for log2-transformation of the expression
-matrix.  Particularly useful for heatmap visualization of RNA-seq read count
-data, where the max and the min of the expression matrix typically differ by
-several orders of magnitude.  If the difference between min and max of the
-expression matrix is greater than the indicated threshold,
-log2-transformation is applied.}
 }
 \value{
 None, plots to a graphics device.

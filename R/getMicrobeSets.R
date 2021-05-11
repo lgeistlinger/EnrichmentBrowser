@@ -1,27 +1,26 @@
-#' @name getMicrobeSets
-#'
-#' @title Definition of microbe sets according to different sources
-#' 
-#' @description Functionality for retrieving microbe sets from databases such as
-#' BugSigDB and the MicrobeDirectory. 
-#'
-#' @param db Database from which microbe sets should be retrieved. Currently, 
-#' either 'bugsigdb' (default), 'manalyst', 'mpattern', or 'mdirectory'. 
-#' @param tax.id.type Character. Taxonomic ID type of the returned microbe sets.
-#' Currently either 'ncbi' (default) or 'metaphlan'.
-#' @param cache Logical.  Should a locally cached version used if available?
-#' Defaults to \code{TRUE}.
-#' @param ... Additional arguments for individual microbe set databases.
-#' For \code{db = "manalyst"}: \itemize{ \item lib: Character. MicrobiomeAnalyst
-#' taxon set library. Options include taxon sets associated with human genetic
-#' variations ('gene'), host-intrinsic ('host_int'), host-extrinsic ('host_ext'),
-#' environmental ('env'), and microbiome-intrinsic ('mic_int') factors.
-#' See references.}
-#' @references BugSigDB: \url{https://bugsigdb.org}
-#' 
-#' MicrobiomeAnalyst: \url{https://www.microbiomeanalyst.ca}
-#'
-#' @export
+# @name getMicrobeSets
+#
+# @title Definition of microbe sets according to different sources
+# 
+# @description Functionality for retrieving microbe sets from databases such as
+# BugSigDB and the MicrobeDirectory. 
+#
+# @param db Database from which microbe sets should be retrieved. Currently, 
+# either 'bugsigdb' (default), 'manalyst', 'mpattern', or 'mdirectory'. 
+# @param tax.id.type Character. Taxonomic ID type of the returned microbe sets.
+# Currently either 'ncbi' (default) or 'metaphlan'.
+# @param cache Logical.  Should a locally cached version used if available?
+# Defaults to \code{TRUE}.
+# @param ... Additional arguments for individual microbe set databases.
+# For \code{db = "manalyst"}: \itemize{ \item lib: Character. MicrobiomeAnalyst
+# taxon set library. Options include taxon sets associated with human genetic
+# variations ('gene'), host-intrinsic ('host_int'), host-extrinsic ('host_ext'),
+# environmental ('env'), and microbiome-intrinsic ('mic_int') factors.
+# See references.}
+# @references BugSigDB: \url{https://bugsigdb.org}
+# 
+# MicrobiomeAnalyst: \url{https://www.microbiomeanalyst.ca}
+#
 getMicrobeSets <- function(db = c("bugsigdb",
                                   "manalyst",
                                   "mpattern",
@@ -97,7 +96,7 @@ MPA.REGEXP <- "^[kpcofgst]__"
         
         subind <- istl[unlist(ind)]
         subind <- relist(subind, ind)
-        sigs <- mlapply(`[`, sigs, subind)
+        sigs <- mapply(`[`, sigs, subind)
     }
 
     if(id.type != "metaphlan")
@@ -130,7 +129,7 @@ MPA.REGEXP <- "^[kpcofgst]__"
         isAvailable("taxize")
         sink(tempfile())
         suppressMessages(
-            ranks <- taxize::tax_rank(s, db = "ncbi")
+            #ranks <- taxize::tax_rank(s, db = "ncbi")
         )
         sink()        
         ranks <- vapply(ranks, function(x) x[1], character(1))
@@ -155,7 +154,7 @@ MPA.REGEXP <- "^[kpcofgst]__"
         isAvailable("taxize")
         sink(tempfile())
         suppressMessages(
-            ranks <- taxize::tax_rank(s, db = "ncbi")
+            #ranks <- taxize::tax_rank(s, db = "ncbi")
         )
         sink()        
         ranks <- vapply(ranks, function(x) x[1], character(1))

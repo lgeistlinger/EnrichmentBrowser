@@ -7,8 +7,8 @@
 #'              phyper pnorm qnorm quantile rnorm runif sd
 #' @importFrom  methods as getMethod is new
 #' @importFrom  utils available.packages browseURL capture.output data 
-#'                head memory.limit packageVersion read.csv read.delim unzip 
-#'                  write.csv write.table URLencode
+#'                head memory.limit packageVersion read.csv read.delim relist 
+#'                unzip write.csv write.table URLencode
 NULL
 
 

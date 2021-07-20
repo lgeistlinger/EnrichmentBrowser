@@ -355,6 +355,7 @@ writeGMT <- function(gs, gmt.file)
                         cat = c("H", paste0("C", 1:8)), 
                         subcat = NA)
 {
+    cat <- match.arg(cat)
     isAvailable("msigdbr", type = "software")
     supp.cats <- unique(msigdbr::msigdbr_collections()$gs_cat)
     if(!(cat %in% supp.cats))

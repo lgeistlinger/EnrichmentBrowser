@@ -358,7 +358,7 @@ writeGMT <- function(gs, gmt.file)
     isAvailable("msigdbr", type = "software")
     cat <- cat[1]
     supp.cats <- unique(msigdbr::msigdbr_collections()$gs_cat)
-    if(!(cat %in% supp.cats))
+    if(!is.character(cat) || !(cat %in% supp.cats))
         stop(gettextf("'cat' should be one of %s", 
                       paste(dQuote(supp.cats), collapse = ", ")), domain = NA)
  

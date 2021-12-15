@@ -697,7 +697,7 @@ eaBrowse <- function(res, nr.show=-1,
     return(gt)
 }
 
-.geneTable <- function(im, org, fcs=NULL, grn=NULL)#, context="")
+.geneTable <- function(im, org, fcs=NULL, grn=NULL)
 {
     # load org pkg
     org.pkg <- .org2pkg(org)
@@ -709,6 +709,7 @@ eaBrowse <- function(res, nr.show=-1,
     gn.cols <- sapply(c("SYM.COL", "GN.COL"), configEBrowser)
     gt <- AnnotationDbi::select(org.pkg, 
             keys=colnames(im), columns=gn.cols, keytype=EZ.COL)
+    gt <- gt[!duplicated(gt[,EZ.COL]),]
 
     # (2) fold change
     if(!is.null(fcs))

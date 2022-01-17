@@ -1,5 +1,5 @@
 Package: EnrichmentBrowser
-Version: 2.25.1
+Version: 2.25.2
 Date: 2021-12-15
 Title: Seamless navigation through combined results of set-based and
        network-based enrichment analysis
@@ -62,4 +62,4 @@ biocViews:
     NetworkEnrichment,
     Visualization,
     ReportWriting
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2

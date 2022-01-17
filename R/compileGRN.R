@@ -24,7 +24,7 @@
 #' \code{\linkS4class{KEGGPathway}} objects or an absolute file path of a zip
 #' compressed archive of pathway xml files in KGML format.
 #' @param db Pathway database.  This should be one or more DBs out of 'kegg',
-#' 'reactome', 'biocarta', and 'nci'.  See \code{\link{pathwayDatabases}} for
+#' 'reactome', 'pathbank', and 'wikipathways'.  See \code{\link{pathwayDatabases}} for
 #' available DBs of the respective organism.  Default is 'kegg'.
 #' Note: when dealing with non-model organisms, GRN compilation is currently
 #' only supported directly from KEGG (the argument \code{kegg.native} should
@@ -35,8 +35,8 @@
 #' Otherwise, all interactions found in the pathway DB will be included.
 #' Default is \code{TRUE}.
 #' @param map2entrez Should gene identifiers be mapped to NCBI Entrez Gene IDs?
-#' This only applies to Reactome and NCI as they both use UNIPROT IDs.  This is
-#' typically recommended when using the GRN for network-based enrichment
+#' This only applies to Reactome and PathBank as they both use UNIPROT IDs.
+#' This is typically recommended when using the GRN for network-based enrichment
 #' analysis with the EnrichmentBrowser.  Default is \code{TRUE}.
 #' @param keep.type Should the original interaction type descriptions be kept?
 #' If TRUE, this will keep the long description of interaction types as found
@@ -74,7 +74,7 @@ compileGRN <- function(org, db="kegg",
     db="kegg", act.inh=TRUE, 
     map2entrez=TRUE, keep.type=FALSE)
 {
-    valid.dbs <- c("kegg", "reactome", "biocarta", "nci")
+    valid.dbs <- c("kegg", "reactome", "pathbank", "wikipathways")
     if(!all(db %in% valid.dbs)) 
         stop(paste("Valid values of \'db\':", paste(valid.dbs, collapse=", ")))
 
@@ -104,7 +104,7 @@ compileGRN <- function(org, db="kegg",
     return(grn)
 }    
 
-#pdbs <- c("kegg", "reactome", "biocarta", "humancyc", "nci", "panther")
+#pdbs <- c("kegg", "reactome", "pathbank", "panther", "wikipathways")
 #inspectPDBs <- function(db)
 #{
 #    message(db)
@@ -139,7 +139,7 @@ compileGRN <- function(org, db="kegg",
     }    
 
     # map to ENTREZ IDs necessary?
-    if(!(d %in% c("kegg", "biocarta")) && map2entrez)
+    if(!(d %in% c("kegg", "wikipathways")) && map2entrez)
     {
         org <- tolower(substring(gorg, 1, 3))
         ids <- unique(as.vector(db.edges[,1:2]))
@@ -160,8 +160,8 @@ compileGRN <- function(org, db="kegg",
         rel.types <- c("activation", "expression", "inhibition", "repression")
         rel.types <- paste0("Process(", rel.types, ")")
     }
-    # else: c("reactome", "biocarta", "nci")
-    else
+    # else: reactome
+    else if(db == "reactome")
     {
         rel.types <- paste0( "Control(Out: ",
                                 rep(c("ACTIVATION", "INHIBITION"), each=3),

@@ -22,7 +22,7 @@ compatibility, this can also be either a list of
 compressed archive of pathway xml files in KGML format.}
 
 \item{db}{Pathway database.  This should be one or more DBs out of 'kegg',
-'reactome', 'biocarta', and 'nci'.  See \code{\link{pathwayDatabases}} for
+'reactome', 'pathbank', and 'wikipathways'.  See \code{\link{pathwayDatabases}} for
 available DBs of the respective organism.  Default is 'kegg'.
 Note: when dealing with non-model organisms, GRN compilation is currently
 only supported directly from KEGG (the argument \code{kegg.native} should
@@ -35,8 +35,8 @@ Otherwise, all interactions found in the pathway DB will be included.
 Default is \code{TRUE}.}
 
 \item{map2entrez}{Should gene identifiers be mapped to NCBI Entrez Gene IDs?
-This only applies to Reactome and NCI as they both use UNIPROT IDs.  This is
-typically recommended when using the GRN for network-based enrichment
+This only applies to Reactome and PathBank as they both use UNIPROT IDs.
+This is typically recommended when using the GRN for network-based enrichment
 analysis with the EnrichmentBrowser.  Default is \code{TRUE}.}
 
 \item{keep.type}{Should the original interaction type descriptions be kept?

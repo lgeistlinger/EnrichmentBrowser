@@ -417,6 +417,7 @@ writeGMT <- function(gs, gmt.file)
     isAvailable("msigdbr", type = "software")
     ms <- msigdbr::msigdbr_species()$species_name
     ms[ms == "Canis lupus familiaris"] <- "Canis familiaris"
+    ms[ms == "Schizosaccharomyces pombe 972h-"] <- "Schizosaccharomyces pombe"
     ind <- match(ms, SPECIES[,"tax"])
     morgs <- SPECIES[ind, c("kegg", "tax", "common")]
     morgs <- DataFrame(morgs)

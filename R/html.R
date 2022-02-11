@@ -710,7 +710,8 @@ eaBrowse <- function(res, nr.show=-1,
     gt <- AnnotationDbi::select(org.pkg, 
             keys=colnames(im), columns=gn.cols, keytype=EZ.COL)
     gt <- gt[!duplicated(gt[,EZ.COL]),]
-
+    rownames(gt) <- gt[[EZ.COL]]
+    
     # (2) fold change
     if(!is.null(fcs))
     {

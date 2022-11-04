@@ -71,7 +71,7 @@ certain gene functions are enriched for differential expression, section \@ref(s
 whole workflow into a single function, making use of suitably chosen
 defaults.
 
-```{r setup, message = FALSE }
+```{r setup, message = FALSE,echo = FALSE }
 library(EnrichmentBrowser)
 library(ALL)
 library(airway)
@@ -97,7 +97,7 @@ The man pages provide details on file format and the *SummarizedExperiment* data
 ?readSE 
 ?SummarizedExperiment
 ```
-*Note:* Previous versions of the `r Biocpkg("EnrichmentBrowser")` used the *ExpressionSet* data structure. The migration to *SummarizedExperiment* in the current release of the `r Biocpkg("EnrichmentBrowser")` is done to reflect recent developments in *Bioconductor,*, which discourage use of *ExpressionSet* in favor of *SummarizedExperiment*. Major reasons are the compatibility of *SummarizedExperiment* with operations on genomic regions as well as efficient
+*Note:* Previous versions of the `r Biocpkg("EnrichmentBrowser")` used the *ExpressionSet* data structure. The migration to *SummarizedExperiment* in the current release of the `r Biocpkg("EnrichmentBrowser")` is done to reflect recent developments in *Bioconductor*, which discourage use of *ExpressionSet* in favor of *SummarizedExperiment*. Major reasons are the compatibility of *SummarizedExperiment* with operations on genomic regions as well as efficient
 dealing with big data.
 
 To enable a smooth transition, all functions of the `r Biocpkg("EnrichmentBrowser")` are still accepting
@@ -172,7 +172,7 @@ exprs(all.eset)[1:4,1:4]
 As we often have more than one probe per gene, we summarize gene
 expression values as the average of the corresponding probe values.
 
-```{r probe2gene}
+```{r probe2gene,message = FALSE}
 allSE <- probe2gene(all.eset)
 head(rownames(allSE))
 ```
@@ -330,7 +330,7 @@ This turns out to be the YES proto-oncogene 1
 ([hsa:7525@KEGG](http://www.genome.jp/dbget-bin/www_bget?hsa:7525)).
 
 For RNA-seq data, the `deAna` function carries out a differential expression
-analysis between the two groups either based on functionality from `r Biocpkg("limma")`(that includes the `voom` transformation), or alternatively, the popular `r Biocpkg("edgeR")` or `r Biocpkg("DESeq2")` package.
+analysis between the two groups either based on functionality from `r Biocpkg("limma")` (that includes the `voom` transformation), or alternatively, the popular `r Biocpkg("edgeR")` or `r Biocpkg("DESeq2")` package.
 
 Here, we use the analysis based on `r Biocpkg('edgeR')` for demonstration.
 
@@ -401,9 +401,9 @@ species.
 
 Note #2: The `idMap` function can be used to map gene sets from NCBI Entrez Gene IDs to other common gene ID types such as ENSEMBL gene IDs or HGNC symbols as described in Section \@ref(sec:idmap).
 
-## \@ {#sec:setbased}
+## Set-based enrichment analysis {#sec:setbased}
 
-Currently, the following \@ methods are
+Currently, the following set-based enrichment methods are
 supported 
 ```{r sbeaMethods}
 sbeaMethods()
@@ -565,7 +565,7 @@ corresponding *p*-value. The `gsRanking` function displays by default only those
 
 
 While such a ranked list is the standard output of existing enrichment
-tools, the package `r Biocpkg("EnrichmentBrowser")` provides visualization and interactive exploration of resulting gene sets far beyond that point. Using the `eaBrowse` function creates a HTML summary from which each gene set can be inspected in detail (this builds on functionality from the `ReportingTools` package).
+tools, the package `r Biocpkg("EnrichmentBrowser")` provides visualization and interactive exploration of resulting gene sets far beyond that point. Using the `eaBrowse` function creates a HTML summary from which each gene set can be inspected in detail (this builds on functionality from the `r Biocpkg("ReportingTools")` package).
 
 The various options are described in Figure \@ref(fig:oraRes).
 
@@ -649,7 +649,7 @@ For demonstration, we perform GGEA using the compiled KEGG regulatory
 network.
 
 ```{r nbea}
-nbea.res <- nbea(method="ggea", se=allSE, gs=hsa.gs,grn=hsa.grn) 
+nbea.res <- nbea(method="ggea", se=allSE, gs=hsa.gs, grn=hsa.grn) 
 gsRanking(nbea.res)
 ```
 
@@ -732,8 +732,7 @@ The combined result can be detailedly inspected as before and
 interactively ranked as depicted in Figure \@ref(fig:browsecomb).
 
 ```{r browse-comb, eval=FALSE}
-eaBrowse(comb.res, graph.view=hsa.grn,
-nr.show=5)
+eaBrowse(comb.res, graph.view=hsa.grn, nr.show=5)
 ```
 
 
@@ -850,7 +849,7 @@ expression of their target genes.
 
 ## Resources
 
-*GO* (<http://www.geneontology.org>) and *KEGG* (<http://www.genome.jp/kegg>)
+[GO](http://www.geneontology.org) and [KEGG](http://www.genome.jp/kegg)
 annotations are most frequently used for the enrichment analysis of
 functional gene sets. Despite an increasing number of gene set and
 pathway databases, they are typically the first choice due to their

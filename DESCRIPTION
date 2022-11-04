@@ -5,15 +5,15 @@ Title: Seamless navigation through combined results of set-based and
        network-based enrichment analysis
 Authors@R: c(
     person("Ludwig", "Geistlinger", role= c("aut", "cre"),
-    email="Ludwig_Geistlinger@hms.harvard.edu"),
+    email=""),
     person("Gergely", "Csaba", role = "aut"),
     person("Mara", "Santarelli", role="ctb"),
     person("Mirko", "Signorelli", role="ctb"),
+        person("Rohit","Satyam", role="ctb",
+    comment = "'EnrichmentBrowser' vignette translation from Sweave to Rmarkdown / HTML"),
     person("Marcel", "Ramos", role = "ctb"),
-    person("Levi","Waldron", role="ctb")
-    person("Ralf","Zimmer", role="aut"),
-    person("Rohit","Satyam", role="ctb",
-    comment = "'EnrichmentBrowser' vignette translation from Sweave to Rmarkdown / HTML"))
+    person("Levi","Waldron", role="ctb"),
+    person("Ralf","Zimmer", role="aut"))
 
 Maintainer: Ludwig Geistlinger <Ludwig_Geistlinger@hms.harvard.edu>
 Depends: SummarizedExperiment, graph

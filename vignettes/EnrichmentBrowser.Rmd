@@ -3,6 +3,9 @@ title: "Seamless navigation through combined results of set- & network-based enr
 author:
 - name: Ludwig Geistlinger
   affiliation: Center for Computational Biomedicine, Harvard Medical School
+- name: Rohit Satyam
+  affiliation: "Vignette translation from Sweave to Rmarkdown / HTML"
+  
 abstract: >
   The package `r Biocpkg("EnrichmentBrowser")` implements an analysis pipeline for high-throughput gene
   expression data as measured with microarrays and RNA-seq. In a

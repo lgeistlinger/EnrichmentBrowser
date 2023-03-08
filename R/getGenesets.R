@@ -667,7 +667,9 @@ writeGMT <- function(gs, gmt.file)
         if(!is.null(gs)) return(gs)
     }
     pwys <- KEGGREST::keggList("pathway", org)
+    pwys <- pwys[sort(names(pwys))]
     pwy2gene <- KEGGREST::keggLink(org, "pathway")
+    names(pwy2gene) <- sub("^path:", "", names(pwy2gene))
 
     org.start <- paste0("^", org, ":")
     .getGenes <- function(pwy)

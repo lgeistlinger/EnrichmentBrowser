@@ -175,7 +175,6 @@ compileGRN <- function(org, db="kegg",
     # panther:
     # no information on act/inh 
     # ID mapping UNIPROT -> ENTREZID fails greatly
-    
     db.edges <- db.edges[db.edges[,"type"] %in% rel.types,]
     n <- length(rel.types) / 2
     ind <- seq_len(n)

@@ -15,14 +15,18 @@ abstract: >
   methods and facilitates combination and exploration of results across
   methods.
 
+clean: false
+date: "`r Sys.Date()`"
 package: EnrichmentBrowser
 output: 
     BiocStyle::html_document:
       toc_float: true
 vignette: >
-  %VignetteIndexEntry{Seamless navigation through combined results of set- & network-based enrichment analysis}
-  %VignetteEngine{knitr::rmarkdown}
-  %VignetteEncoding{UTF-8}  
+  %\VignetteIndexEntry{Seamless navigation through combined results of set- & network-based enrichment analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteDepends{BiocStyle} 
+  %\VignettePackage{EnrichmentBrowser}
   
 bibliography:
 - refs.bib

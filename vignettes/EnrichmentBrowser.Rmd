@@ -87,6 +87,7 @@ Typically, the expression data is not already available in *R* but rather
 has to be read in from file. This can be done using the function `readSE`, which
 reads the expression data (`exprs`) along with the phenotype data (`colData`) and
 feature data (`rowData`) into a `r Biocpkg("SummarizedExperiment")`. 
+
 ```{r readSE}
 library(EnrichmentBrowser)
 data.dir <- system.file("extdata", package = "EnrichmentBrowser")
@@ -95,12 +96,14 @@ cdat.file <- file.path(data.dir, "colData.tab")
 rdat.file <- file.path(data.dir, "rowData.tab")
 se <- readSE(exprs.file, cdat.file, rdat.file)
 ```
+
 The man pages provide details on file format and the *SummarizedExperiment* data structure.
 
 ```{r help, eval=FALSE}
 ?readSE 
 ?SummarizedExperiment
 ```
+
 *Note:* Previous versions of the `r Biocpkg("EnrichmentBrowser")` used the *ExpressionSet* data structure. The migration to *SummarizedExperiment* in the current release of the `r Biocpkg("EnrichmentBrowser")` is done to reflect recent developments in *Bioconductor*, which discourage use of *ExpressionSet* in favor of *SummarizedExperiment*. Major reasons are the compatibility of *SummarizedExperiment* with operations on genomic regions as well as efficient
 dealing with big data.
 
@@ -409,6 +412,7 @@ Note #2: The `idMap` function can be used to map gene sets from NCBI Entrez Gene
 
 Currently, the following set-based enrichment methods are
 supported 
+
 ```{r sbeaMethods}
 sbeaMethods()
 ```
@@ -567,7 +571,6 @@ corresponding *p*-value. The `gsRanking` function displays by default only those
  gsRanking(sbea.res, signif.only = FALSE)
 ```
 
-
 While such a ranked list is the standard output of existing enrichment
 tools, the package `r Biocpkg("EnrichmentBrowser")` provides visualization and interactive exploration of resulting gene sets far beyond that point. Using the `eaBrowse` function creates a HTML summary from which each gene set can be inspected in detail (this builds on functionality from the `r Biocpkg("ReportingTools")` package).
 
@@ -577,12 +580,9 @@ The various options are described in Figure \@ref(fig:oraRes).
  eaBrowse(sbea.res)
 ```
 
-
 ![(#fig:oraRes) ORA result view 
 For each significant gene set in the ranking, the user can select to view (1) a gene report, that lists all genes of a set along with fold change and DE p-value, (2) interactive overview plots
 such as heatmap, p-value distribution, and volcano plot, (3) the pathway in KEGG with differentially expressed genes highlighted in red.](ora_ebrowse.png){width="20cm" height="8.75cm"}
-
-
 
 ## Network-based enrichment analysis
 
@@ -672,13 +672,11 @@ consistency, i.e. how well the interaction type (activation/inhibition)
 is reflected in the correlation of the observed expression of both
 interaction partners.
 
-
 ```{r ggea-graph, fig.width=12, fig.height=6}
 par(mfrow=c(1,2))
 ggeaGraph( gs=hsa.gs[["hsa05217_Basal_cell_carcinoma"]], grn=hsa.grn, se=allSE) 
 ggeaGraphLegend()
 ```
-
 
 ## User-defined enrichment methods
 
@@ -739,10 +737,8 @@ interactively ranked as depicted in Figure \@ref(fig:browsecomb).
 eaBrowse(comb.res, graph.view=hsa.grn, nr.show=5)
 ```
 
-
 ![(#fig:browsecomb) Combined result view
 By clicking on one of the columns (ORA.RANK, ..., GGEA.PVAL) the result can be interactively ranked according to the selected criterion.](comb_ebrowse.png){width="20cm" height="6.8cm"}
-
 
 # Putting it all together {#sec:summary}
 

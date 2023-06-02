@@ -16,7 +16,7 @@ abstract: >
   methods.
 
 clean: false
-date: "`r Sys.Date()`"
+date: "`r format(Sys.Date(), '%d %B, %Y')`"
 package: EnrichmentBrowser
 output: 
     BiocStyle::html_document:

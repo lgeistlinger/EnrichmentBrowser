@@ -288,7 +288,8 @@ writeGMT <- function(gs, gmt.file)
     
     eurl <- paste0("https://maayanlab.cloud/", eorg, 
                     "/geneSetLibrary?mode=text&libraryName=", lib)
-    gs <- getURL(eurl)
+    if(.Platform$OS.type == "windows") gs <- getURL(eurl, ssl.verifypeer = FALSE)
+    else gs <- getURL(eurl)
     gs <- unlist(strsplit(gs, "\n"))
     gs <- lapply(gs, function(x) unlist(strsplit(x, "\t")))
     names(gs) <- vapply(gs, function(x) x[1], character(1))
@@ -667,7 +668,9 @@ writeGMT <- function(gs, gmt.file)
         if(!is.null(gs)) return(gs)
     }
     pwys <- KEGGREST::keggList("pathway", org)
+    pwys <- pwys[sort(names(pwys))]
     pwy2gene <- KEGGREST::keggLink(org, "pathway")
+    names(pwy2gene) <- sub("^path:", "", names(pwy2gene))
 
     org.start <- paste0("^", org, ":")
     .getGenes <- function(pwy)

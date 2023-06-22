@@ -24,7 +24,6 @@ vignette: >
   %\VignetteEncoding{UTF-8}
   %\VignetteDepends{BiocStyle} 
   %\VignettePackage{EnrichmentBrowser}
-  
   %\VignetteEngine{knitr::rmarkdown}
 
 bibliography: 
@@ -76,8 +75,8 @@ All of these steps are modular, i.e. each step can be executed
 individually and fine-tuned with several parameters. In case you are
 interested in a particular step, you can directly move on to the
 respective section. For example, if you have differential expression
-already calculated for each gene, and your are now interested
-whether certain gene functions are enriched for differential
+already calculated for each gene, and you are now interested
+in whether certain gene functions are enriched for differential
 expression, section \@ref(sec:setbased) would be the one you should
 go for. The last section \@ref(sec:summary) also demonstrates how to
 wrap the whole workflow into a single function, making use of
@@ -92,7 +91,7 @@ library(airway)
 # Reading expression data from file
 
 Typically, the expression data is not already available in *R* but
-rather has to be read in from file. This can be done using the function
+rather has to be read in from a file. This can be done using the function
 `readSE`, which reads the expression data (`exprs`) along with the
 phenotype data (`colData`) and feature data (`rowData`) into a
 `r Biocpkg("SummarizedExperiment")`.
@@ -118,17 +117,17 @@ The man pages provide details on file format and the
 the *ExpressionSet* data structure. The migration to
 *SummarizedExperiment* in the current release of the
 `r Biocpkg("EnrichmentBrowser")` is done to reflect recent developments
-in *Bioconductor*, which discourage use of *ExpressionSet* in favor of
-*SummarizedExperiment*. Major reasons are the compatibility of
+in *Bioconductor*, which discourages the use of *ExpressionSet* in favor of
+*SummarizedExperiment*. The major reasons are the compatibility of
 *SummarizedExperiment* with operations on genomic regions as well as
-efficient dealing with big data.
+efficient handling of big data.
 
 To enable a smooth transition, all functions of the
 `r Biocpkg("EnrichmentBrowser")` are still accepting also an
 *ExpressionSet* as input, but are consistently returning a
 *SummarizedExperiment* as output.
 
-Furthermore, users can always coerce from *SummarizedExperiment* to
+Furthermore, users can always coerce the *SummarizedExperiment* to
 *ExpressionSet* via
 
 ```{r sexp2eset}
@@ -155,15 +154,15 @@ developed for microarray data.
 However, differences in data distribution assumptions (microarray:
 quasi-normal, RNA-seq: negative binomial) made adaptations in
 differential expression analysis and, to some extent, also in gene set
-enrichment analysis necessary.
+enrichment analysis if necessary.
 
-Thus, we consider two example data sets -- a microarray and a RNA-seq
-data set, and discuss similarities and differences of the respective
+Thus, we consider two example data sets -- a microarray and an RNA-seq
+data set, and discuss similarities and differences between the respective
 analysis steps.
 
 ## Microarray data
 
-To demonstrate the functionality of the package for microarray data, we
+To demonstrate the package's functionality for microarray data, we
 consider expression measurements of patients with acute lymphoblastic
 leukemia [@chiaretti2004]. A frequent chromosomal defect found among
 these patients is a translocation, in which parts of chromosome 9 and 22
@@ -197,7 +196,7 @@ dim(all.eset)
 exprs(all.eset)[1:4,1:4]
 ```
 
-As we often have more than one probe per gene, we summarize gene
+As we often have more than one probe per gene, we summarize the gene
 expression values as the average of the corresponding probe values.
 
 ```{r probe2gene,message = FALSE}
@@ -205,8 +204,8 @@ allSE <- probe2gene(all.eset)
 head(rownames(allSE))
 ```
 
-Note, that the mapping from probe to gene is done automatically as long
-as as you have the corresponding annotation package, here the
+Note, that the mapping from the probe to gene is done automatically as long 
+as you have the corresponding annotation package, here the
 `r Biocpkg("hgu95av2.db")` package, installed. Otherwise, the mapping
 can be manually defined in the `rowData` slot.
 
@@ -266,7 +265,7 @@ boxplot(assay(allSE, "raw"))
 boxplot(assay(allSE, "norm"))
 ```
 
-Note that this is only done for demonstration, as the ALL data has been
+Note that this is only done for demonstration, as the `ALL` data has been
 already RMA-normalized by the authors of the ALL dataset.
 
 RNA-seq data is expected to be raw read counts. Note that normalization
@@ -286,7 +285,7 @@ airSE <- normalize(airSE, norm.method = "quantile")
 ```
 
 Within-lane normalization to adjust for gene-specific effects such as
-gene length and GC-content requires to retrieve this information first,
+gene length and GC-content require to retrieve this information first,
 e.g. from *BioMart* or specific *Bioconductor* annotation packages. Both
 modes are implemented in the `r Biocpkg("EDASeq")` function
 `getGeneLengthAndGCContent`.
@@ -299,14 +298,14 @@ expression analysis between sample groups. This involves the
 `voom`-transformation when applied to RNA-seq data. Alternatively,
 differential expression analysis for RNA-seq data can also be carried
 out based on the negative binomial distribution with
-`r Biocpkg("edgeR")` and `r Biocpkg("DESeq2")` .
+`r Biocpkg("edgeR")` and `r Biocpkg("DESeq2")`.
 
 This can be performed using the function `deAna` and assumes some
 standardized variable names:
 
 -   **GROUP** defines the sample groups being contrasted,
 
--   **BLOCK** defines paired samples or sample blocks, as e.g. for batch
+-   **BLOCK** defines paired samples or sample blocks, e.g. for batch
     effects.
 
 For more information on experimental design, see the [limma user's
@@ -361,7 +360,7 @@ pdistr(rowData(allSE)$PVAL)
 volcano(rowData(allSE)$FC, rowData(allSE)$ADJ.PVAL)
 ```
 
-The expression change of highest statistical significance is observed
+The expression change of the highest statistical significance is observed
 for the ENTREZ gene 7525.
 
 ```{r DE-exmpl}
@@ -482,8 +481,8 @@ sbeaMethods()
     critical review),
 
 -   SAFE: Significance Analysis of Function and Expression (resampling
-    version of ORA, implements additional test statistics, e.g.
-    Wilcoxon's rank sum, and allows to estimate the significance of gene
+    version of ORA implements additional test statistics, e.g.
+    Wilcoxon's rank sum, and allows us to estimate the significance of gene
     sets by sample permutation; implemented in the `r Biocpkg("safe")`
     package),
 
@@ -508,7 +507,7 @@ sbeaMethods()
     respectively),
 
 -   GSA: Gene Set Analysis (differs from GSEA by using the maxmean
-    statistic, i.e. the mean of the positive or negative part of gene
+    statistic, i.e. the mean of the positive or negative part of the gene
     scores in the gene set; implemented in the `r Biocpkg("GSA")`
     package),
 
@@ -538,10 +537,10 @@ underlying statistical concepts.
 
 ## Guidelines for input and method selection
 
-We recently performed a comprehensive assessment of the availabe
+We recently performed a comprehensive assessment of the available
 set-based enrichment methods, and identified significant differences in
-runtime and applicability to RNA-seq data, fraction of enriched gene
-sets depending on the null hypothesis tested, and detection of relevant
+runtime and applicability to RNA-seq data, the fraction of enriched gene
+sets depending on the null hypothesis tested, and the detection of relevant
 processes [@geistlinger2020]. Based on these results, we make practical
 recommendations on how methods originally developed for microarray data
 can efficiently be applied to RNA-seq data, how to interpret results
@@ -550,20 +549,20 @@ best suited to effectively prioritize gene sets with high phenotype
 relevance:
 
 -   for the exploratory analysis of **simple gene lists**, we recommend
-    ORA given its ease of applicability, fast runtime and evident
-    relevance of resulting gene set rankings, provided that input gene
+    ORA given its ease of applicability, fast runtime, and evident
+    relevance of resulting gene set rankings provided that input gene
     list and reference gene list are chosen carefully and remembering
     ORA's propensity for type I error rate inflation when genes tend to
     be co-expressed within sets.
 
 -   for the analysis of **pre-ranked gene lists** accompanied by gene
     scores such as fold changes, alternatives to ORA such as pre-ranked
-    GSEA or pre-ranked CAMERA exist.
+    GSEA or pre-ranked CAMERA exists.
 
 -   for expression-based enrichment analysis on the **full expression
     matrix**, we recommend providing normalized log2 intensities for
     microarray data, and logTPMs (or logRPKMs / logFPKMs) for RNA-seq
-    data. When given raw read counts, we recommend to apply a
+    data. When given raw read counts, we recommend applying a
     variance-stabilizing transformation such as `voom` to arrive at
     library-size normalized logCPMs.
 
@@ -578,7 +577,7 @@ relevance:
     regardless of the direction). The main strength of GSVA lies in its
     capabilities for analyzing single samples.
 
--   if the question of interest is to test for excess of differential
+-   if the question of interest is to test for an excess differential
     expression in a gene set relative to genes outside the set
     (**competitive** null hypothesis), which we believe comes closest to
     the expectations and intuition of most end users when performing
@@ -668,7 +667,7 @@ in red.](ora_ebrowse.png){width="20cm" height="8.75cm"}
 ## Network-based enrichment analysis
 
 Having found sets of genes that are differentially regulated in the ALL
-data, we are now interested whether these findings can be supported by
+data, we are now interested in whether these findings can be supported by
 known regulatory interactions.
 
 For example, we want to know whether transcription factors and their
@@ -697,12 +696,12 @@ methods are supported
  nbeaMethods()
 ```
 
--   GGEA: Gene Graph Enrichment Analysis (evaluates consistency of known
+-   GGEA: Gene Graph Enrichment Analysis (evaluates the consistency of known
     regulatory interactions with the observed expression data
     [@Geistlinger2011]),
 
 -   SPIA: Signaling Pathway Impact Analysis (combines ORA with the
-    probability that expression changes are propagated across the
+    the probability that expression changes are propagated across the
     pathway topology; implemented in the `r Biocpkg('SPIA')` package),
 
 -   PathNet: Pathway Analysis using Network Information (applies ORA on
@@ -750,7 +749,7 @@ statistical significance of each gene set based on a permutation
 approach.
 
 A GGEA graph for a gene set depicts the consistency of each interaction
-in the set. Nodes (genes) are colored according to expression
+in the set. Nodes (genes) are colored according to the expression
 (up-/down-regulated) and edges (interactions) are colored according to
 consistency, i.e. how well the interaction type (activation/inhibition)
 is reflected in the correlation of the observed expression of both
@@ -769,7 +768,7 @@ frequently used enrichment methods. However, it is also possible to
 exploit its visualization capabilities with user-defined set-based
 enrichment methods.
 
-This requires to implement a function that takes the characteristic
+This requires implementing a function that takes the characteristic
 arguments `se` (expression data) and `gs` (gene sets).
 
 In addition, it must return a numeric vector `ps` storing the resulting
@@ -797,14 +796,14 @@ gsRanking(sbea.res2)
 ```
 
 As described in the previous section, it is also possible to analogously
-plug in user-defined network-based enrichment methods into `nbea.`
+plugin user-defined network-based enrichment methods into `nbea.`
 
 # Combining results
 
 Different enrichment analysis methods usually result in different gene
 set rankings for the same dataset. To compare results and detect gene
 sets that are supported by different methods, the
-`r Biocpkg("EnrichmentBrowser")` package allows to combine results from
+`r Biocpkg("EnrichmentBrowser")` package allows combining results from
 the different set-based and network-based enrichment analysis methods.
 The combination of results yields a new ranking of the gene sets under
 investigation by specified ranking criteria, e.g. the average rank
@@ -957,11 +956,11 @@ functional gene sets. Despite an increasing number of gene set and
 pathway databases, they are typically the first choice due to their
 long-standing curation and availability for a wide range of species.
 
-The Gene Ontology (GO) consists of three major sub-ontologies that
+Gene Ontology (GO) consists of three major sub-ontologies that
 classify gene products according to molecular function (MF), biological
-process (BP) and cellular component (CC). Each ontology consists of GO
-terms that define MFs, BPs or CCs to which specific genes are annotated.
-The terms are organized in a directed acyclic graph, where edges between
+process (BP), and cellular component (CC). Each ontology consists of GO
+terms that define MFs, BPs, or CCs to which specific genes are annotated.
+The terms are organized in a directed acyclic graph, where the edges between
 the terms represent relationships of different types. They relate the
 terms according to a parent-child scheme, i.e. parent terms denote more
 general entities, whereas child terms represent more specific entities.
@@ -969,7 +968,7 @@ general entities, whereas child terms represent more specific entities.
 The Kyoto Encyclopedia of Genes and Genomes (KEGG) is a collection of
 manually drawn pathway maps representing molecular interaction and
 reaction networks. These pathways cover a wide range of biochemical
-processes that can be divided in 7 broad categories: metabolism, genetic
+processes that can be divided into 7 broad categories: metabolism, genetic
 and environmental information processing, cellular processes, organismal
 systems, human diseases, and drug development. Metabolism and drug
 development pathways differ from pathways of the other 5 categories by
@@ -991,7 +990,7 @@ The two predominantly used enrichment methods are:
 
 However, the term *gene set enrichment analysis* nowadays subsumes a
 general strategy implemented by a wide range of methods [@Huang2009].
-Those methods have in common the same goal, although approach and
+Those methods have in common the same goal, although the approach and
 statistical model can vary substantially [@Goeman2007; @Khatri2012].
 
 To better distinguish from the specific method, some authors use the
@@ -1011,13 +1010,13 @@ hypothesis [@Goeman2007].
     are DE.
 
 Although the authors argue that a self-contained null is closer to the
-actual question of interest, the vast majority of enrichment methods is
+the actual question of interest, the vast majority of enrichment methods is
 competitive.
 
 Goeman and Buehlmann further raise several critical issues concerning
 the $2\times2$ ORA:
 
--   rather arbitrary classification of genes in DE / not DE,
+-   a rather arbitrary classification of genes in DE / not DE,
 
 -   based on gene sampling, although sampling of subjects is
     appropriate,
@@ -1058,7 +1057,7 @@ generations [@Khatri2012]:
     interactions between genes as defined in signaling pathways and gene
     regulatory networks ([@Geistlinger2011] for an example).
 
-Although topology-based (also: network-based) methods appear to be most
+Although topology-based (also: network-based) methods appear to be the most
 realistic, their straightforward application can be impaired by features
 that are not detectable on the transcriptional level (such as
 protein-protein interactions) and insufficient network knowledge

@@ -72,16 +72,16 @@ including:
 
 7.  Visualize and explore the results
 
-    All of these steps are modular, i.e. each step can be executed
-    individually and fine-tuned with several parameters. In case you are
-    interested in a particular step, you can directly move on to the
-    respective section. For example, if you have differential expression
-    already calculated for each gene, and your are now interested
-    whether certain gene functions are enriched for differential
-    expression, section \@ref(sec:setbased) would be the one you should
-    go for. The last section \@ref(sec:summary) also demonstrates how to
-    wrap the whole workflow into a single function, making use of
-    suitably chosen defaults.
+All of these steps are modular, i.e. each step can be executed
+individually and fine-tuned with several parameters. In case you are
+interested in a particular step, you can directly move on to the
+respective section. For example, if you have differential expression
+already calculated for each gene, and your are now interested
+whether certain gene functions are enriched for differential
+expression, section \@ref(sec:setbased) would be the one you should
+go for. The last section \@ref(sec:summary) also demonstrates how to
+wrap the whole workflow into a single function, making use of
+suitably chosen defaults.
 
 ```{r setup, message = FALSE,echo = FALSE }
 library(EnrichmentBrowser)

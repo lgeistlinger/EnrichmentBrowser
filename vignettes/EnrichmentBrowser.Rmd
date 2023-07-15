@@ -29,11 +29,10 @@ vignette: >
 bibliography: 
 - references.bib
 link-citations: TRUE
-csl: bmc-bioinformatics.csl
-
 editor_options: 
   markdown: 
     wrap: 72
+csl: bmc-bioinformatics.csl
 ---
 
 ```{r, include = FALSE}

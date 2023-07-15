@@ -29,6 +29,8 @@ vignette: >
 bibliography: 
 - references.bib
 link-citations: TRUE
+csl: bmc-bioinformatics.csl
+
 editor_options: 
   markdown: 
     wrap: 72

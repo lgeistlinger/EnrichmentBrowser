@@ -1,5 +1,5 @@
 Package: EnrichmentBrowser
-Version: 2.31.1
+Version: 2.31.2
 Date: 2023-03-16
 Title: Seamless navigation through combined results of set-based and
        network-based enrichment analysis
@@ -9,12 +9,10 @@ Authors@R: c(
     person("Gergely", "Csaba", role = "aut"),
     person("Mara", "Santarelli", role="ctb"),
     person("Mirko", "Signorelli", role="ctb"),
-    person("Rohit","Satyam", role="ctb",
-    comment = "'EnrichmentBrowser' vignette translation from Sweave to Rmarkdown / HTML"),
+    person("Rohit","Satyam", role="ctb"),
     person("Marcel", "Ramos", role = "ctb"),
     person("Levi","Waldron", role="ctb"),
     person("Ralf","Zimmer", role="aut"))
-
 Maintainer: Ludwig Geistlinger <Ludwig_Geistlinger@hms.harvard.edu>
 Depends: SummarizedExperiment, graph
 Imports: 

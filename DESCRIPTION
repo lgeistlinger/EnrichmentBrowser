@@ -1,11 +1,11 @@
 Package: EnrichmentBrowser
-Version: 2.31.2
-Date: 2023-03-16
+Version: 2.31.3
+Date: 2023-07-29
 Title: Seamless navigation through combined results of set-based and
        network-based enrichment analysis
 Authors@R: c(
     person("Ludwig", "Geistlinger", role= c("aut", "cre"),
-    email="Ludwig_Geistlinger@hms.harvard.edu"),
+           email = "ludwig.geistlinger@gmail.com"),
     person("Gergely", "Csaba", role = "aut"),
     person("Mara", "Santarelli", role="ctb"),
     person("Mirko", "Signorelli", role="ctb"),
@@ -13,7 +13,6 @@ Authors@R: c(
     person("Marcel", "Ramos", role = "ctb"),
     person("Levi","Waldron", role="ctb"),
     person("Ralf","Zimmer", role="aut"))
-Maintainer: Ludwig Geistlinger <Ludwig_Geistlinger@hms.harvard.edu>
 Depends: SummarizedExperiment, graph
 Imports: 
     AnnotationDbi,

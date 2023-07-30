@@ -35,7 +35,8 @@ csl: bmc-bioinformatics.csl
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,eval = T,
+  collapse = TRUE,
+  eval = TRUE,
   comment = "#>",
   dev = "jpeg"
 )

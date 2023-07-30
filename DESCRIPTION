@@ -1,11 +1,11 @@
 Package: EnrichmentBrowser
-Version: 2.30.1
+Version: 2.30.2
 Date: 2023-03-16
 Title: Seamless navigation through combined results of set-based and
        network-based enrichment analysis
 Author: Ludwig Geistlinger [aut, cre], Gergely Csaba [aut], Mara Santarelli [ctb],
         Mirko Signorelli [ctb], Marcel Ramos [ctb], Levi Waldron [ctb], Ralf Zimmer [aut]
-Maintainer: Ludwig Geistlinger <Ludwig_Geistlinger@hms.harvard.edu>
+Maintainer: Ludwig Geistlinger <ludwig.geistlinger@gmail.com>
 Depends: SummarizedExperiment, graph
 Imports: 
     AnnotationDbi,

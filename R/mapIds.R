@@ -71,7 +71,7 @@
 #' a \code{\linkS4class{SummarizedExperiment}} if provided an expression dataset,
 #' a list of character vectors or a \code{\linkS4class{GeneSetCollection}} if 
 #' provided gene sets, and a character matrix if provided a gene regulatory network.
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @author Ludwig Geistlinger
 #' @seealso \code{\linkS4class{SummarizedExperiment}}, \code{\link{mapIds}},
 #' \code{\link{keytypes}}
 #' @references KEGG Organism code

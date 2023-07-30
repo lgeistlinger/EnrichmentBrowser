@@ -87,5 +87,5 @@ reflected in the correlation of the expression of both interaction partners.
 \code{\link{eaBrowse}} for exploration of resulting gene sets.
 }
 \author{
-Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
+Ludwig Geistlinger
 }

@@ -48,7 +48,7 @@
 #' method. Defaults to 'ora'.  \item alpha: Statistical significance level.
 #' Defaults to 0.05.  }
 #' @return Depends on the 'what' argument.
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @author Ludwig Geistlinger
 #' @examples
 #' 
 #'     se <- makeExampleData(what="SE")

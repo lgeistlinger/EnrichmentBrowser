@@ -54,5 +54,5 @@ enrichment analysis results.
 
 }
 \author{
-Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
+Ludwig Geistlinger
 }

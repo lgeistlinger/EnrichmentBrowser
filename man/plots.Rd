@@ -53,5 +53,5 @@ and volcano plot (fold change vs. p-value).
 \code{ComplexHeatmap::Heatmap}, and \code{\link{hist}} for generic plotting.
 }
 \author{
-Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
+Ludwig Geistlinger
 }

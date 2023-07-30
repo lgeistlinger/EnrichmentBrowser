@@ -59,7 +59,7 @@
 #' \item 'maxfc' selects the probe ID with maximum absolute log2 fold change 
 #' (according to the \code{\link{rowData}} column \code{FC} of \code{probeSE}).}
 #' @return A \code{\linkS4class{SummarizedExperiment}} on gene level.
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @author Ludwig Geistlinger
 #' @seealso \code{\link{readSE}} for reading expression data from file,
 #' \code{\link{deAna}} for differential expression analysis.
 #' @examples

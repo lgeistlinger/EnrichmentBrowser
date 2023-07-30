@@ -40,5 +40,5 @@ format for a specified organism.
 \code{\linkS4class{KEGGPathway}}, \code{\link{parseKGML}}
 }
 \author{
-Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
+Ludwig Geistlinger
 }

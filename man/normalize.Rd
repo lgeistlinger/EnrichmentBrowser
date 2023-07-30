@@ -125,5 +125,5 @@ EDASeq package for normalization of RNA-seq data;
 \code{varianceStabilizingTransformation} from the DESeq2 package.
 }
 \author{
-Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
+Ludwig Geistlinger
 }

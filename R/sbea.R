@@ -145,7 +145,7 @@ sbeaMethods <- function()
 #' be detailedly explored by calling \code{\link{eaBrowse}} and from which a
 #' flat gene set ranking can be extracted by calling \code{\link{gsRanking}}.
 #' If 'out.file' is given, the ranking is written to the specified file.
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @author Ludwig Geistlinger
 #' @seealso Input: \code{\link{readSE}}, \code{\link{probe2gene}}
 #' \code{\link{getGenesets}} to retrieve gene sets from databases such as GO 
 #' and KEGG.

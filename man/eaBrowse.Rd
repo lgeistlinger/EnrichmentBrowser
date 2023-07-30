@@ -89,5 +89,5 @@ result object and to detailedly explore it.
 \code{\link{combResults}}
 }
 \author{
-Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
+Ludwig Geistlinger
 }

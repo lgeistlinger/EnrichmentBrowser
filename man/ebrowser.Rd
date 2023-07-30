@@ -231,5 +231,5 @@ Limma User's guide:
 \code{\link{eaBrowse}} for exploration of resulting gene sets
 }
 \author{
-Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
+Ludwig Geistlinger
 }

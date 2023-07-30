@@ -225,5 +225,5 @@ Other: \code{\link{nbea}} to perform network-based enrichment analysis.
 \code{\link{combResults}} to combine results from different methods.
 }
 \author{
-Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
+Ludwig Geistlinger
 }

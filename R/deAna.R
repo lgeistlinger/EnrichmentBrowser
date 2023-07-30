@@ -62,7 +62,7 @@
 #' and derived p-values in the 2nd column.  If 'expr' is a
 #' \code{\linkS4class{SummarizedExperiment}}, the DE-table will be
 #' automatically appended to the \code{\link{rowData}} slot.
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @author Ludwig Geistlinger
 #' @seealso \code{\link{readSE}} for reading expression data from file,
 #' \code{\link{normalize}} for normalization of expression data,
 #' \code{\link{voom}} for preprocessing of RNA-seq data, \code{\link{p.adjust}}

@@ -26,7 +26,7 @@
 #' is not null): should output files be zipped?
 #' @return if(is.null(out.dir)): a list of KEGGPathway objects else: none, as
 #' pathways are written to file
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @author Ludwig Geistlinger
 #' @seealso \code{\link{keggList}}, \code{\link{keggGet}},
 #' \code{\linkS4class{KEGGPathway}}, \code{\link{parseKGML}}
 #' @examples

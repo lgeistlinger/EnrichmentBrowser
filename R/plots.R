@@ -15,7 +15,7 @@
 #' visibility of expression differences between sample groups? Defaults to
 #' TRUE.
 #' @return None, plots to a graphics device.
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @author Ludwig Geistlinger
 #' @seealso \code{\link{deAna}} for differential expression analysis,
 #' \code{ComplexHeatmap::Heatmap}, and \code{\link{hist}} for generic plotting.
 #' @examples

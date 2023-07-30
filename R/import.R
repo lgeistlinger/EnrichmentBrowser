@@ -72,7 +72,7 @@
 #' the organism under investigation in KEGG three letter code (e.g. "hsa" for
 #' Homo sapiens) \item metadata slot named "dataType" indicating the expression
 #' data type ("ma" for microarray, "rseq" for RNA-seq). }
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @author Ludwig Geistlinger
 #' @seealso \code{\link{readSE}} for reading expression data from file,
 #' \code{\link{normalize}} for normalization of expression data,
 #' \code{\link{voom}} for preprocessing of RNA-seq data, \code{\link{p.adjust}}

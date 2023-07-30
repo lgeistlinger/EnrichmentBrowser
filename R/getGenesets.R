@@ -83,7 +83,7 @@
 #' For \code{showAvailableSpecies} and \code{showAvailableCollections}: 
 #' a \code{\linkS4class{DataFrame}}, displaying supported species and
 #' available gene set collections for a gene set database of choice.
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @author Ludwig Geistlinger
 #' @seealso the \code{GO.db} package for GO2gene mapping used in
 #' 'GO.db' mode, and the biomaRt package for general queries to BioMart. 
 #' 

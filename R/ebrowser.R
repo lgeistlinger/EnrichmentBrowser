@@ -77,7 +77,7 @@
 #' @return If is.null(value) this returns the value of the selected
 #' configuration parameter.  Otherwise, it updates the selected parameter with
 #' the given value.
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @author Ludwig Geistlinger
 #' @examples
 #' 
 #'     # getting config information
@@ -257,7 +257,7 @@ configEBrowser <- function(key, value=NULL)
 #' See \code{?configEBrowser} to change the location. 
 #' If \code{browse=TRUE}, the HTML report will automatically be opened in 
 #' the default browser.
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @author Ludwig Geistlinger
 #' @seealso \code{\link{readSE}} to read expression data from file;
 #' \code{\link{probe2gene}} to transform probe to gene level expression;
 #' \code{\link{kegg.species.code}} maps species name to KEGG code.

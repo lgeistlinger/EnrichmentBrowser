@@ -66,7 +66,7 @@
 #' Defaults to TRUE.
 
 #' @return An object of class \code{\linkS4class{SummarizedExperiment}}.
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @author Ludwig Geistlinger
 #'
 #' @references
 #' Harrison (2015) Anscombe's 1948 variance stabilizing transformation for

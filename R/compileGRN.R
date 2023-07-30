@@ -51,7 +51,7 @@
 #' regulator) and \code{TO} (the regulated gene) are guaranteed.  Additional
 #' columns, named \code{TYPE} and \code{LONG.TYPE}, are included if option
 #' \code{act.inh} or \code{keep.type} is activated.
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @author Ludwig Geistlinger
 #' @seealso \code{\link{pathwayDatabases}}, \code{\link{pathways}},
 #' \code{\linkS4class{KEGGPathway}}, \code{\link{parseKGML}},
 #' \code{\link{downloadPathways}}

@@ -79,5 +79,5 @@ Results") \item NR.SHOW: maximum number of entries to show (default: 20) }
 
 }
 \author{
-Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
+Ludwig Geistlinger
 }

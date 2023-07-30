@@ -40,7 +40,7 @@
 #' @param show.scores Logical. Should consistency scores of the edges be 
 #' displayed? Defaults to FALSE.
 #' @return None, plots to a graphics device.
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @author Ludwig Geistlinger
 #' @seealso \code{\link{nbea}} to perform network-based enrichment analysis.
 #' \code{\link{eaBrowse}} for exploration of resulting gene sets.
 #' @examples

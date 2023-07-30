@@ -52,7 +52,7 @@
 #' @return An enrichment analysis result list that can be detailedly explored
 #' by calling \code{\link{eaBrowse}} and from which a flat gene set ranking
 #' can be extracted by calling \code{\link{gsRanking}}.
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @author Ludwig Geistlinger
 #' @seealso \code{\link{sbea}}, \code{\link{nbea}}, \code{\link{eaBrowse}}
 #' @examples
 #' 

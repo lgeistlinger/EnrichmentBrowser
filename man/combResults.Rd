@@ -99,5 +99,5 @@ includes the computation of average gene set ranks across methods.
 \code{\link{sbea}}, \code{\link{nbea}}, \code{\link{eaBrowse}}
 }
 \author{
-Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
+Ludwig Geistlinger
 }

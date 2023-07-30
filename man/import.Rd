@@ -182,5 +182,5 @@ limma, \code{\link{glmQLFit}} for DE analysis with edgeR, and
 \code{DESeq} for DE analysis with DESeq2.
 }
 \author{
-Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
+Ludwig Geistlinger
 }

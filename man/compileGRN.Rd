@@ -75,5 +75,5 @@ network from regulations in pathway databases such as KEGG.
 \code{\link{downloadPathways}}
 }
 \author{
-Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
+Ludwig Geistlinger
 }

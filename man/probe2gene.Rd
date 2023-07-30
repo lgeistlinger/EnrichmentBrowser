@@ -84,5 +84,5 @@ summarizing all probes that are annotated to a particular gene.
 \code{\link{deAna}} for differential expression analysis.
 }
 \author{
-Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
+Ludwig Geistlinger
 }

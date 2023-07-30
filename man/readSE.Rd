@@ -73,5 +73,5 @@ annotation requirements for the colData and rowData slots.
 \code{\linkS4class{SummarizedExperiment}}
 }
 \author{
-Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
+Ludwig Geistlinger
 }

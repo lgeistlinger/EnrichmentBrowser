@@ -135,5 +135,5 @@ KEGG Organism code
 \code{\link{keytypes}}
 }
 \author{
-Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
+Ludwig Geistlinger
 }

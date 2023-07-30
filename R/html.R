@@ -50,7 +50,7 @@
 #' See \code{?configEBrowser} to change the location. 
 #' If \code{html.only=FALSE}, the HTML report will automatically be opened in 
 #' your default browser.
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @author Ludwig Geistlinger
 #' @seealso \code{\link{sbea}}, \code{\link{nbea}},
 #' \code{\link{combResults}}
 #' @examples

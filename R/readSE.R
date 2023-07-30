@@ -50,7 +50,7 @@
 #' can then cause several issues in the downstream analysis) } Defaults to
 #' 'mean'.
 #' @return An object of class \code{\linkS4class{SummarizedExperiment}}.
-#' @author Ludwig Geistlinger <Ludwig.Geistlinger@@sph.cuny.edu>
+#' @author Ludwig Geistlinger
 #' @seealso \code{\linkS4class{SummarizedExperiment}}
 #' @examples
 #' 

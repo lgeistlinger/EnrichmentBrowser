@@ -3,7 +3,7 @@
 # author: Ludwig Geistlinger
 # date: 2015-06-23 10:25:54
 # 
-# descr: 
+# descr: configuration
 # 
 ############################################################
 

@@ -182,5 +182,5 @@ server.
 \code{msigdbr::msigdbr} for obtaining gene sets from the MSigDB.
 }
 \author{
-Ludwig Geistlinger <Ludwig.Geistlinger@sph.cuny.edu>
+Ludwig Geistlinger
 }

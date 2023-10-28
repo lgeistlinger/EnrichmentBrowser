@@ -51,6 +51,8 @@ downloadPathways <- function(org, cache=TRUE, out.dir=NULL, zip=FALSE)
         function(pwy)
         {
             message(pwy)
+            ind <- which(names(pwys) == pwy)
+            if(ind == round(length(pwys) / 2)) Sys.sleep(10) 
             pwy <- sub("^path:", "", pwy)
             kgml <- KEGGREST::keggGet(pwy, "kgml")
             return(kgml)

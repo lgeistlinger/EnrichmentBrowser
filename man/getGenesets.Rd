@@ -77,7 +77,9 @@ For \code{db = "msigdb":} \itemize{ \item cat: Character.
 MSigDB collection category: 'H' (hallmark), 
 'C1' (genomic position), 'C2' (curated databases), 'C3' (binding site motifs),
 'C4' (computational cancer), 'C5' (Gene Ontology), 'C6' (oncogenic), 
-'C7' (immunologic), 'C8' (cell type). See references. 
+'C7' (immunologic), 'C8' (cell type). Note that MSigDB has designated
+collections for mouse named 'MH' (hallmark), 'M1' (genomic position),
+'M2' (curated databases), and so on. See references.
 \item subcat: Character. MSigDB collection subcategory. Depends on the
 chosen MSigDB collection category. For example, 'MIR' to obtain microRNA targets
 from the 'C3' collection. See references.}
@@ -137,7 +139,7 @@ the gene set. See references.
     showAvailableSpecies(db = "msigdb")
 
     # list available gene set collections in the MSigDB
-    showAvailableCollections(db = "msigdb") 
+    showAvailableCollections(org = "mmu", db = "msigdb") 
 
     # (4) Obtaining gene sets from Enrichr
     tfppi.gs <- getGenesets(org = "hsa", db = "enrichr", 

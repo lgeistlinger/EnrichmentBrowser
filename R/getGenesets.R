@@ -68,7 +68,9 @@
 #' MSigDB collection category: 'H' (hallmark), 
 #' 'C1' (genomic position), 'C2' (curated databases), 'C3' (binding site motifs),
 #' 'C4' (computational cancer), 'C5' (Gene Ontology), 'C6' (oncogenic), 
-#' 'C7' (immunologic), 'C8' (cell type). See references. 
+#' 'C7' (immunologic), 'C8' (cell type). Note that MSigDB has designated
+#' collections for mouse named 'MH' (hallmark), 'M1' (genomic position),
+#' 'M2' (curated databases), and so on. See references.
 #' \item subcat: Character. MSigDB collection subcategory. Depends on the
 #' chosen MSigDB collection category. For example, 'MIR' to obtain microRNA targets
 #' from the 'C3' collection. See references.}
@@ -133,7 +135,7 @@
 #'     showAvailableSpecies(db = "msigdb")
 #'
 #'     # list available gene set collections in the MSigDB
-#'     showAvailableCollections(db = "msigdb") 
+#'     showAvailableCollections(org = "mmu", db = "msigdb") 
 #'
 #'     # (4) Obtaining gene sets from Enrichr
 #'     tfppi.gs <- getGenesets(org = "hsa", db = "enrichr", 
@@ -205,7 +207,7 @@ showAvailableCollections <- function(org,
     db <- match.arg(db)
     if(db == "kegg") .keggCollections()
     else if(db == "go") .goCollections()
-    else if(db == "msigdb") .msigdbCollections()
+    else if(db == "msigdb") .msigdbCollections(org)
     else .enrichrLibs(.org2enrichr(org), cache)
 }
 
@@ -353,12 +355,14 @@ writeGMT <- function(gs, gmt.file)
 # MSigDB
 #
 .getMSigDb <- function(org, gene.id.type, cache, return.type,
-                        cat = c("H", paste0("C", 1:8)), 
-                        subcat = NA)
+                       cat = c("H", paste0("C", 1:8),
+                               "MH", paste0("M", c(1:3, 5, 7:8))),
+                       subcat = NA)
 {
     isAvailable("msigdbr", type = "software")
     cat <- cat[1]
-    supp.cats <- unique(msigdbr::msigdbr_collections()$gs_cat)
+    dorg <- ifelse(org == "mmu", "MM", "HS")
+    supp.cats <- unique(msigdbr::msigdbr_collections(dorg)$gs_collection)
     if(!is.character(cat) || !(cat %in% supp.cats))
         stop(gettextf("'cat' should be one of %s", 
                       paste(dQuote(supp.cats), collapse = ", ")), domain = NA)
@@ -380,9 +384,10 @@ writeGMT <- function(gs, gmt.file)
 
     if(!(morg %in% msigdbr::msigdbr_species()$species_name)) 
         stop("Organism not supported")
-
-    df <- msigdbr::msigdbr(morg, cat, subcat)
-    gs <- split(as.character(df$entrez_gene), df$gs_id)
+    
+    scat <- if(is.na(subcat)) NULL else subcat
+    df <- msigdbr::msigdbr(dorg, morg, cat, scat)
+    gs <- split(as.character(df$ncbi_gene), df$gs_id)
     gs.names <- unique(df$gs_name)
     gs.ids <- unique(df$gs_id)
     gs.names <- paste(gs.ids, gs.names, sep = "_")
@@ -391,8 +396,10 @@ writeGMT <- function(gs, gmt.file)
     
     if(return.type == "GeneSetCollection")
     {
+        if(grepl("^M", cat)) 
+            cat <- sub("^M", ifelse(grepl("H$", cat), "", "C"), cat)
         ct <- BroadCollection(category = tolower(cat), 
-                                subCategory = tolower(subcat))
+                              subCategory = tolower(subcat))
         titles <- vapply(names(gs), .extractTitle, character(1))
         gs <- .makeGSC(gs, titles, org, ct)        
     }
@@ -426,24 +433,11 @@ writeGMT <- function(gs, gmt.file)
     return(morgs)
 }
 
-.msigdbCollections <- function()
+.msigdbCollections <- function(org)
 {
     isAvailable("msigdbr", type = "software")
-    DataFrame(msigdbr::msigdbr_collections())    
-#    msdb.colls <- "msigdb.collects" 
-#    if(cache)
-#    {
-#        colls <- .getResourceFromCache(msdb.colls)
-#        if(!is.null(colls)) return(colls)
-#    }
-#    df <- msigdbr::msigdbr()[,c("gs_cat", "gs_subcat")]
-#    df <- as.data.frame(unique(df))
-#    df <- df[do.call(order, df),]
-#    rownames(df) <- NULL
-#    colnames(df) <- sub("^gs_", "", colnames(df))
-#    df <- DataFrame(df)
-#    .cacheResource(df, msdb.colls)
-#    return(df)
+    dorg <- ifelse(org == "mmu", "MM", "HS")
+    DataFrame(msigdbr::msigdbr_collections(dorg))    
 }
 
 #

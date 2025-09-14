@@ -396,8 +396,6 @@ writeGMT <- function(gs, gmt.file)
     
     if(return.type == "GeneSetCollection")
     {
-        if(grepl("^M", cat)) 
-            cat <- sub("^M", ifelse(grepl("H$", cat), "", "C"), cat)
         ct <- BroadCollection(category = tolower(cat), 
                               subCategory = tolower(subcat))
         titles <- vapply(names(gs), .extractTitle, character(1))

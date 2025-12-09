@@ -386,7 +386,7 @@ writeGMT <- function(gs, gmt.file)
         stop("Organism not supported")
     
     scat <- if(is.na(subcat)) NULL else subcat
-    df <- msigdbr::msigdbr(dorg, morg, cat, scat)
+    df <- msigdbr::msigdbr(species = morg, db_species = dorg, collection = cat, subcollection = scat)
     gs <- split(as.character(df$ncbi_gene), df$gs_id)
     gs.names <- unique(df$gs_name)
     gs.ids <- unique(df$gs_id)
